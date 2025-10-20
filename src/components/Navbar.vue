@@ -8,6 +8,7 @@
           <li><a href="#">Главная</a></li>
           <li><a href="#">О нас</a></li>
           <li><a href="#">Контакты</a></li>
+          <li><a href="#">Login</a></li>
         </ul>
 
         <button class="nav-toggler" @click="toggleNav">

@@ -2,9 +2,12 @@
   <div class="home-page">
     <section class="hero-section">
       <div class="hero-content">
-        <h1>Найди свой автомобиль</h1>
-        <p>Лучшие предложения рядом с тобой</p>
+        <h1></h1>
+        <p></p>
       </div>
+    </section>
+    <section >
+        
     </section>
   </div>
 </template>
