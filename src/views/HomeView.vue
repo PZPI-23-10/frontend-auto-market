@@ -1,6 +1,9 @@
 <template>
   <div class="home-page">
-    <section class="hero-section">
+    <section 
+      class="hero-section" 
+      :style="{ backgroundImage: 'url(' + currentCarImage + ')' }"
+    >
       <div class="container hero-container">
         
         <div class="hero-content">
@@ -19,7 +22,7 @@
               <label for="brand">BRAND</label>
               <select id="brand" name="brand">
                 <option value="">Brand*</option>
-                </select>
+              </select>
             </div>
             <div class="form-group">
               <label for="model">MODEL</label>
@@ -44,7 +47,30 @@
     </section>
   </div>
 </template>
+<script setup>
+import { ref } from 'vue';
+
+import carImage1 from '@/assets/car-header1.jpg'; // Ваш текущий фон
+import carImage2 from '@/assets/car-header2.jpg'; // Если есть другое изображение
+
+// Создайте массив изображений, чтобы потом легко их переключать
+const carImages = [
+  carImage1,
+   carImage2, // Раскомментируйте, если добавите carImage2
+  // carImage3, // И так далее
+];
+
+const currentCarImage = ref(carImages[0]); 
+
+ setInterval(() => {
+  const currentIndex = carImages.indexOf(currentCarImage.value);
+  const nextIndex = (currentIndex + 1) % carImages.length;
+   currentCarImage.value = carImages[nextIndex];
+   }, 5000); // Меняйте изображение каждые 5 секунд
+
+</script>
 <style scoped>
+
 .home-page {
   width: 100%;
   margin: 0;
@@ -52,15 +78,15 @@
 
 .hero-section {
   min-height: 100vh; /* Используем min-height */
-  background-image: url('src/assets/car-header1.jpg');
-  background-size: cover;
+background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   color: white;
   position: relative;
-  padding-top: 5px; /* Добавлен отступ от вашей шапки */
+  padding-top: 5px;
   padding-bottom: 5px;
+  transition: background-image 0.7s ease-in-out;
 }
 
 .hero-section::before {

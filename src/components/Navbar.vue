@@ -2,12 +2,13 @@
   <header class="navbar-area">
     <div class="container">
       <nav class="site-navbar">
-        <a href="#" class="site-logo">
+        <a href="/" class="site-logo">
           <img src="@/assets/Logo/logo.png" alt="AutoMarket Logo" class="logo-img" />
         </a>
 
         <ul :class="{ open: isOpen }" class="main-nav">
-          <li class="navbar-dropdown">
+          
+          <li v-if="!isAuthPage" class="navbar-dropdown">
             <a href="#">Хто Ми Такі</a>
             <ul class="dropdown-content">
               <li><a href="#">Про нас</a></li>
@@ -15,10 +16,12 @@
               <li><a href="#">Відгуки</a></li>
             </ul>
           </li>
-          <li class="navbar-dropdown">
+          
+          <li v-if="!isAuthPage" class="navbar-dropdown">
             <a href="#">Новини</a>
           </li>
-          <li class="navbar-dropdown"><a href="#">Магазин</a>
+          
+          <li v-if="!isAuthPage" class="navbar-dropdown"><a href="#">Магазин</a>
             <ul class="dropdown-content">
               <li><a href="#">Усі машини</a></li>
               <li><a href="#">Електричні</a></li>
@@ -30,11 +33,12 @@
           <li class="navbar-dropdown lang-mobile">
             <a href="#">Мова</a>
             <ul class="dropdown-content">
-              <li><a href="#">Українська</a></li>
-              <li><a href="#">English</a></li>
+              <li><a href="#" @click.prevent="changeLanguage('ua')">Українська</a></li>
+              <li><a href="#" @click.prevent="changeLanguage('en')">English</a></li>
             </ul>
           </li>
-          <li class="login-mobile"><a href="#">Увійти</a></li>
+
+          <li class="login-mobile"><router-link to="/login">Увійти</router-link></li>
         </ul>
         
         <div class="navbar-right">
@@ -45,12 +49,12 @@
                 <img src="@/assets/Logo/world.png" alt="Language" class="world-img" />
               </a>
               <ul class="dropdown-content dropdown-right">
-                <li><a href="#">Українська</a></li>
-                <li><a href="#">English</a></li>
+                <li><a href="#" @click.prevent="changeLanguage('ua')">Українська</a></li>
+                <li><a href="#" @click.prevent="changeLanguage('en')">English</a></li>
               </ul>
             </li>
 
-            <li class="login-desktop"><a href="#">Увійти</a></li>
+            <li class="login-desktop"><router-link to="/login">Увійти</router-link></li>
           </ul>
           <button class="nav-toggler" @click="toggleNav">
             <span></span>
@@ -61,13 +65,28 @@
   </header>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
 const isOpen = ref(false)
+const route = useRoute()
+const router = useRouter()
 
 function toggleNav() {
   isOpen.value = !isOpen.value
 }
-</script><style scoped>
+
+// Пути, на которых прячем меню
+const hideNavPaths = ['/login', '/register'] 
+const isAuthPage = computed(() => {
+  return hideNavPaths.includes(route.path)
+})
+
+function changeLanguage(lang) {
+  alert(`Выбрана мова: ${lang}`)
+}
+</script>
+<style scoped>
 .logo-img {
   width: 140px; 
   margin-top:20px ; 
@@ -95,7 +114,7 @@ body {
 }
 
 .navbar-area {
-  position: absolute;
+  position: absolute    ;
   top: 0;
   left: 0;
   width: 100%;
