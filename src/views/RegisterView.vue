@@ -42,6 +42,9 @@
           <label>Last Name</label>
           <input v-model="lastName" type="text" placeholder="Last Name" />
 
+          <label>Date of Birth</label>
+          <input v-model="dateOfBirth" type="date" placeholder="Date of Birth" />
+
           <label>Country</label>
           <select v-model="personalCountry" class="country-select">
             <option v-for="country in countries" :key="country.code" :value="country.code">
@@ -94,15 +97,22 @@
 <script setup>
 import { ref, nextTick, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/store/auth'
+import { useToast } from 'vue-toastification'
 
 const router = useRouter()
+const { setAuthData } = useAuth()
+const toast = useToast()
 const currentStep = ref(1)
+
+const API_URL = 'http://26.113.169.209:5292/api/Account/register';
 
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const firstName = ref('')
 const lastName = ref('')
+const dateOfBirth = ref('')
 const personalCountry = ref('UA')
 const phoneCountry = ref('380')
 const phone = ref('')
@@ -143,21 +153,41 @@ function updateFormHeight() {
   }
 }
 
+function isValidEmail(email) {
+  const re = /\S+@\S+\.\S+/;
+  return re.test(email);
+}
+
 function nextStep() {
+  // --- Валідація Кроку 1 ---
   if (currentStep.value === 1) {
-    if (!email.value || !password.value || !confirmPassword.value) {
-      alert('Заповніть усі поля')
+    if (!isValidEmail(email.value)) {
+      toast.warning('Будь ласка, введіть коректний Email.') 
+      return
+    }
+    const invalidPasswordRegex = /[а-яіїєґА-ЯІЇЄҐ\s]/; 
+    if (invalidPasswordRegex.test(password.value)) {
+      toast.warning('Пароль не може містити кирилицю або пробіли.');
+      return; 
+    }
+    if (password.value.length < 5 || password.value.length > 20) {
+      toast.warning('Пароль має бути від 5 до 20 символів.') 
       return
     }
     if (password.value !== confirmPassword.value) {
-      alert('Паролі не співпадають')
+      toast.warning('Паролі не співпадають.') 
       return
     }
   }
   
+  // --- Валідація Кроку 2 ---
   if (currentStep.value === 2) {
-    if (!firstName.value || !lastName.value) {
-      alert('Заповніть імʼя та прізвище')
+    if (!firstName.value || !lastName.value || !dateOfBirth.value) {
+      toast.warning('Заповніть імʼя, прізвище та дату народження.') 
+      return
+    }
+    if (!phone.value || !/^\d+$/.test(phone.value)) {
+      toast.warning('Будь ласка, введіть коректний номер телефону (тільки цифри).') 
       return
     }
   }
@@ -169,15 +199,62 @@ function prevStep() {
   if (currentStep.value > 1) currentStep.value--
 }
 
-function submitForm() {
-  console.log('Form submitted:', {
+async function completeRegistration() {
+  
+  const fullPhoneNumber = `+${phoneCountry.value}${phone.value}`;
+  const isoDateOfBirth = new Date(dateOfBirth.value).toISOString();
+  
+  const payload = {
     email: email.value,
     firstName: firstName.value,
     lastName: lastName.value,
-    country: selectedCountry.value,
-    phone: phone.value,
-    address: address.value
-  })
+    country: personalCountry.value,
+    dateOfBirth: isoDateOfBirth,
+    password: password.value,
+    phoneNumber: fullPhoneNumber,
+    address: address.value || '',
+    aboutYourself: '' 
+  };
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Помилка ${response.status}`);
+    }
+
+    const responseText = await response.text();
+
+    if (!responseText) {
+      toast.success('Реєстрація успішна! Тепер ви можете увійти.');
+      router.push('/login'); 
+      return; 
+    }
+
+    const data = JSON.parse(responseText); 
+
+    if (!data.accessToken || !data.userId) {
+      toast.success('Реєстрація успішна! Тепер ви можете увійти.'); 
+      router.push('/login');
+      return; 
+    }
+
+    // Успішний авто-логін
+    setAuthData(data.userId, data.accessToken);
+    toast.success(`Вітаємо, ${firstName.value}!`); 
+    router.push('/');
+
+  } catch (error) {
+    console.error('Помилка реєстрації:', error);
+    toast.error(`Сталася помилка: ${error.message}`); 
+  }
 }
 </script>
 <style scoped>

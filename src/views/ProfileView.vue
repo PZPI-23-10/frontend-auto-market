@@ -161,7 +161,15 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '@/store/auth';
+import { useToast } from 'vue-toastification';
 import defaultAvatar from '@/assets/default-avatar.png';
+
+const toast = useToast();
+const API_BASE_URL = 'http://26.113.169.209:5292/api/Account';
+const router = useRouter();
+const { userId, token, clearAuthData } = useAuth();
 
 // --- Дані для Select'ів ---
 const countries = ref([
@@ -173,6 +181,7 @@ const countries = ref([
 ]);
 
 // --- Стан компонента ---
+const activeTab = ref('profile');
 const user = ref({
   firstName: '',
   lastName: '',
@@ -182,10 +191,10 @@ const user = ref({
   country: 'UA',
   address: '',
   birthday: '',
-  bio: '',
-  avatarUrl: null
+  bio: '',        
+  avatarUrl: null 
 });
-const activeTab = ref('profile');
+
 const passwordForm = ref({
   currentPassword: '',
   newPassword: '',
@@ -202,52 +211,177 @@ const fullName = computed(() => {
   return `${user.value.firstName} ${user.value.lastName}`;
 });
 
-// --- Хук життєвого циклу ---
-onMounted(() => {
-  // Мок-дані для демонстрації
-  user.value = {
-    firstName: 'Олександр',
-    lastName: 'Іваненко',
-    email: 'user@example.com',
-    phoneCode: '380',
-    phoneNumber: '991234567',
-    country: 'UA',
-    address: 'м. Київ, вул. Хрещатик, 1',
-    birthday: '1990-05-15',
-    bio: 'Розробник програмного забезпечення з Києва.',
-    avatarUrl: null 
-  };
+onMounted(async () => {
+  // Перевіряємо, чи користувач увійшов
+  if (!userId.value || !token.value) {
+    toast.error('Ви не увійшли в систему. Перенаправляємо на сторінку логіну.');
+    router.push('/login');
+    return;
+  } 
+
+  try {
+      const response = await fetch(`${API_BASE_URL}?userId=${userId.value}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token.value}` 
+        }
+      });    
+    if (!response.ok) {
+      throw new Error('Не вдалося завантажити профіль. Можливо, сесія застаріла.');
+    }
+    
+    const data = await response.json();
+
+    user.value.firstName = data.firstName || '';
+    user.value.lastName = data.lastName || '';
+    user.value.email = data.email || '';
+    user.value.address = data.address || '';
+    user.value.bio = data.aboutYourself || ''; 
+    user.value.avatarUrl = data.urlPhoto || null; 
+    user.value.country = data.country || 'UA';
+    
+    // Форматуємо дату (API '...T00:00:00' -> Vue 'YYYY-MM-DD')
+    if (data.dateOfBirth) {
+      user.value.birthday = data.dateOfBirth.split('T')[0];
+    }
+    
+    // [МАПІНГ] Розбиваємо повний номер телефону (+380...) на код і номер
+    const fullPhone = data.phoneNumber || '';
+    let foundCode = false;
+    
+    // Сортуємо коди від найдовшого, щоб +380 не спрацював раніше за +38099
+    const sortedCountries = [...countries.value].sort((a, b) => b.phoneCode.length - a.phoneCode.length);
+    
+    for (const country of sortedCountries) {
+      const codeWithPlus = `+${country.phoneCode}`;
+      if (fullPhone.startsWith(codeWithPlus)) {
+        user.value.phoneCode = country.phoneCode;
+        user.value.phoneNumber = fullPhone.substring(codeWithPlus.length);
+        foundCode = true;
+        break;
+      }
+    }
+    
+    if (!foundCode) {
+       user.value.phoneNumber = fullPhone.replace('+', '');
+    }
+
+  } catch (error) {
+    console.error('Помилка завантаження профілю:', error);
+    toast.error(error.message);
+    clearAuthData();
+    router.push('/login');
+  }
 });
 
 // --- Методи ---
-function saveProfile() {
-  console.log('Збереження профілю...', user.value);
-  alert('Профіль оновлено!');
+async function saveProfile() {
+  
+  // --- НОВА ЛОГІКА ДЛЯ АВАТАРА ---
+  // Ми не можемо відправити гігантський base64-рядок на сервер.
+  // Ми відправимо `null` (або `""`), якщо користувач ТІЛЬКИ ЩО
+  // завантажив нове фото (яке ще не на сервері).
+  
+  let photoPayload = user.value.avatarUrl;
+  
+  // Якщо avatarUrl - це нове base64-фото...
+  if (photoPayload && photoPayload.startsWith('data:image')) {
+    // ...ми не можемо його відправити.
+    // TODO: В майбутньому тут має бути логіка завантаження файлу.
+    // А поки що, ми просто не будемо оновлювати фото.
+    photoPayload = null; // (Або подивіться крок 2 нижче)
+  }
+
+  const payload = {
+    firstName: user.value.firstName,
+    lastName: user.value.lastName,
+    phoneNumber: `+${user.value.phoneCode}${user.value.phoneNumber}`,
+    dateOfBirth: new Date(user.value.birthday).toISOString(), 
+    address: user.value.address,
+    country: user.value.country,
+    aboutYourself: user.value.bio,
+
+    // --- 1. ВИРІШЕННЯ "UrlPhoto is required" ---
+    // (Розкоментуйте цей рядок)
+    urlPhoto: photoPayload || "", // Надсилаємо поточний URL або ""
+
+    // --- 2. ВИРІШЕННЯ "Password is required" ---
+    password: "" // Надсилаємо "" замість null
+  };
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/edit`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token.value}`
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) {
+       const errorText = await response.text();
+       throw new Error(errorText || 'Помилка збереження');
+    }
+
+    toast.success('Профіль оновлено!');
+
+  } catch (error) {
+     console.error('Помилка збереження профілю:', error);
+     toast.error(`Не вдалося зберегти: ${error.message}`);
+  }
 }
 
-function changePassword() {
+async function changePassword() {
   if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    alert('Нові паролі не співпадають!');
+    toast.warning('Нові паролі не співпадають!');
     return;
   }
-  console.log('Зміна пароля...', passwordForm.value);
-  alert('Пароль успішно змінено!');
-  passwordForm.value = {
-    currentPassword: '', newPassword: '', confirmPassword: ''
+  
+
+const payload = {
+    firstName: user.value.firstName,
+    lastName: user.value.lastName,
+    phoneNumber: `+${user.value.phoneCode}${user.value.phoneNumber}`,
+    dateOfBirth: new Date(user.value.birthday).toISOString(),
+    address: user.value.address || "", 
+    country: user.value.country,
+    aboutYourself: user.value.bio || "", 
+    
+    // Переконуємося, що відправляємо URL або ""
+    urlPhoto: (user.value.avatarUrl && !user.value.avatarUrl.startsWith('data:image')) 
+              ? user.value.avatarUrl 
+              : "",
+
+    password: passwordForm.value.newPassword
   };
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/edit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 
+                 'Authorization': `Bearer ${token.value}`},
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) {
+       const errorText = await response.text();
+       throw new Error(errorText || 'Помилка зміни пароля');
+    }
+
+    toast.success('Пароль успішно змінено!');
+    passwordForm.value = {
+      currentPassword: '', newPassword: '', confirmPassword: ''
+    };
+    
+  } catch (error) {
+     console.error('Помилка зміни пароля:', error);
+     toast.error(`Не вдалося змінити пароль: ${error.message}`);
+  }
 }
 
-/**
- * НОВА ФУНКЦІЯ
- * Обробник для "Забули пароль?"
- */
 function forgotPassword() {
-  // TODO: Тут буде логіка для відновлення пароля
-  // (наприклад, перехід на сторінку /forgot-password 
-  // або показ модального вікна)
-  
-  alert('Зараз відбудеться перехід на сторінку відновлення пароля (поки не реалізовано).');
-  // router.push('/forgot-password'); // Якщо у вас є такий роут
+     toast.info('Сторінка відновлення пароля ще не реалізована.');
 }
 
 // --- Методи для Аватара ---

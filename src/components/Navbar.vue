@@ -38,8 +38,18 @@
             </ul>
           </li>
 
-          <li class="login-mobile"><router-link to="/login">Увійти</router-link></li>
-        </ul>
+          <li v-if="!isLoggedIn" class="login-mobile">
+            <router-link to="/login">Увійти</router-link>
+          </li>
+          <template v-if="isLoggedIn">
+            <li class="login-mobile">
+              <router-link to="/profile">Мій Профіль</router-link>
+            </li>
+            <li class="login-mobile">
+              <a href="#" @click.prevent="handleLogout">Вийти</a>
+            </li>
+          </template>
+          </ul>
         
         <div class="navbar-right">
           <ul class="user-nav">
@@ -54,8 +64,20 @@
               </ul>
             </li>
 
-            <li class="login-desktop"><router-link to="/login">Увійти</router-link></li>
-          </ul>
+            <li v-if="!isLoggedIn" class="login-desktop">
+              <router-link to="/login">Увійти</router-link>
+            </li>
+            
+            <li v-if="isLoggedIn" class="navbar-dropdown lang-desktop">
+              <a href="#" class="lang-toggle" style="padding: 10px 15px;">
+                <span>Профіль</span> 
+              </a>
+              <ul class="dropdown-content dropdown-right">
+                <li><router-link to="/profile">Налаштування</router-link></li>
+                <li><a href="#" @click.prevent="handleLogout">Вийти</a></li>
+              </ul>
+            </li>
+            </ul>
           <button class="nav-toggler" @click="toggleNav">
             <span></span>
           </button>
@@ -64,13 +86,22 @@
     </div>
   </header>
 </template>
+
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuth } from '@/store/auth'
 
 const isOpen = ref(false)
 const route = useRoute()
 const router = useRouter()
+
+const { isLoggedIn, clearAuthData } = useAuth()
+
+function handleLogout() {
+  clearAuthData() 
+  router.push('/')
+}
 
 function toggleNav() {
   isOpen.value = !isOpen.value
@@ -86,6 +117,7 @@ function changeLanguage(lang) {
   alert(`Выбрана мова: ${lang}`)
 }
 </script>
+
 <style scoped>
 .logo-img {
   width: 140px; 
