@@ -1,12 +1,5 @@
 <template>
   <div class="login-container">
-    <!-- Кольорові круги на фоні -->
-    <div class="background">
-      <div class="shape blue"></div>
-      <div class="shape orange"></div>
-    </div>
-
-    <!-- Прогресбар зверху -->
     <div class="progressbar-wrapper">
       <ul id="progressbar">
         <li :class="{ active: currentStep >= 1 }"><span>Account Setup</span></li>
@@ -15,13 +8,11 @@
       </ul>
     </div>
 
-    <!-- Форма -->
-    <form :style="{ height: formHeight + 'px' }" ref="formRef" @submit.prevent="">
+    <form @submit.prevent="">
       <h3>Створення акаунту</h3>
 
-      <!-- Step 1 -->
       <transition name="fade-slide" mode="out-in">
-        <div v-if="currentStep === 1" ref="step1" class="step">
+        <div v-if="currentStep === 1" class="step">
           <label>Email</label>
           <input v-model="email" type="email" placeholder="Email" />
 
@@ -33,17 +24,13 @@
         </div>
       </transition>
 
-      <!-- Step 2 -->
       <transition name="fade-slide" mode="out-in">
-        <div v-if="currentStep === 2" ref="step2" class="step">
+        <div v-if="currentStep === 2" class="step">
           <label>First Name</label>
           <input v-model="firstName" type="text" placeholder="First Name" />
 
           <label>Last Name</label>
           <input v-model="lastName" type="text" placeholder="Last Name" />
-
-          <label>Date of Birth</label>
-          <input v-model="dateOfBirth" type="date" placeholder="Date of Birth" />
 
           <label>Country</label>
           <select v-model="personalCountry" class="country-select">
@@ -64,9 +51,8 @@
         </div>
       </transition>
 
-      <!-- Step 3 -->
       <transition name="fade-slide" mode="out-in">
-        <div v-if="currentStep === 3" ref="step3" class="step">
+        <div v-if="currentStep === 3" class="step">
           <label>Address (optional)</label>
           <input v-model="address" type="text" placeholder="Address" />
 
@@ -81,7 +67,6 @@
         </div>
       </transition>
 
-      <!-- Кнопки навігації для кроків 1 та 2 -->
       <div class="buttons" v-if="currentStep < 3" :class="{ single: currentStep === 1 }">
         <button v-if="currentStep > 1" type="button" class="register-btn" @click="prevStep">
           Previous
@@ -95,30 +80,22 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted, watch } from 'vue'
+import { ref } from 'vue' 
 import { useRouter } from 'vue-router'
-import { useAuth } from '@/store/auth'
-import { useToast } from 'vue-toastification'
 
 const router = useRouter()
-const { setAuthData } = useAuth()
-const toast = useToast()
 const currentStep = ref(1)
-
-const API_URL = 'http://26.113.169.209:5292/api/Account/register';
 
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const firstName = ref('')
 const lastName = ref('')
-const dateOfBirth = ref('')
 const personalCountry = ref('UA')
 const phoneCountry = ref('380')
 const phone = ref('')
 const address = ref('') 
 
-// Список країн з телефонними кодами
 const countries = ref([
   { code: 'UA', name: 'Ukraine', phoneCode: '380' },
   { code: 'US', name: 'United States', phoneCode: '1' },
@@ -126,68 +103,22 @@ const countries = ref([
   { code: 'DE', name: 'Germany', phoneCode: '49' }
 ])
 
-// Обрана країна для другого кроку
-const selectedCountry = ref(countries.value[0]) // Україна за замовчуванням
-
-const formRef = ref(null)
-const step1 = ref(null)
-const step2 = ref(null)
-const step3 = ref(null)
-const formHeight = ref(400)
-
-const stepRefs = [step1, step2, step3]
-
-onMounted(() => {
-  nextTick(() => updateFormHeight())
-})
-
-watch(currentStep, async () => {
-  await nextTick()
-  updateFormHeight()
-})
-
-function updateFormHeight() {
-  const el = stepRefs[currentStep.value - 1]?.value
-  if (el) {
-    formHeight.value = el.scrollHeight + 120
-  }
-}
-
-function isValidEmail(email) {
-  const re = /\S+@\S+\.\S+/;
-  return re.test(email);
-}
 
 function nextStep() {
-  // --- Валідація Кроку 1 ---
   if (currentStep.value === 1) {
-    if (!isValidEmail(email.value)) {
-      toast.warning('Будь ласка, введіть коректний Email.') 
-      return
-    }
-    const invalidPasswordRegex = /[а-яіїєґА-ЯІЇЄҐ\s]/; 
-    if (invalidPasswordRegex.test(password.value)) {
-      toast.warning('Пароль не може містити кирилицю або пробіли.');
-      return; 
-    }
-    if (password.value.length < 5 || password.value.length > 20) {
-      toast.warning('Пароль має бути від 5 до 20 символів.') 
+    if (!email.value || !password.value || !confirmPassword.value) {
+      alert('Заповніть усі поля')
       return
     }
     if (password.value !== confirmPassword.value) {
-      toast.warning('Паролі не співпадають.') 
+      alert('Паролі не співпадають')
       return
     }
   }
   
-  // --- Валідація Кроку 2 ---
   if (currentStep.value === 2) {
-    if (!firstName.value || !lastName.value || !dateOfBirth.value) {
-      toast.warning('Заповніть імʼя, прізвище та дату народження.') 
-      return
-    }
-    if (!phone.value || !/^\d+$/.test(phone.value)) {
-      toast.warning('Будь ласка, введіть коректний номер телефону (тільки цифри).') 
+    if (!firstName.value || !lastName.value) {
+      alert('Заповніть імʼя та прізвище')
       return
     }
   }
@@ -199,69 +130,21 @@ function prevStep() {
   if (currentStep.value > 1) currentStep.value--
 }
 
-async function completeRegistration() {
-  
-  const fullPhoneNumber = `+${phoneCountry.value}${phone.value}`;
-  const isoDateOfBirth = new Date(dateOfBirth.value).toISOString();
-  
-  const payload = {
+function completeRegistration() {
+  console.log('Form submitted:', {
     email: email.value,
     firstName: firstName.value,
     lastName: lastName.value,
-    country: personalCountry.value,
-    dateOfBirth: isoDateOfBirth,
-    password: password.value,
-    phoneNumber: fullPhoneNumber,
-    address: address.value || '',
-    aboutYourself: '' 
-  };
-
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || `Помилка ${response.status}`);
-    }
-
-    const responseText = await response.text();
-
-    if (!responseText) {
-      toast.success('Реєстрація успішна! Тепер ви можете увійти.');
-      router.push('/login'); 
-      return; 
-    }
-
-    const data = JSON.parse(responseText); 
-
-    if (!data.accessToken || !data.userId) {
-      toast.success('Реєстрація успішна! Тепер ви можете увійти.'); 
-      router.push('/login');
-      return; 
-    }
-
-    // Успішний авто-логін
-    setAuthData(data.userId, data.accessToken);
-    toast.success(`Вітаємо, ${firstName.value}!`); 
-    router.push('/');
-
-  } catch (error) {
-    console.error('Помилка реєстрації:', error);
-    toast.error(`Сталася помилка: ${error.message}`); 
-  }
+    country: personalCountry.value, 
+    phone: phone.value,
+    address: address.value
+  })
+  alert('Регистрация завершена!')
 }
-</script>
-<style scoped>
+</script><style scoped>
 /* === 1. АДАПТАЦИЯ ФОНА === */
 .login-container {
-  /* Используем тот же фон, что и на HomePage/Login */
-  background-image: url('@/assets/car-header1.jpg'); /* ‼️ Убедитесь, что путь верный */
+  background-image: url('@/assets/car-header1.jpg');
   background-size: cover;
   background-position: center;
   min-height: 100vh;
@@ -271,7 +154,7 @@ async function completeRegistration() {
   align-items: center;   
   position: relative;
   overflow: hidden;
-  padding: 40px 0; /* Отступ сверху/снизу, если форма не влезет */
+  padding: 40px 0;
 }
 .login-container::before {
   content: '';
@@ -280,14 +163,12 @@ async function completeRegistration() {
   background: rgba(0, 0, 0, 0.4); 
 }
 
-/* Старые круги убраны */
-.background {
-  display: none;
-}
+/* ‼️ НЕНУЖНЫЙ КЛАСС УДАЛЕН */
+/* .background { ... } */
 
 /* === 2. АДАПТАЦИЯ ПРОГРЕССБАРА === */
 .progressbar-wrapper {
-  font-family: 'Open Sans', sans-serif; /* ШРИФТ */
+  font-family: 'Open Sans', sans-serif;
   width: 360px;
   display: flex;
   justify-content: center;
@@ -315,13 +196,13 @@ async function completeRegistration() {
   display: block;
   margin: 0 auto 6px auto;
   border-radius: 50%;
-  background: #555; /* НЕАКТИВНЫЙ ЦВЕТ */
+  background: #555;
   border: 2px solid #555;
   transition: all 0.3s ease;
   z-index: 1;
 }
 #progressbar li.active:before {
-  background: #ffd700; /* АКТИВНЫЙ ЦВЕТ (желтый) */
+  background: #ffd700;
   border-color: #ffd700;
 }
 #progressbar li:after {
@@ -339,20 +220,19 @@ async function completeRegistration() {
   content: none;
 }
 #progressbar li.active:after {
-  background: #ffd700; /* АКТИВНЫЙ ЦВET */
+  background: #ffd700;
 }
 #progressbar li span {
   display: block;
   font-size: 11px;
   color: #fff;
   margin-top: 4px;
-  font-family: 'Open Sans', sans-serif; /* ШРИФТ */
+  font-family: 'Open Sans', sans-serif;
 }
 
 /* === 3. АДАПТАЦИЯ ФОРМЫ === */
 form {
   width: 360px;
-  /* Используем "стекло" с HomePage/Login */
   background-color: rgba(30, 30, 30, 0.7);
   border-radius: 12px;
   backdrop-filter: blur(10px);
@@ -363,13 +243,14 @@ form {
   flex-direction: column;
   align-items: center;
   z-index: 1;
-  transition: height 0.5s ease;
+  /* ‼️ УДАЛЕНА АНИМАЦИЯ ВЫСОТЫ */
+  /* transition: height 0.5s ease; */
   overflow: hidden;
   position: relative;
 }
 
 form h3 {
-  font-family: 'Open Sans', sans-serif; /* ШРИФТ */
+  font-family: 'Open Sans', sans-serif;
   font-size: 28px;
   font-weight: 500;
   text-align: center;
@@ -381,22 +262,21 @@ form h3 {
 /* === 4. АДАПТАЦИЯ ПОЛЕЙ ВВОДА === */
 label, .step label {
   width: 100%;
-  font-family: 'Open Sans', sans-serif; /* ШРИФТ */
+  font-family: 'Open Sans', sans-serif;
   color: #fff;
   margin-top: 12px;
   margin-bottom: 4px;
   font-size: 14px;
   text-align: left;
 }
-input, textarea, .country-select, .phone-country-select {
+input, .country-select, .phone-country-select { /* ‼️ УДАЛЕН textarea */
   display: block;
-  font-family: 'Open Sans', sans-serif; /* ШРИФТ */
+  font-family: 'Open Sans', sans-serif;
   width: 100%;
   max-width: 340px;
   height: 45px;
   padding: 0 10px;
   border-radius: 3px;
-  /* Стиль инпута с HomePage/Login */
   background-color: rgba(255,255,255,0.1);
   border: 1px solid #555;
   font-size: 14px;
@@ -408,21 +288,19 @@ input, textarea, .country-select, .phone-country-select {
 ::placeholder {
   color: #e5e5e5;
 }
-/* Подсветка при фокусе */
-input:focus, textarea:focus, .country-select:focus, .phone-country-select:focus {
+input:focus, .country-select:focus, .phone-country-select:focus { /* ‼️ УДАЛЕН textarea */
   border-color: #ffd700;
   box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
   outline: none;
 }
-textarea {
-  height: 70px;
-  resize: none;
-  padding: 10px;
-}
+/* ‼️ НЕНУЖНЫЕ СТИЛИ УДАЛЕНЫ */
+/*
+textarea { ... }
+*/
 
 /* === 5. АДАПТАЦИЯ КНОПОК === */
 .login-btn, .register-btn {
-  font-family: 'Open Sans', sans-serif; /* ШРИФТ */
+  font-family: 'Open Sans', sans-serif;
   width: 100%;
   max-width: 340px;
   padding: 12px 0;
@@ -433,7 +311,6 @@ textarea {
   margin-top: 15px;
   transition: 0.3s;
 }
-/* Красная кнопка (Next/Complete) */
 .login-btn {
   background-color: #cc0000;
   color: #fff;
@@ -441,7 +318,6 @@ textarea {
 .login-btn:hover {
   background-color: #aa0000;
 }
-/* Прозрачная кнопка (Previous) */
 .register-btn {
   background-color: rgba(255,255,255,0.27);
   color: #fff;
@@ -461,10 +337,9 @@ textarea {
   flex-shrink: 0;
 }
 .country-select {
-  width: 100%; /* Исправлено с 360px на 100% */
+  width: 100%;
 }
 .country-select, .phone-country-select {
-  /* Стили инпута уже применены */
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
@@ -509,6 +384,7 @@ textarea {
 .buttons.single {
   justify-content: center;
 }
+/* ‼️ ДУБЛИКАТ УДАЛЕН */
 .buttons.single .login-btn {
   max-width: 160px;
 }
