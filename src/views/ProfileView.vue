@@ -1,6 +1,7 @@
 <template>
   <div class="profile-view">
-    <h1>Налаштування</h1> <div class="profile-container">
+    <h1>Налаштування</h1> 
+    <div class="profile-container">
       
       <aside class="profile-sidebar">
         <nav class="profile-nav">
@@ -57,7 +58,7 @@
               <p v-if="user.address" class="avatar-address">
                 {{ user.address }}
               </p>
-            </div>
+              </div>
           </div>
           <input 
             type="file" 
@@ -105,7 +106,7 @@
               </div>
               <div class="form-group">
                 <label for="birthday">День народження</label>
-                <input type="date" id="birthday" v-model="user.birthday" disabled>
+                <input type="date" id="birthday" v-model="user.birthday" disabled> 
               </div>
             </div>
             <div class="form-group">
@@ -164,10 +165,11 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
-import defaultAvatar from '@/assets/default-avatar.png';
+import defaultAvatar from '@/assets/default-avatar.png'; // Перевір шлях!
+import axios from 'axios';
 
 const toast = useToast();
-const API_BASE_URL = 'http://26.113.169.209:5292/api/Account';
+const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Account';
 const router = useRouter();
 const { userId, token, clearAuthData } = useAuth();
 
@@ -190,9 +192,9 @@ const user = ref({
   phoneNumber: '',
   country: 'UA',
   address: '',
-  birthday: '',
-  bio: '',        
-  avatarUrl: null 
+  birthday: '', // Має бути 'YYYY-MM-DD'
+  bio: '',     
+  avatarUrl: null // URL або base64 для прев'ю
 });
 
 const passwordForm = ref({
@@ -201,18 +203,19 @@ const passwordForm = ref({
   confirmPassword: ''
 });
 
-const fileInput = ref(null);
+const fileInput = ref(null); // Ref для прихованого input[type=file]
+const selectedFile = ref(null); // Зберігаємо сам об'єкт File для FormData
 
-// --- Computed (Обчислювані властивості) ---
+// --- Computed Properties ---
 const fullName = computed(() => {
   if (!user.value.firstName && !user.value.lastName) {
-    return 'Ім\'я Прізвище';
+    return 'Ім\'я Прізвище'; 
   }
-  return `${user.value.firstName} ${user.value.lastName}`;
+  return `${user.value.firstName} ${user.value.lastName}`.trim(); 
 });
 
+// --- Lifecycle Hook ---
 onMounted(async () => {
-  // Перевіряємо, чи користувач увійшов
   if (!userId.value || !token.value) {
     toast.error('Ви не увійшли в систему. Перенаправляємо на сторінку логіну.');
     router.push('/login');
@@ -220,18 +223,14 @@ onMounted(async () => {
   } 
 
   try {
-      const response = await fetch(`${API_BASE_URL}?userId=${userId.value}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token.value}` 
-        }
-      });    
-    if (!response.ok) {
-      throw new Error('Не вдалося завантажити профіль. Можливо, сесія застаріла.');
-    }
+    const response = await axios.get(`${API_BASE_URL}?userId=${userId.value}`, {
+      headers: { 'Authorization': `Bearer ${token.value}` }
+    });   
     
-    const data = await response.json();
+    const data = response.data;
+    console.log("Profile data received:", data); 
 
+    // Мапінг даних
     user.value.firstName = data.firstName || '';
     user.value.lastName = data.lastName || '';
     user.value.email = data.email || '';
@@ -240,18 +239,21 @@ onMounted(async () => {
     user.value.avatarUrl = data.urlPhoto || null; 
     user.value.country = data.country || 'UA';
     
-    // Форматуємо дату (API '...T00:00:00' -> Vue 'YYYY-MM-DD')
+    // Форматування дати
     if (data.dateOfBirth) {
-      user.value.birthday = data.dateOfBirth.split('T')[0];
+      // Переконуємося, що отримуємо тільки 'YYYY-MM-DD'
+      try {
+        user.value.birthday = new Date(data.dateOfBirth).toISOString().split('T')[0];
+      } catch (e) {
+        console.error("Invalid date format received for dateOfBirth:", data.dateOfBirth);
+        user.value.birthday = ''; // або null
+      }
     }
     
-    // [МАПІНГ] Розбиваємо повний номер телефону (+380...) на код і номер
+    // Розділення телефону
     const fullPhone = data.phoneNumber || '';
     let foundCode = false;
-    
-    // Сортуємо коди від найдовшого, щоб +380 не спрацював раніше за +38099
     const sortedCountries = [...countries.value].sort((a, b) => b.phoneCode.length - a.phoneCode.length);
-    
     for (const country of sortedCountries) {
       const codeWithPlus = `+${country.phoneCode}`;
       if (fullPhone.startsWith(codeWithPlus)) {
@@ -261,146 +263,215 @@ onMounted(async () => {
         break;
       }
     }
-    
-    if (!foundCode) {
-       user.value.phoneNumber = fullPhone.replace('+', '');
+    if (!foundCode && fullPhone) {
+        user.value.phoneNumber = fullPhone.replace(/^\+/, ''); 
+        const defaultCountry = countries.value.find(c => c.code === user.value.country);
+        user.value.phoneCode = defaultCountry ? defaultCountry.phoneCode : '380'; 
     }
 
   } catch (error) {
-    console.error('Помилка завантаження профілю:', error);
-    toast.error(error.message);
-    clearAuthData();
-    router.push('/login');
+     console.error('Помилка завантаження профілю (Axios):', error);
+     let errorMessage = 'Не вдалося завантажити профіль.';
+     if (error.response) {
+       errorMessage = error.response.data?.message || error.response.data || 'Помилка сервера при завантаженні профілю.';
+       if (error.response.status === 401) {
+           clearAuthData(); 
+           router.push('/login');
+           errorMessage = 'Сесія застаріла. Будь ласка, увійдіть знову.';
+       }
+     } else if (error.request) {
+        errorMessage = 'Немає відповіді від сервера.';
+     } else {
+        errorMessage = error.message;
+     }
+     toast.error(errorMessage);
   }
 });
 
-// --- Методи ---
+// --- Methods ---
+
 async function saveProfile() {
-  
-  // --- НОВА ЛОГІКА ДЛЯ АВАТАРА ---
-  // Ми не можемо відправити гігантський base64-рядок на сервер.
-  // Ми відправимо `null` (або `""`), якщо користувач ТІЛЬКИ ЩО
-  // завантажив нове фото (яке ще не на сервері).
-  
-  let photoPayload = user.value.avatarUrl;
-  
-  // Якщо avatarUrl - це нове base64-фото...
-  if (photoPayload && photoPayload.startsWith('data:image')) {
-    // ...ми не можемо його відправити.
-    // TODO: В майбутньому тут має бути логіка завантаження файлу.
-    // А поки що, ми просто не будемо оновлювати фото.
-    photoPayload = null; // (Або подивіться крок 2 нижче)
+  // Створюємо FormData
+  const formData = new FormData();
+
+  // Додаємо текстові поля
+  formData.append('firstName', user.value.firstName);
+  formData.append('lastName', user.value.lastName);
+  formData.append('phoneNumber', `+${user.value.phoneCode}${user.value.phoneNumber}`);
+  // Надсилаємо дату народження як ISO строку (UTC)
+  if (user.value.birthday) {
+      try {
+          // Перетворюємо 'YYYY-MM-DD' в об'єкт Date і потім в ISO строку
+          formData.append('dateOfBirth', new Date(user.value.birthday).toISOString()); 
+      } catch (e) {
+          console.error("Invalid date format for birthday:", user.value.birthday);
+          toast.error("Невірний формат дати народження.");
+          return; // Зупиняємо відправку
+      }
   }
+  formData.append('address', user.value.address || ""); 
+  formData.append('country', user.value.country);
+  formData.append('aboutYourself', user.value.bio || ""); 
+  
+  // Додаємо файл, якщо він був обраний
+  if (selectedFile.value) {
+    formData.append('Photo', selectedFile.value); // Ключ "Photo" має співпадати з бекендом
+  } 
+  // НЕ додаємо urlPhoto, бекенд оновить його сам, якщо отримає файл 'Photo'
 
-  const payload = {
-    firstName: user.value.firstName,
-    lastName: user.value.lastName,
-    phoneNumber: `+${user.value.phoneCode}${user.value.phoneNumber}`,
-    dateOfBirth: new Date(user.value.birthday).toISOString(), 
-    address: user.value.address,
-    country: user.value.country,
-    aboutYourself: user.value.bio,
-
-    // --- 1. ВИРІШЕННЯ "UrlPhoto is required" ---
-    // (Розкоментуйте цей рядок)
-    urlPhoto: photoPayload || "", // Надсилаємо поточний URL або ""
-
-    // --- 2. ВИРІШЕННЯ "Password is required" ---
-    password: "" // Надсилаємо "" замість null
-  };
+  console.log("Sending profile update (FormData):", Object.fromEntries(formData.entries())); 
   
   try {
-    const response = await fetch(`${API_BASE_URL}/edit`, {
-      method: 'POST',
+    // Використовуємо PUT з FormData
+    const response = await axios.put(`${API_BASE_URL}/edit`, formData, { 
       headers: { 
-        'Content-Type': 'application/json',
+        // НЕ вказуємо Content-Type, Axios зробить це сам
         'Authorization': `Bearer ${token.value}`
-      },
-      body: JSON.stringify(payload)
+      }
     });
-    
-    if (!response.ok) {
-       const errorText = await response.text();
-       throw new Error(errorText || 'Помилка збереження');
-    }
 
-    toast.success('Профіль оновлено!');
+    toast.success('Профіль оновлено!'); 
+    
+    // Скидаємо selectedFile після успішного збереження
+    selectedFile.value = null; 
+    
+    // Опціонально: перезавантажити дані, щоб отримати нову URL фото з сервера
+    // або якщо бекенд повертає нову URL:
+    // if (response.data?.newAvatarUrl) {
+    //   user.value.avatarUrl = response.data.newAvatarUrl;
+    // }
 
   } catch (error) {
-     console.error('Помилка збереження профілю:', error);
-     toast.error(`Не вдалося зберегти: ${error.message}`);
+     console.error('Помилка збереження профілю (Axios):', error);
+     let errorMessage = 'Помилка збереження.';
+     if (error.response) {
+       errorMessage = error.response.data?.message 
+                      || error.response.data?.title 
+                      || (error.response.data?.errors ? JSON.stringify(error.response.data.errors) : 'Помилка сервера');
+     } else if (error.request) {
+       errorMessage = 'Немає відповіді від сервера.';
+     } else {
+       errorMessage = error.message;
+     }
+     toast.error(`Не вдалося зберегти: ${errorMessage}`);
   }
 }
 
-async function changePassword() {
-  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    toast.warning('Нові паролі не співпадають!');
-    return;
-  }
-  
-
-const payload = {
-    firstName: user.value.firstName,
-    lastName: user.value.lastName,
-    phoneNumber: `+${user.value.phoneCode}${user.value.phoneNumber}`,
-    dateOfBirth: new Date(user.value.birthday).toISOString(),
-    address: user.value.address || "", 
-    country: user.value.country,
-    aboutYourself: user.value.bio || "", 
-    
-    // Переконуємося, що відправляємо URL або ""
-    urlPhoto: (user.value.avatarUrl && !user.value.avatarUrl.startsWith('data:image')) 
-              ? user.value.avatarUrl 
-              : "",
-
-    password: passwordForm.value.newPassword
-  };
-  
-  try {
-    const response = await fetch(`${API_BASE_URL}/edit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 
-                 'Authorization': `Bearer ${token.value}`},
-      body: JSON.stringify(payload)
-    });
-    
-    if (!response.ok) {
-       const errorText = await response.text();
-       throw new Error(errorText || 'Помилка зміни пароля');
-    }
-
-    toast.success('Пароль успішно змінено!');
-    passwordForm.value = {
-      currentPassword: '', newPassword: '', confirmPassword: ''
-    };
-    
-  } catch (error) {
-     console.error('Помилка зміни пароля:', error);
-     toast.error(`Не вдалося змінити пароль: ${error.message}`);
-  }
-}
-
-function forgotPassword() {
-     toast.info('Сторінка відновлення пароля ще не реалізована.');
-}
-
-// --- Методи для Аватара ---
-function triggerFileUpload() {
-  fileInput.value.click();
-}
+// Функція uploadAvatar більше не потрібна
 
 function onFileSelected(event) {
   const file = event.target.files[0];
-  if (!file) return;
+  const currentInput = event.target; // Зберігаємо посилання на інпут
+
+  if (!file) {
+      selectedFile.value = null; 
+      // Не повертаємо старе фото, якщо вибір скасовано, 
+      // щоб користувач міг видалити фото, обравши файл і потім скасувавши вибір.
+      // user.value.avatarUrl = initialAvatarUrl.value || null; 
+      currentInput.value = ''; // Дозволяємо обрати той самий файл знову
+      return;
+  }
+
+  if (!file.type.startsWith('image/')) {
+      toast.error('Будь ласка, оберіть файл зображення.');
+      selectedFile.value = null; 
+      user.value.avatarUrl = initialAvatarUrl.value || null; // Повертаємо старе фото
+      currentInput.value = ''; 
+      return;
+  }
+  
+  selectedFile.value = file; // Зберігаємо файл для FormData
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    user.value.avatarUrl = e.target.result;
+    user.value.avatarUrl = e.target.result; // Показуємо прев'ю (base64)
+  };
+  reader.onerror = (error) => {
+      console.error('Помилка читання файлу:', error);
+      toast.error('Не вдалося прочитати файл.');
+      selectedFile.value = null; 
+      user.value.avatarUrl = initialAvatarUrl.value || null; 
+      currentInput.value = '';
   };
   reader.readAsDataURL(file);
 
   console.log('Обрано файл:', file.name);
 }
+
+function triggerFileUpload() {
+  fileInput.value.click(); 
+}
+
+async function changePassword() {
+   // --- Валідація (без змін) ---
+   if (!passwordForm.value.currentPassword || !passwordForm.value.newPassword || passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+       toast.warning('Будь ласка, перевірте введені паролі.');
+       return;
+   }
+   if (passwordForm.value.newPassword.length < 5 || passwordForm.value.newPassword.length > 27) {
+     toast.warning('Новий пароль має містити від 5 до 27 символів.');
+     return;
+   }
+   // --- ---
+
+  // Дані для тіла запиту (відповідно до ChangePasswordRequest)
+  const payload = {
+    Password: passwordForm.value.currentPassword, // Поточний пароль
+    NewPassword: passwordForm.value.newPassword,   // Новий пароль
+    PasswordConfirmation: passwordForm.value.confirmPassword // Підтвердження
+  };
+
+  // URL нового ендпоінту
+  const CHANGE_PASSWORD_URL = `${API_BASE_URL}/ChangePassword`;
+
+  console.log(`Sending password change to ${CHANGE_PASSWORD_URL}?userId=${userId.value}`, payload);
+
+  try {
+    // Використовуємо POST, надсилаємо userId як query параметр
+    await axios.post(CHANGE_PASSWORD_URL, payload, {
+        params: {
+            userId: userId.value // Додаємо ?userId=... до URL
+        },
+        headers: {
+          'Content-Type': 'application/json', // Надсилаємо JSON
+          // Додаємо токен, навіть якщо бекенд його поки не перевіряє (про всяк випадок)
+          'Authorization': `Bearer ${token.value}`
+        }
+    });
+
+    toast.success('Пароль успішно змінено!');
+    passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
+
+  } catch (error) {
+     console.error('Помилка зміни пароля (Axios):', error);
+     let errorMessage = 'Помилка зміни пароля.';
+     if (error.response) {
+       // Спробуємо отримати повідомлення про невірний поточний пароль
+       if (error.response.status === 400 && typeof error.response.data === 'string') {
+            if (error.response.data.includes("Old password is incorrect")) {
+                 errorMessage = 'Невірний поточний пароль.';
+            } else if (error.response.data.includes("do not match")) {
+                 errorMessage = 'Новий пароль та підтвердження не співпадають.';
+            } else {
+                 errorMessage = error.response.data; // Інше повідомлення BadRequest
+            }
+       } else {
+           errorMessage = error.response.data?.message
+                          || error.response.data?.title
+                          || (error.response.data?.errors ? JSON.stringify(error.response.data.errors) : 'Помилка сервера');
+       }
+     } else if (error.request) {
+       errorMessage = 'Немає відповіді від сервера.';
+     } else {
+       errorMessage = error.message;
+     }
+     toast.error(`Не вдалося змінити пароль: ${errorMessage}`);
+  }
+}
+function forgotPassword() {
+    toast.info('Сторінка відновлення пароля ще не реалізована.');
+}
+
 </script>
 
 <style scoped>
@@ -465,7 +536,7 @@ function onFileSelected(event) {
   }
 }
 
-/* === 3. "СКЛЯНІ" КАРТКИ === */
+/* === "СКЛЯНІ" КАРТКИ === */
 .profile-sidebar,
 .profile-content {
   background-color: rgba(30, 30, 30, 0.7);
@@ -477,7 +548,7 @@ function onFileSelected(event) {
   align-self: start;
 }
 
-/* === 4. НОВА НАВІГАЦІЯ (ЛІВА КОЛОНКА) === */
+/* === НАВІГАЦІЯ (ЛІВА КОЛОНКА) === */
 .profile-sidebar {
   padding: 15px; 
 }
@@ -507,8 +578,7 @@ function onFileSelected(event) {
   font-weight: 600;
 }
 
-/* === 5. КОНТЕНТ (ПРАВА КОЛОНКА) === */
-
+/* === КОНТЕНТ (ПРАВА КОЛОНКА) === */
 .avatar-upload-section {
   display: flex;
   align-items: center;
@@ -561,18 +631,15 @@ function onFileSelected(event) {
 .avatar-info p {
   font-size: 14px;
   color: #ccc;
-  margin: 5px 0 0 0; /* Прибираємо зайвий нижній відступ */
+  margin: 5px 0 0 0; 
 }
-
-/* Новий стиль для адреси */
 .avatar-info .avatar-address {
   font-size: 13px; 
   color: #bbb;
   margin-top: 8px; 
 }
 
-
-/* === 6. ФОРМИ (стилі з минулого разу) === */
+/* === ФОРМИ === */
 .form-group {
   margin-bottom: 20px;
   position: relative;
@@ -699,4 +766,6 @@ button {
   margin-top: 0;
   padding-top: 0;
 }
+
+/* Стилі для кнопки завантаження аватара видалені, бо кнопки немає */
 </style>

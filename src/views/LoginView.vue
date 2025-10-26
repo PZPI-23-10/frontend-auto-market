@@ -27,67 +27,79 @@
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuth } from '@/store/auth'
-import { useToast } from 'vue-toastification'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '@/store/auth';
+import { useToast } from 'vue-toastification';
+import axios from 'axios'; // <-- 1. Імпортуй Axios
 
-const API_URL = 'http://26.113.169.209:5292/api/Account/login'
+const API_URL = 'https://backend-auto-market.onrender.com/api/Account/login';
 
-const { setAuthData } = useAuth()
-const toast = useToast()
-const username = ref('')
-const password = ref('')
-const router = useRouter()
+const { setAuthData } = useAuth();
+const toast = useToast();
+const username = ref('');
+const password = ref('');
+const router = useRouter();
 
+// === ФУНКЦІЯ ОНОВЛЕНА ДЛЯ AXIOS ===
 async function login() {
   if (!username.value || !password.value) {
-    toast.warning('Введіть email та пароль')
-    return
+    toast.warning('Введіть email та пароль');
+    return;
   }
 
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
+    // 2. Використовуй axios.post
+    const response = await axios.post(API_URL, {
+      // Дані для відправки
+      email: username.value,
+      password: password.value,
+      rememberMe: true
+    }, {
+      // Конфігурація запиту (заголовки)
       headers: {
         'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: username.value, 
-        password: password.value,
-        rememberMe: true
-      })
-    })
+      }
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(errorText || 'Помилка логіну')
-    }
+    // 3. Дані вже в response.data
+    const data = response.data;
+    console.log('ВІДПОВІДЬ ВІД СЕРВЕРА (Axios):', data);
 
-    const data = await response.json() 
-    console.log('ВІДПОВІДЬ ВІД СЕРВЕРА:', data); 
-
-
-    if (!data.accessToken || !data.userId) { 
+    // 4. Перевірка необхідних полів
+    if (!data.accessToken || !data.userId) {
       throw new Error('Сервер не повернув "accessToken" або "userId" у відповіді.');
     }
 
-    setAuthData(data.userId, data.accessToken) 
-    toast.success('Вхід виконано успішно!')
-    router.push('/')
+    setAuthData(data.userId, data.accessToken);
+    toast.success('Вхід виконано успішно!');
+    router.push('/');
 
   } catch (error) {
-    console.error('Помилка логіну:', error);
-    toast.error(`Помилка: ${error.message}`);  
+    console.error('Помилка логіну (Axios):', error);
+
+    // 5. Обробка помилок Axios
+    let errorMessage = 'Помилка логіну';
+    if (error.response) {
+      // Сервер відповів помилкою (4xx, 5xx)
+      errorMessage = error.response.data?.message || error.response.data || error.response.statusText || 'Невірний email або пароль';
+    } else if (error.request) {
+      // Немає відповіді від сервера
+      errorMessage = 'Не вдалося підключитися до сервера';
+    } else {
+      // Помилка налаштування запиту
+      errorMessage = error.message;
+    }
+    toast.error(`Помилка: ${errorMessage}`);
   }
 }
 
 function loginWith(provider) {
-  toast.info(`Вхід через ${provider} (поки не реалізовано)`)
+  toast.info(`Вхід через ${provider} (поки не реалізовано)`);
 }
 
 function goToRegister() {
-  router.push('/register')
+  router.push('/register');
 }
 </script>
 <style scoped>

@@ -32,6 +32,9 @@
           <label>Last Name</label>
           <input v-model="lastName" type="text" placeholder="Last Name" />
 
+          <label>Date of Birth</label>
+          <input v-model="dateOfBirth" type="date" placeholder="Date of Birth" />
+
           <label>Country</label>
           <select v-model="personalCountry" class="country-select">
             <option v-for="country in countries" :key="country.code" :value="country.code">
@@ -78,70 +81,164 @@
     </form>
   </div>
 </template>
-
 <script setup>
-import { ref } from 'vue' 
-import { useRouter } from 'vue-router'
+import { ref } from 'vue'; // Убраны ненужные импорты
+import { useRouter } from 'vue-router';
+import { useToast } from 'vue-toastification'; // Імпорт для сповіщень
 
-const router = useRouter()
-const currentStep = ref(1)
+import axios from 'axios';
+const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Account';
+const API_URL_REGISTER = `${API_BASE_URL}/register`;
+const API_URL_CHECK_EMAIL = `${API_BASE_URL}/emailExists`;
+const toast = useToast(); // Ініціалізація toast
+const router = useRouter();
 
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
-const firstName = ref('')
-const lastName = ref('')
-const personalCountry = ref('UA')
-const phoneCountry = ref('380')
-const phone = ref('')
-const address = ref('') 
+const currentStep = ref(1);
+
+const email = ref('');
+const password = ref('');
+const confirmPassword = ref('');
+const firstName = ref('');
+const lastName = ref('');
+const dateOfBirth = ref('');
+const personalCountry = ref('UA');
+const phoneCountry = ref('380');
+const phone = ref('');
+const address = ref('');
 
 const countries = ref([
   { code: 'UA', name: 'Ukraine', phoneCode: '380' },
   { code: 'US', name: 'United States', phoneCode: '1' },
   { code: 'PL', name: 'Poland', phoneCode: '48' },
   { code: 'DE', name: 'Germany', phoneCode: '49' }
-])
+]);
 
+// --- Функція валідації Email ---
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
 
-function nextStep() {
+// --- Навігація між кроками з валідацією ---
+async function nextStep() {
+  // Валідація Кроку 1
   if (currentStep.value === 1) {
-    if (!email.value || !password.value || !confirmPassword.value) {
-      alert('Заповніть усі поля')
-      return
-    }
-    if (password.value !== confirmPassword.value) {
-      alert('Паролі не співпадають')
-      return
-    }
-  }
-  
-  if (currentStep.value === 2) {
-    if (!firstName.value || !lastName.value) {
-      alert('Заповніть імʼя та прізвище')
-      return
+    // --- Попередні перевірки (порожні поля, формат, довжина, співпадіння) ---
+    if (!email.value || !password.value || !confirmPassword.value) { /* ... помилка ... */ return; }
+    if (!isValidEmail(email.value)) { /* ... помилка ... */ return; }
+    if (password.value.length < 5 || password.value.length > 27) { /* ... помилка ... */ return; }
+    if (password.value !== confirmPassword.value) { /* ... помилка ... */ return; }
+    // --- Кінець попередніх перевірок ---
+
+    // === ПЕРЕВІРКА EMAIL НА БЕК-ЕНДІ (ЧЕРЕЗ GET) ===
+    try {
+      console.log(`Перевіряємо email: ${email.value} на ${API_URL_CHECK_EMAIL}`);
+      // ‼️ ВИКОРИСТОВУЄМО GET З ПАРАМЕТРОМ `params` ‼️
+      const response = await axios.get(API_URL_CHECK_EMAIL, {
+        params: {
+          email: email.value // Параметр запиту ?email=...
+        }
+      });
+
+      // Бек-енд повертає Ok(true) або Ok(false)
+      const emailExists = response.data; // Очікуємо true або false
+
+      if (emailExists === true) {
+        // Якщо бек-енд повернув true, показуємо помилку
+        toast.error('Користувач з таким email вже існує.');
+        return; // НЕ переходимо на наступний крок
+      }
+      // Якщо emailExists === false, email вільний, продовжуємо
+
+    } catch (error) {
+      // Обробляємо інші помилки (мережа, сервер 500 тощо)
+      console.error('Помилка перевірки email:', error);
+      let errorMessage = 'Не вдалося перевірити email. Спробуйте пізніше.';
+      if (error.response) {
+        errorMessage = error.response.data?.message || error.response.data || 'Помилка сервера при перевірці email.';
+      } else if (error.request) {
+        errorMessage = 'Немає відповіді від сервера.';
+      } else {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+      return; // НЕ переходимо на наступний крок
     }
   }
 
-  if (currentStep.value < 3) currentStep.value++
+  // Валідація Кроку 2 (без змін)
+  if (currentStep.value === 2) {
+    if (!firstName.value || !lastName.value || !dateOfBirth.value || !phone.value) { /* ... помилка ... */ return; }
+  }
+
+  // Перехід на наступний крок (якщо всі перевірки пройшли)
+  if (currentStep.value < 3) currentStep.value++;
 }
 
 function prevStep() {
-  if (currentStep.value > 1) currentStep.value--
+  if (currentStep.value > 1) currentStep.value--;
 }
 
-function completeRegistration() {
-  console.log('Form submitted:', {
+// --- Відправка форми реєстрації ---
+async function completeRegistration() {
+  let formattedDateOfBirth = '';
+  if (dateOfBirth.value) {
+    try {
+      formattedDateOfBirth = new Date(dateOfBirth.value).toISOString();
+    } catch (e) {
+      toast.error('Невірний формат дати народження.');
+      return;
+    }
+  } else {
+    toast.warning('Будь ласка, вкажіть дату народження.');
+    return;
+  }
+
+  const payload = {
     email: email.value,
     firstName: firstName.value,
     lastName: lastName.value,
-    country: personalCountry.value, 
-    phone: phone.value,
-    address: address.value
-  })
-  alert('Регистрация завершена!')
+    country: personalCountry.value,
+    dateOfBirth: formattedDateOfBirth,
+    password: password.value,
+    phoneNumber: `+${phoneCountry.value}${phone.value}`,
+    address: address.value,
+  }
+
+  console.log("Відправляємо дані:", JSON.stringify(payload, null, 2));
+
+  try {
+    const response = await axios.post(API_URL, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    console.log('Відповідь від сервера (Axios):', response.data);
+    toast.success('Реєстрація успішна! Тепер ви можете увійти.');
+    router.push('/login');
+
+  } catch (error) {
+    console.error('Помилка реєстрації (Axios):', error);
+    
+    let errorMessage = 'Помилка реєстрації';
+    if (error.response) {
+      if (error.response.data && error.response.data.errors) {
+        errorMessage = Object.values(error.response.data.errors).flat().join(' ');
+      } else {
+         errorMessage = error.response.data?.message || error.response.data || error.response.statusText || 'Помилка сервера';
+      }
+    } else if (error.request) {
+      errorMessage = 'Не вдалося підключитися до сервера';
+    } else {
+      errorMessage = error.message;
+    }
+    toast.error(`Помилка: ${errorMessage}`);
+  }
 }
-</script><style scoped>
+</script>
+
+<style scoped>
 /* === 1. АДАПТАЦИЯ ФОНА === */
 .login-container {
   background-image: url('@/assets/car-header1.jpg');
@@ -162,9 +259,6 @@ function completeRegistration() {
   inset: 0;
   background: rgba(0, 0, 0, 0.4); 
 }
-
-/* ‼️ НЕНУЖНЫЙ КЛАСС УДАЛЕН */
-/* .background { ... } */
 
 /* === 2. АДАПТАЦИЯ ПРОГРЕССБАРА === */
 .progressbar-wrapper {
@@ -243,8 +337,6 @@ form {
   flex-direction: column;
   align-items: center;
   z-index: 1;
-  /* ‼️ УДАЛЕНА АНИМАЦИЯ ВЫСОТЫ */
-  /* transition: height 0.5s ease; */
   overflow: hidden;
   position: relative;
 }
@@ -269,13 +361,13 @@ label, .step label {
   font-size: 14px;
   text-align: left;
 }
-input, .country-select, .phone-country-select { /* ‼️ УДАЛЕН textarea */
+input, textarea, .country-select, .phone-country-select {
   display: block;
   font-family: 'Open Sans', sans-serif;
   width: 100%;
   max-width: 340px;
   height: 45px;
-  padding: 0 10px;
+  padding: 10px; 
   border-radius: 3px;
   background-color: rgba(255,255,255,0.1);
   border: 1px solid #555;
@@ -288,15 +380,16 @@ input, .country-select, .phone-country-select { /* ‼️ УДАЛЕН textarea 
 ::placeholder {
   color: #e5e5e5;
 }
-input:focus, .country-select:focus, .phone-country-select:focus { /* ‼️ УДАЛЕН textarea */
+input:focus, textarea:focus, .country-select:focus, .phone-country-select:focus {
   border-color: #ffd700;
   box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
   outline: none;
 }
-/* ‼️ НЕНУЖНЫЕ СТИЛИ УДАЛЕНЫ */
-/*
-textarea { ... }
-*/
+textarea {
+  height: 90px;
+  resize: none;
+  line-height: 1.5;
+}
 
 /* === 5. АДАПТАЦИЯ КНОПОК === */
 .login-btn, .register-btn {
@@ -384,7 +477,6 @@ textarea { ... }
 .buttons.single {
   justify-content: center;
 }
-/* ‼️ ДУБЛИКАТ УДАЛЕН */
 .buttons.single .login-btn {
   max-width: 160px;
 }
