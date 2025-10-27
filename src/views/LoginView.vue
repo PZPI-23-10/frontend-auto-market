@@ -11,14 +11,8 @@
 
       <button type="submit" class="login-btn">Log In</button>
 
-      <div class="social">
-        <div class="social-btn google" @click="loginWith('Google')">
-          <i class="fab fa-google"></i> Google
-        </div>
-        <div class="social-btn facebook" @click="loginWith('Facebook')">
-          <i class="fab fa-facebook"></i> Facebook
-        </div>
-      </div>
+      <div class="divider"><span>OR</span></div>
+      <div id="googleSignInButton"></div>
 
       <button type="button" class="register-btn" @click="goToRegister">
         Register
@@ -26,223 +20,256 @@
     </form>
   </div>
 </template>
+
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
-import axios from 'axios'; // <-- 1. Імпортуй Axios
+import axios from 'axios';
 
-const API_URL = 'https://backend-auto-market.onrender.com/api/Account/login';
+const API_LOGIN_URL = 'https://backend-auto-market.onrender.com/api/Account/login';
+const API_GOOGLE_LOGIN_URL = 'https://backend-auto-market.onrender.com/api/Account/web/google';
+const GOOGLE_CLIENT_ID = '71975591740-1ikt0qhpb1g570oogv7pomahcr09hqf8.apps.googleusercontent.com';
 
+// --- Ініціалізація ---
 const { setAuthData } = useAuth();
 const toast = useToast();
 const username = ref('');
 const password = ref('');
 const router = useRouter();
 
-// === ФУНКЦІЯ ОНОВЛЕНА ДЛЯ AXIOS ===
+// --- Звичайний логін ---
 async function login() {
   if (!username.value || !password.value) {
     toast.warning('Введіть email та пароль');
     return;
   }
-
   try {
-    // 2. Використовуй axios.post
-    const response = await axios.post(API_URL, {
-      // Дані для відправки
+    const response = await axios.post(API_LOGIN_URL, {
       email: username.value,
       password: password.value,
       rememberMe: true
     }, {
-      // Конфігурація запиту (заголовки)
       headers: {
         'Content-Type': 'application/json',
       }
     });
-
-    // 3. Дані вже в response.data
     const data = response.data;
-    console.log('ВІДПОВІДЬ ВІД СЕРВЕРА (Axios):', data);
-
-    // 4. Перевірка необхідних полів
-    if (!data.accessToken || !data.userId) {
-      throw new Error('Сервер не повернув "accessToken" або "userId" у відповіді.');
-    }
-
+    if (!data.accessToken || !data.userId) { throw new Error('Сервер не повернув "accessToken" або "userId" у відповіді.'); }
     setAuthData(data.userId, data.accessToken);
     toast.success('Вхід виконано успішно!');
     router.push('/');
-
   } catch (error) {
     console.error('Помилка логіну (Axios):', error);
-
-    // 5. Обробка помилок Axios
     let errorMessage = 'Помилка логіну';
     if (error.response) {
-      // Сервер відповів помилкою (4xx, 5xx)
       errorMessage = error.response.data?.message || error.response.data || error.response.statusText || 'Невірний email або пароль';
     } else if (error.request) {
-      // Немає відповіді від сервера
       errorMessage = 'Не вдалося підключитися до сервера';
     } else {
-      // Помилка налаштування запиту
       errorMessage = error.message;
     }
     toast.error(`Помилка: ${errorMessage}`);
   }
 }
 
-function loginWith(provider) {
-  toast.info(`Вхід через ${provider} (поки не реалізовано)`);
+async function handleGoogleCredentialResponse(response) {
+  const googleToken = response.credential;
+  console.log("Отримано Google ID Token:", googleToken);
+  try {
+    const backendResponse = await axios.post(API_GOOGLE_LOGIN_URL, { googleToken, rememberMe: true });
+    const data = backendResponse.data;
+    if (!data.accessToken || !data.userId) { throw new Error('Бекенд не повернув токени'); }
+    setAuthData(data.userId, data.accessToken);
+    toast.success('Вхід через Google успішний!');
+    router.push('/');
+  } catch (error) {
+    console.error('Помилка Google логіну на бекенді:', error);
+    let errorMessage = 'Помилка входу через Google.';
+     if (error.response) {
+       errorMessage = error.response.data?.message || error.response.data || 'Помилка сервера при Google логіні.';
+     } else if (error.request) {
+       errorMessage = 'Немає відповіді від сервера.';
+     } else {
+       errorMessage = error.message;
+     }
+    toast.error(`Помилка: ${errorMessage}`);
+  }
 }
+
+onMounted(() => {
+  if (!GOOGLE_CLIENT_ID) {
+    console.error('VITE_GOOGLE_CLIENT_ID не знайдено у змінних середовища!');
+    toast.error('Помилка конфігурації входу через Google.');
+    return; 
+  }
+
+  if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+    try {
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredentialResponse
+      });
+      google.accounts.id.renderButton(
+        document.getElementById("googleSignInButton"),
+        { theme: "outline", size: "large", width: "300" }
+      );
+    } catch (error) {
+      console.error("Помилка ініціалізації Google Sign-In:", error);
+      toast.error("Не вдалося ініціалізувати вхід через Google.");
+    }
+  } else {
+    console.error("Бібліотека Google Identity Services (GSI) не завантажилась або недоступна.");
+   
+  }
+});
 
 function goToRegister() {
   router.push('/register');
 }
 </script>
-<style scoped>
-/* === 1. АДАПТАЦИЯ ФОНА === */
-.login-container {
-  background-image: url('@/assets/car-header1.jpg');
-  background-size: cover;
-  background-position: center;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-}
+  <style scoped>
+  /* === 1. АДАПТАЦИЯ ФОНА === */
+  .login-container {
+    background-image: url('@/assets/car-header1.jpg');
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
 
-.login-container::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4); 
-}
+  .login-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4); 
+  }
 
-/* === 2. АДАПТАЦИЯ ФОРМЫ === */
-form {
-  width: 360px;
-  background-color: rgba(30, 30, 30, 0.7);
-  position: relative;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 40px rgba(8,7,16,0.6);
-  padding: 40px 30px;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+  /* === 2. АДАПТАЦИЯ ФОРМЫ === */
+  form {
+    width: 360px;
+    background-color: rgba(30, 30, 30, 0.7);
+    position: relative;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 40px rgba(8,7,16,0.6);
+    padding: 40px 30px;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
-form h3 {
-  font-family: 'Open Sans', sans-serif;
-  font-size: 28px;
-  font-weight: 500;
-  text-align: center;
-  margin-bottom: 10px;
-  color: #fff;
-}
-label {
-  width: 100%;
-  font-family: 'Open Sans', sans-serif;
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  margin-top: 15px;
-  color: #fff;
-}
+  form h3 {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 28px;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 10px;
+    color: #fff;
+  }
+  label {
+    width: 100%;
+    font-family: 'Open Sans', sans-serif;
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 15px;
+    color: #fff;
+  }
 
-/* === 4. АДАПТАЦИЯ ПОЛЕЙ ВВОДА === */
-input {
-  font-family: 'Open Sans', sans-serif;
-  display: block;
-  width: 100%;
-  /* ‼️ max-width: 340px; УДАЛЕН (избыточен) */
-  height: 45px;
-  padding: 0 10px;
-  border-radius: 3px;
-  background-color: rgba(255,255,255,0.1); 
-  border: 1px solid #555;
-  box-shadow: none;
-  font-size: 14px;
-  font-weight: 300;
-  margin-top: 8px;
-  color: #fff;
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-}
-input:focus {
-  border-color: #ffd700;
-  box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
-  outline: none;
-}
+  /* === 4. АДАПТАЦИЯ ПОЛЕЙ ВВОДА === */
+  input {
+    font-family: 'Open Sans', sans-serif;
+    display: block;
+    width: 100%;
+    /* ‼️ max-width: 340px; УДАЛЕН (избыточен) */
+    height: 45px;
+    padding: 0 10px;
+    border-radius: 3px;
+    background-color: rgba(255,255,255,0.1); 
+    border: 1px solid #555;
+    box-shadow: none;
+    font-size: 14px;
+    font-weight: 300;
+    margin-top: 8px;
+    color: #fff;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  input:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    outline: none;
+  }
 
-::placeholder {
-  color: #e5e5e5;
-}
+  ::placeholder {
+    color: #e5e5e5;
+  }
 
-/* === 5. АДАПТАЦИЯ КНОПОК === */
-.login-btn, .register-btn {
-  font-family: 'Open Sans', sans-serif;
-  width: 100%;
-  /* ‼️ max-width: 360px; УДАЛЕН (избыточен) */
-  padding: 12px 0;
-  border-radius: 6px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 45px;
-  transition: 0.3s;
-}
+  /* === 5. АДАПТАЦИЯ КНОПОК === */
+  .login-btn, .register-btn {
+    font-family: 'Open Sans', sans-serif;
+    width: 100%;
+    /* ‼️ max-width: 360px; УДАЛЕН (избыточен) */
+    padding: 12px 0;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 45px;
+    transition: 0.3s;
+  }
 
-.login-btn {
-  background-color: #cc0000;
-  color: #fff;
-}
-.login-btn:hover {
-  background-color: #aa0000;
-}
+  .login-btn {
+    background-color: #cc0000;
+    color: #fff;
+  }
+  .login-btn:hover {
+    background-color: #aa0000;
+  }
 
-.register-btn {
-  background-color: rgba(255,255,255,0.27);
-  color: #fff;
-}
-.register-btn:hover {
-  background-color: rgba(255,255,255,0.4);
-}
+  .register-btn {
+    background-color: rgba(255,255,255,0.27);
+    color: #fff;
+  }
+  .register-btn:hover {
+    background-color: rgba(255,255,255,0.4);
+  }
 
-.social {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
+  .social {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
 
-.social-btn {
-  font-family: 'Open Sans', sans-serif;
-  width: 48%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 0;
-  border-radius: 6px;
-  font-weight: 500;
-  color: #fff;
-  cursor: pointer;
-  transition: 0.3s;
-  gap: 6px;
-  background-color: rgba(255,255,255,0.27);
-}
+  .social-btn {
+    font-family: 'Open Sans', sans-serif;
+    width: 48%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+    border-radius: 6px;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.3s;
+    gap: 6px;
+    background-color: rgba(255,255,255,0.27);
+  }
 
-.social-btn:hover {
-  background-color: rgba(255,255,255,0.4);
-}
+  .social-btn:hover {
+    background-color: rgba(255,255,255,0.4);
+  }
 
-.social-btn i {
-  margin-right: 4px;
-}
-</style>
+  .social-btn i {
+    margin-right: 4px;
+  }
+  </style>
