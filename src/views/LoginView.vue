@@ -31,15 +31,18 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
-import axios from 'axios'; // <-- 1. Імпортуй Axios
+import { inject } from 'vue';
+import axios from 'axios'; 
 
 const API_URL = 'https://backend-auto-market.onrender.com/api/Account/login';
+const API_URL_GOOGLE = 'https://backend-auto-market.onrender.com/api/Account/web/google';
 
 const { setAuthData } = useAuth();
 const toast = useToast();
 const username = ref('');
 const password = ref('');
 const router = useRouter();
+const $gAuth = inject('gAuth');
 
 // === ФУНКЦІЯ ОНОВЛЕНА ДЛЯ AXIOS ===
 async function login() {
@@ -94,8 +97,70 @@ async function login() {
   }
 }
 
-function loginWith(provider) {
-  toast.info(`Вхід через ${provider} (поки не реалізовано)`);
+async function loginWith(provider) {
+  if (provider === 'Google') {
+    // --- Починаємо логіку Google ---
+    toast.info('Відкриваємо вікно Google...');
+    try {
+      // 4.1. Викликаємо спливаюче вікно Google
+      const googleUser = await $gAuth.signIn();
+
+      // 4.2. Отримуємо id_token (саме його очікує ваш бекенд)
+      const googleToken = googleUser.getAuthResponse().id_token;
+
+      if (!googleToken) {
+        throw new Error('Не вдалося отримати токен від Google');
+      }
+
+      // 4.3. Встановлюємо "запам'ятати мене"
+      const rememberMe = true;
+
+      // 4.4. Відправляємо токен на наш бекенд
+      await sendGoogleTokenToBackend(googleToken, rememberMe);
+
+    } catch (error) {
+      console.error('Помилка входу через Google:', error);
+      toast.error('Вхід через Google скасовано або сталася помилка.');
+    }
+    // --- Кінець логіки Google ---
+
+  } else if (provider === 'Facebook') {
+    toast.info(`Вхід через ${provider} (поки не реалізовано)`);
+  }
+}
+
+async function sendGoogleTokenToBackend(googleToken, rememberMe) {
+  const payload = {
+    googleToken: googleToken,
+    rememberMe: rememberMe
+  };
+
+  toast.info('Перевіряємо ваші дані...');
+
+  try {
+    // 5.1. Робимо POST-запит з токеном
+    const response = await axios.post(API_URL_GOOGLE, payload);
+    const data = response.data;
+
+    // 5.2. Успіх! Обробляємо відповідь ТАК САМО, як у звичайному логіні
+    if (!data.accessToken || !data.userId) {
+      throw new Error('Сервер не повернув "accessToken" або "userId".');
+    }
+
+    // Використовуємо ті ж самі функції зі store та router
+    setAuthData(data.userId, data.accessToken);
+    toast.success('Вхід через Google виконано успішно!');
+    router.push('/');
+
+  } catch (error) {
+    // 5.3. Обробка помилок від вашого бекенду
+    console.error('Помилка під час відправки Google-токена на бекенд:', error);
+    if (error.response) {
+      toast.error(`Помилка: ${error.response.data.message || 'Невірні дані'}`);
+    } else {
+      toast.error('Не вдалося з\'єднатися з сервером.');
+    }
+  }
 }
 
 function goToRegister() {
