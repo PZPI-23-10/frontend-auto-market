@@ -6,7 +6,16 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'; 
+import { useAuth } from '@/store/auth';
 import Navbar from './components/Navbar.vue'
+const { checkVerificationStatus, isAuthenticated } = useAuth();
+onMounted(() => {
+    if (isAuthenticated.value) {
+        checkVerificationStatus(); 
+    }
+});
+
 </script>
 
 <style>

@@ -96,7 +96,7 @@ const isOpen = ref(false)
 const route = useRoute()
 const router = useRouter()
 
-const { isLoggedIn, clearAuthData } = useAuth()
+const { isAuthenticated: isLoggedIn, isVerified, clearAuthData } = useAuth()
 
 function handleLogout() {
   clearAuthData() 

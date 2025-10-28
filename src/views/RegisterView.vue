@@ -85,7 +85,8 @@
 import { ref } from 'vue'; // Убраны ненужные импорты
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification'; // Імпорт для сповіщень
-
+import { useAuth } from '@/store/auth'; 
+const { setAuthData } = useAuth();
 import axios from 'axios';
 const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Account';
 const API_URL_REGISTER = `${API_BASE_URL}/register`;
@@ -124,51 +125,55 @@ async function nextStep() {
   // Валідація Кроку 1
   if (currentStep.value === 1) {
     // --- Попередні перевірки (порожні поля, формат, довжина, співпадіння) ---
-    if (!email.value || !password.value || !confirmPassword.value) { /* ... помилка ... */ return; }
-    if (!isValidEmail(email.value)) { /* ... помилка ... */ return; }
-    if (password.value.length < 5 || password.value.length > 27) { /* ... помилка ... */ return; }
-    if (password.value !== confirmPassword.value) { /* ... помилка ... */ return; }
+    if (!email.value || !password.value || !confirmPassword.value) {
+        toast.warning('Будь ласка, заповніть email та обидва поля пароля.'); // <-- Додано Toast
+        return;
+    }
+    if (!isValidEmail(email.value)) {
+        toast.warning('Будь ласка, введіть коректний email.'); // <-- Додано Toast
+        return;
+    }
+    if (password.value.length < 5 || password.value.length > 27) {
+        toast.warning('Пароль має містити від 5 до 27 символів.'); // <-- Додано Toast
+        return;
+    }
+    if (password.value !== confirmPassword.value) {
+        toast.warning('Паролі не співпадають.'); // <-- Додано Toast
+        return;
+    }
     // --- Кінець попередніх перевірок ---
 
     // === ПЕРЕВІРКА EMAIL НА БЕК-ЕНДІ (ЧЕРЕЗ GET) ===
     try {
       console.log(`Перевіряємо email: ${email.value} на ${API_URL_CHECK_EMAIL}`);
-      // ‼️ ВИКОРИСТОВУЄМО GET З ПАРАМЕТРОМ `params` ‼️
       const response = await axios.get(API_URL_CHECK_EMAIL, {
-        params: {
-          email: email.value // Параметр запиту ?email=...
-        }
+        params: { email: email.value }
       });
-
-      // Бек-енд повертає Ok(true) або Ok(false)
-      const emailExists = response.data; // Очікуємо true або false
+      const emailExists = response.data;
 
       if (emailExists === true) {
-        // Якщо бек-енд повернув true, показуємо помилку
         toast.error('Користувач з таким email вже існує.');
-        return; // НЕ переходимо на наступний крок
+        return; // НЕ переходимо
       }
-      // Якщо emailExists === false, email вільний, продовжуємо
+      // Якщо email вільний, продовжуємо
 
     } catch (error) {
-      // Обробляємо інші помилки (мережа, сервер 500 тощо)
       console.error('Помилка перевірки email:', error);
       let errorMessage = 'Не вдалося перевірити email. Спробуйте пізніше.';
-      if (error.response) {
-        errorMessage = error.response.data?.message || error.response.data || 'Помилка сервера при перевірці email.';
-      } else if (error.request) {
-        errorMessage = 'Немає відповіді від сервера.';
-      } else {
-        errorMessage = error.message;
-      }
+      if (error.response) { /* ... обробка помилок сервера ... */ }
+      else if (error.request) { /* ... обробка помилок мережі ... */ }
+      else { /* ... обробка інших помилок ... */ }
       toast.error(errorMessage);
-      return; // НЕ переходимо на наступний крок
+      return; // НЕ переходимо
     }
   }
 
-  // Валідація Кроку 2 (без змін)
+  // Валідація Кроку 2
   if (currentStep.value === 2) {
-    if (!firstName.value || !lastName.value || !dateOfBirth.value || !phone.value) { /* ... помилка ... */ return; }
+    if (!firstName.value || !lastName.value || !dateOfBirth.value || !phone.value) {
+        toast.warning('Будь ласка, заповніть ім\'я, прізвище, дату народження та телефон.'); // <-- Додано Toast
+        return;
+    }
   }
 
   // Перехід на наступний крок (якщо всі перевірки пройшли)
@@ -194,6 +199,12 @@ async function completeRegistration() {
     return;
   }
 
+  // Перевірки на кроці 2 (можна повторити тут для безпеки)
+  if (!firstName.value || !lastName.value || !phone.value) {
+      toast.warning('Будь ласка, заповніть ім\'я, прізвище та телефон.');
+      return;
+  }
+
   const payload = {
     email: email.value,
     firstName: firstName.value,
@@ -208,32 +219,68 @@ async function completeRegistration() {
   console.log("Відправляємо дані:", JSON.stringify(payload, null, 2));
 
   try {
-    const response = await axios.post(API_URL, payload, {
+    // ‼️ Використовуємо API_URL_REGISTER ‼️
+    const response = await axios.post(API_URL_REGISTER, payload, {
       headers: {
         'Content-Type': 'application/json',
       }
     });
 
     console.log('Відповідь від сервера (Axios):', response.data);
-    toast.success('Реєстрація успішна! Тепер ви можете увійти.');
-    router.push('/login');
+     const data = response.data; 
+   if (!data.accessToken || !data.userId) {
+      throw new Error('Сервер не повернув токен доступу після реєстрації.');
+    }
+    setAuthData(data.userId, data.accessToken); 
+    
+    toast.info('Реєстрація успішна! Будь ласка, підтвердіть вашу електронну пошту.'); 
+
+    router.push('/');
 
   } catch (error) {
     console.error('Помилка реєстрації (Axios):', error);
     
-    let errorMessage = 'Помилка реєстрації';
+    let errorMessage = 'Не вдалося зареєструватися. Спробуйте пізніше.'; // Загальна помилка за замовчуванням
+
     if (error.response) {
-      if (error.response.data && error.response.data.errors) {
-        errorMessage = Object.values(error.response.data.errors).flat().join(' ');
+      // Бекенд відповів помилкою (4xx, 5xx)
+      console.error('Дані помилки від сервера:', error.response.data); // Логуємо повну відповідь сервера
+      
+      const responseData = error.response.data;
+      const status = error.response.status;
+
+      if (status === 400) { // Bad Request - зазвичай помилки валідації
+        if (typeof responseData === 'string') {
+           // Якщо бекенд повернув просто текст (наприклад, "User with this email already exists.")
+           errorMessage = responseData;
+        } else if (responseData && responseData.errors) {
+           errorMessage = Object.values(responseData.errors)
+                              .flat() 
+                              .join(' ');
+           if (!errorMessage) {
+              errorMessage = responseData.title || "Помилка валідації даних.";
+           }
+        } else if (responseData?.title) {
+            errorMessage = responseData.title; // Наприклад, "One or more validation errors occurred."
+        } else {
+            errorMessage = "Невірні дані."; // Загальне повідомлення для 400
+        }
+      } else if (status === 500) { // Internal Server Error
+          errorMessage = "Внутрішня помилка сервера. Спробуйте пізніше.";
       } else {
-         errorMessage = error.response.data?.message || error.response.data || error.response.statusText || 'Помилка сервера';
+          // Інші статуси помилок
+          errorMessage = responseData?.message || JSON.stringify(responseData) || error.response.statusText || `Помилка сервера (${status})`;
       }
+
     } else if (error.request) {
-      errorMessage = 'Не вдалося підключитися до сервера';
+      // Запит відправлено, але відповідь не отримана
+      errorMessage = 'Не вдалося підключитися до сервера. Перевірте з\'єднання.';
     } else {
-      errorMessage = error.message;
+      // Помилка налаштування запиту (рідко)
+      errorMessage = `Помилка запиту: ${error.message}`;
     }
-    toast.error(`Помилка: ${errorMessage}`);
+
+    toast.error(errorMessage); // Показуємо фінальне повідомлення
   }
 }
 </script>
@@ -247,11 +294,12 @@ async function completeRegistration() {
   min-height: 100vh;
   display: flex;
   flex-direction: column; 
-  justify-content: center; 
+  justify-content: flex-start; 
   align-items: center;   
   position: relative;
-  overflow: hidden;
-  padding: 40px 0;
+  overflow-y: auto;
+  padding-top: 90px;
+
 }
 .login-container::before {
   content: '';
@@ -364,9 +412,8 @@ label, .step label {
 input, textarea, .country-select, .phone-country-select {
   display: block;
   font-family: 'Open Sans', sans-serif;
-  width: 100%;
-  max-width: 340px;
-  height: 45px;
+  width: 340px;
+
   padding: 10px; 
   border-radius: 3px;
   background-color: rgba(255,255,255,0.1);
@@ -430,7 +477,7 @@ textarea {
   flex-shrink: 0;
 }
 .country-select {
-  width: 100%;
+  width: 360px;
 }
 .country-select, .phone-country-select {
   appearance: none;

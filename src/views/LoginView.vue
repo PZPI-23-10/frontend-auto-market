@@ -8,6 +8,12 @@
 
       <label for="password">Password</label>
       <input id="password" type="password" placeholder="Password" v-model="password" />
+      
+      <!-- === ДОДАНО ПОСИЛАННЯ === -->
+      <div class="forgot-password">
+        <router-link to="/forgot-password">Забули пароль?</router-link>
+      </div>
+      <!-- === === === === === === -->
 
       <button type="submit" class="login-btn">Log In</button>
 
@@ -20,7 +26,6 @@
     </form>
   </div>
 </template>
-
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -272,4 +277,22 @@ function goToRegister() {
   .social-btn i {
     margin-right: 4px;
   }
+  .forgot-password {
+  width: 100%; /* Щоб вирівняти по правому краю */
+  text-align: right;
+  margin-top: 10px; /* Відступ від поля пароля */
+  margin-bottom: -25px; /* Компенсуємо відступ кнопки Log In */
+}
+.forgot-password a {
+  color: #ccc; /* Світло-сірий колір */
+  font-size: 13px;
+  text-decoration: none;
+}
+.forgot-password a:hover {
+  color: #fff; /* Білий при наведенні */
+  text-decoration: underline;
+}
+.login-btn {
+  margin-top: 45px;
+}
   </style>
