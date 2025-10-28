@@ -41,19 +41,14 @@
 
         <div v-if="activeTab === 'profile'" class="tab-pane">
           <h2>Основний профіль</h2>
-
-          <!-- === СЕКЦІЯ ВЕРИФІКАЦІЇ === -->
           <div v-if="!user.isVerified" class="email-verification-section">
-            <!-- 1. Попередження -->
             <p class="verification-status warning">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
               Ваш email ще не підтверджено.
             </p>
-            <!-- 2. Пояснення -->
             <p class="info-text">
               Ми надіслали 6-значний код на вашу пошту (<b>{{ user.email }}</b>) під час реєстрації. Будь ласка, введіть його нижче.
             </p>
-            <!-- 3. Поле вводу коду (видиме одразу) -->
             <div class="verification-code-input">
               <label for="verifyCode">Введіть код з листа:</label>
               <div class="input-group">
@@ -68,20 +63,15 @@
                   {{ isLoadingVerify ? 'Перевірка...' : 'Підтвердити' }}
                 </button>
               </div>
-              <!-- 4. Кнопка "Надіслати повторно" (видима одразу) -->
               <button @click="sendVerificationEmail" class="btn-link resend-link" :disabled="isLoadingEmail">
                 {{ isLoadingEmail ? 'Надсилаємо...' : 'Не отримали код? Надіслати повторно' }}
               </button>
             </div>
-            <!-- (Блоки v-if="!verificationCodeSent" та v-else видалені, бо вони дублювалися) -->
           </div>
-          <!-- Повідомлення про успіх (коли user.isVerified === true) -->
           <p v-else class="verification-status success">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             Email підтверджено.
           </p>
-          <!-- === КІНЕЦЬ СЕКЦІЇ ВЕРИФІКАЦІЇ === -->
-
           <div class="avatar-upload-section">
             <div class="avatar-preview" @click="triggerFileUpload">
               <img :src="user.avatarUrl || defaultAvatar" alt="Аватар профілю">
@@ -131,7 +121,15 @@
                     +{{ country.phoneCode }} ({{ country.code }})
                   </option>
                 </select>
-                <input type="tel" id="phoneNumber" v-model="user.phoneNumber" placeholder="99 123 4567">
+                <!-- === 2. ДОДАНО @keydown ДЛЯ ФІЛЬТРАЦІЇ === -->
+                <input 
+                  type="tel" 
+                  id="phoneNumber" 
+                  v-model="user.phoneNumber" 
+                  placeholder="99 123 4567"
+                  @keydown="filterPhoneInput" 
+                  maxlength="10"
+                >
               </div>
             </div>
             <div class="form-row">
@@ -146,7 +144,8 @@
               </div>
               <div class="form-group">
                 <label for="birthday">День народження</label>
-                <input type="date" id="birthday" v-model="user.birthday" disabled> 
+                <!-- === 1. ВИДАЛЕНО 'disabled' === -->
+                <input type="date" id="birthday" v-model="user.birthday"> 
               </div>
             </div>
             <div class="form-group">
@@ -205,7 +204,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
-import defaultAvatar from '@/assets/default-avatar.png'; // Перевір шлях!
+import defaultAvatar from '@/assets/default-avatar.png'; 
 import axios from 'axios';
 
 const toast = useToast();
@@ -214,12 +213,6 @@ const VERIFY_EMAIL_URL = `${API_BASE_URL}/verify-email`;
 const SEND_VERIFICATION_URL = `${API_BASE_URL}/send-verification-email`;
 const router = useRouter();
 const { userId, token, clearAuthData } = useAuth();
-const activeTab = ref('profile');
-
-const verificationCodeSent = ref(false); 
-const verificationCode = ref('');     
-const isLoadingEmail = ref(false);     
-const isLoadingVerify = ref(false);
 
 const countries = ref([
   { code: 'UA', name: 'Україна', phoneCode: '380' },
@@ -229,6 +222,7 @@ const countries = ref([
   { code: 'GB', name: 'Велика Британія', phoneCode: '44' },
 ]);
 
+const activeTab = ref('profile');
 const user = ref({
   firstName: '',
   lastName: '',
@@ -237,7 +231,7 @@ const user = ref({
   phoneNumber: '',
   country: 'UA',
   address: '',
-  birthday: '', // Має бути 'YYYY-MM-DD'
+  birthday: '', 
   bio: '',     
   avatarUrl: null,
   isVerified: false 
@@ -249,10 +243,15 @@ const passwordForm = ref({
   confirmPassword: ''
 });
 
-const fileInput = ref(null); // Ref для прихованого input[type=file]
-const selectedFile = ref(null); // Зберігаємо сам об'єкт File для FormData
+const fileInput = ref(null); 
+const selectedFile = ref(null); 
+const initialAvatarUrl = ref(null); 
 
-// --- Computed Properties ---
+const verificationCodeSent = ref(false); 
+const verificationCode = ref('');      
+const isLoadingEmail = ref(false);     
+const isLoadingVerify = ref(false);    
+
 const fullName = computed(() => {
   if (!user.value.firstName && !user.value.lastName) {
     return 'Ім\'я Прізвище'; 
@@ -260,7 +259,6 @@ const fullName = computed(() => {
   return `${user.value.firstName} ${user.value.lastName}`.trim(); 
 });
 
-// --- Lifecycle Hook ---
 onMounted(async () => {
   if (!userId.value || !token.value) {
     toast.error('Ви не увійшли в систему. Перенаправляємо на сторінку логіну.');
@@ -276,7 +274,6 @@ onMounted(async () => {
     const data = response.data;
     console.log("Profile data received:", data); 
 
-    // Мапінг даних
     user.value.firstName = data.firstName || '';
     user.value.lastName = data.lastName || '';
     user.value.email = data.email || '';
@@ -284,7 +281,9 @@ onMounted(async () => {
     user.value.bio = data.aboutYourself || ''; 
     user.value.avatarUrl = data.urlPhoto || null; 
     user.value.country = data.country || 'UA';
-    user.value.isVerified = data.isVerified || false;
+    user.value.isVerified = data.isVerified || false; 
+    initialAvatarUrl.value = data.urlPhoto || null; 
+
     if (data.dateOfBirth) {
       try {
         user.value.birthday = new Date(data.dateOfBirth).toISOString().split('T')[0];
@@ -316,11 +315,11 @@ onMounted(async () => {
      console.error('Помилка завантаження профілю (Axios):', error);
      let errorMessage = 'Не вдалося завантажити профіль.';
      if (error.response) {
-       errorMessage = error.response.data?.message || error.response.data || 'Помилка сервера при завантаженні профілю.';
+       errorMessage = error.response.data?.message || error.response.data || 'Помилка сервера.';
        if (error.response.status === 401) {
            clearAuthData(); 
            router.push('/login');
-           errorMessage = 'Сесія застаріла. Будь ласка, увійдіть знову.';
+           errorMessage = 'Сесія застаріла.';
        }
      } else if (error.request) {
         errorMessage = 'Немає відповіді від сервера.';
@@ -330,6 +329,7 @@ onMounted(async () => {
      toast.error(errorMessage);
   }
 });
+
 async function sendVerificationEmail() {
    if (!token.value) {
        toast.error('Помилка авторизації.');
@@ -341,7 +341,7 @@ async function sendVerificationEmail() {
        await axios.post(SEND_VERIFICATION_URL, {}, { 
            headers: { 'Authorization': `Bearer ${token.value}` }
        });
-       toast.success('Пароль зміненно.');
+       toast.success('Лист з кодом підтвердження надіслано.');
        verificationCodeSent.value = true; 
    } catch (error) {
        console.error('Помилка відправки коду:', error);
@@ -351,6 +351,7 @@ async function sendVerificationEmail() {
        isLoadingEmail.value = false;
    }
 }
+
 async function verifyCode() {
     if (!verificationCode.value || verificationCode.value.length !== 6) {
         toast.warning('Будь ласка, введіть 6-значний код.');
@@ -368,9 +369,9 @@ async function verifyCode() {
             { headers: { 'Authorization': `Bearer ${token.value}`, 'Content-Type': 'application/json' } }
         );
         toast.success('Email успішно підтверджено!');
-        user.value.isVerified = true;
+        user.value.isVerified = true; 
         verificationCodeSent.value = false; 
-        verificationCode.value = '';
+        verificationCode.value = ''; 
     } catch (error) {
         console.error('Помилка перевірки коду:', error);
         let errMsg = 'Не вдалося підтвердити email.';
@@ -387,21 +388,27 @@ async function verifyCode() {
     }
 }
 
-
 async function saveProfile() {
+  if (!user.value.firstName || !user.value.lastName) {
+    toast.warning("Ім'я та прізвище обов'язкові.");
+    return;
+  }
+  if (!user.value.phoneNumber) {
+      toast.warning('Номер телефону обов\'язковий.');
+      return;
+  }
+  
   const formData = new FormData();
-
   formData.append('firstName', user.value.firstName);
   formData.append('lastName', user.value.lastName);
   formData.append('phoneNumber', `+${user.value.phoneCode}${user.value.phoneNumber}`);
- 
   if (user.value.birthday) {
       try {
+          // ‼️ ВАЖЛИВО: Переконайся, що бекенд очікує UTC
           formData.append('dateOfBirth', new Date(user.value.birthday).toISOString()); 
       } catch (e) {
-          console.error("Invalid date format for birthday:", user.value.birthday);
-          toast.error("Невірний формат дати народження.");
-          return;  
+          toast.error("Невірний формат дати.");
+          return; 
       }
   }
   formData.append('address', user.value.address || ""); 
@@ -409,168 +416,159 @@ async function saveProfile() {
   formData.append('aboutYourself', user.value.bio || ""); 
   
   if (selectedFile.value) {
-    formData.append('Photo', selectedFile.value);
+    formData.append('Photo', selectedFile.value); 
   } 
 
   console.log("Sending profile update (FormData):", Object.fromEntries(formData.entries())); 
   
   try {
-    const response = await axios.put(`${API_BASE_URL}/edit`, formData, { 
+    await axios.put(`${API_BASE_URL}/edit`, formData, { 
       headers: { 
         'Authorization': `Bearer ${token.value}`
       }
     });
-
     toast.success('Профіль оновлено!'); 
-    
     selectedFile.value = null; 
-    
+
+    // Оновлюємо початкову URL, якщо фото було успішно завантажено
+    // (Але бекенд не повертає нову URL, тому краще перезавантажити дані)
+    // await onMounted(); // Це не спрацює, краще показати toast
+    if (selectedFile.value) {
+      toast.info('Оновіть сторінку, щоб побачити новий аватар.');
+    }
+
 
   } catch (error) {
-     console.error('Помилка збереження профілю (Axios):', error);
+     console.error('Помилка збереження (Axios):', error);
      let errorMessage = 'Помилка збереження.';
      if (error.response) {
-       errorMessage = error.response.data?.message 
-                      || error.response.data?.title 
-                      || (error.response.data?.errors ? JSON.stringify(error.response.data.errors) : 'Помилка сервера');
-     } else if (error.request) {
-       errorMessage = 'Немає відповіді від сервера.';
-     } else {
-       errorMessage = error.message;
-     }
+        if (error.response.data?.errors) {
+            errorMessage = Object.values(error.response.data.errors).flat().join(' ');
+        } else {
+            errorMessage = error.response.data?.message || error.response.data?.title || 'Помилка сервера';
+        }
+     } 
+     else if (error.request) { errorMessage = 'Немає відповіді від сервера.'; } 
+     else { errorMessage = error.message; }
      toast.error(`Не вдалося зберегти: ${errorMessage}`);
   }
 }
 
+// === 3. НОВА ФУНКЦІЯ ФІЛЬТРАЦІЇ ВВЕДЕННЯ ===
+function filterPhoneInput(event) {
+  // Дозволені клавіші:
+  // 1. Цифри (0-9)
+  // 2. Control keys (Backspace, Delete, Tab, Enter)
+  // 3. Стрілки (ArrowLeft, ArrowRight, ArrowUp, ArrowDown)
+  // 4. Home, End
+  // 5. Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z (і Cmd для Mac)
+  // 6. NumPad цифри
+  
+  const allowedKeys = [
+    'Backspace', 'Delete', 'Tab', 'Enter', 
+    'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+    'Home', 'End'
+  ];
 
+  // Перевіряємо Ctrl/Cmd комбінації
+  if ((event.ctrlKey || event.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(event.key.toLowerCase())) {
+    return; // Дозволити
+  }
+
+  // Перевіряємо цифри (і NumPad) та клавіші керування
+  if (
+    (event.key >= '0' && event.key <= '9') || // Цифри 0-9
+    allowedKeys.includes(event.key) ||
+    (event.key.startsWith('Numpad') && !isNaN(event.key.substring(6))) // NumPad (Numpad0, Numpad1, ...)
+  ) {
+    return; // Дозволити
+  }
+
+  // Забороняємо всі інші клавіші (літери, спецсимволи)
+  event.preventDefault();
+}
+// === === === === === === === === === === ===
 
 function onFileSelected(event) {
   const file = event.target.files[0];
   const currentInput = event.target; 
-
   if (!file) {
       selectedFile.value = null; 
-     
-      currentInput.value = '';
-      return;
-  }
-
-  if (!file.type.startsWith('image/')) {
-      toast.error('Будь ласка, оберіть файл зображення.');
-      selectedFile.value = null; 
-      user.value.avatarUrl = initialAvatarUrl.value || null; // Повертаємо старе фото
       currentInput.value = ''; 
       return;
   }
-  
-  selectedFile.value = file; // Зберігаємо файл для FormData
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    user.value.avatarUrl = e.target.result; // Показуємо прев'ю (base64)
-  };
-  reader.onerror = (error) => {
-      console.error('Помилка читання файлу:', error);
-      toast.error('Не вдалося прочитати файл.');
+  if (!file.type.startsWith('image/')) {
+      toast.error('Оберіть файл зображення.');
       selectedFile.value = null; 
       user.value.avatarUrl = initialAvatarUrl.value || null; 
-      currentInput.value = '';
-  };
+      currentInput.value = ''; 
+      return;
+  }
+  selectedFile.value = file; 
+  const reader = new FileReader();
+  reader.onload = (e) => { user.value.avatarUrl = e.target.result; };
+  reader.onerror = (error) => { /* ... обробка помилок читання ... */ };
   reader.readAsDataURL(file);
-
   console.log('Обрано файл:', file.name);
 }
 
 function triggerFileUpload() {
   fileInput.value.click(); 
-}async function changePassword() {
-   // --- Валідація (без змін) ---
-   if (!passwordForm.value.currentPassword) {
-      toast.warning('Будь ласка, введіть поточний пароль.');
-      return;
-   }
-   if (!passwordForm.value.newPassword) {
-      toast.warning('Будь ласка, введіть новий пароль.');
-      return;
+}
+
+async function changePassword() {
+   if (!passwordForm.value.currentPassword || !passwordForm.value.newPassword || passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+       toast.warning('Перевірте введені паролі.');
+       return;
    }
    if (passwordForm.value.newPassword.length < 5 || passwordForm.value.newPassword.length > 27) {
-     toast.warning('Новий пароль має містити від 5 до 27 символів.');
+     toast.warning('Пароль має містити від 5 до 27 символів.');
      return;
    }
-   if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-     toast.warning('Нові паролі не співпадають!');
-     return;
-   }
+ 
   const CHANGE_PASSWORD_URL = `${API_BASE_URL}/ChangePassword`; 
   const payload = {
-    Password: passwordForm.value.currentPassword,        // Поточний пароль (старий)
-    NewPassword: passwordForm.value.newPassword,          // Новий пароль
-    PasswordConfirmation: passwordForm.value.confirmPassword // Підтвердження нового
+    Password: passwordForm.value.currentPassword,        
+    NewPassword: passwordForm.value.newPassword,          
+    PasswordConfirmation: passwordForm.value.confirmPassword 
   };
-  console.log(`Sending password change request to ${CHANGE_PASSWORD_URL}`, payload);
+
+  console.log(`Sending password change to ${CHANGE_PASSWORD_URL}`, payload);
 
   try {
     await axios.post(CHANGE_PASSWORD_URL, payload, {
-        headers: {
-          'Content-Type': 'application/json', // Надсилаємо JSON
-          'Authorization': `Bearer ${token.value}` // Токен для [Authorize]
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token.value}` 
         }
     });
-
-    toast.success('Пароль зміннено.');
-
+    
+    toast.success('Пароль успішно змінено!'); // Змінено повідомлення
     passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
-
+    
   } catch (error) {
-     console.error('Помилка запиту на зміну пароля (Axios):', error);
+     console.error('Помилка зміни пароля (Axios):', error);
      let errorMessage = 'Помилка зміни пароля.';
-     if (error.response) {
-       // Обробляємо текстові помилки BadRequest від бекенду
+      if (error.response) {
        if (error.response.status === 400 && typeof error.response.data === 'string') {
-            if (error.response.data.includes("Old password is incorrect")) {
-                 errorMessage = 'Невірний поточний пароль.';
-            } else if (error.response.data.includes("do not match")) {
-                 errorMessage = 'Новий пароль та підтвердження не співпадають.';
-            } else if (error.response.data.includes("All fields are required")) {
-                 errorMessage = 'Будь ласка, заповніть усі поля пароля.';
-            } else if (error.response.data.includes("must be between")) {
-                errorMessage = 'Новий пароль має містити від 5 до 27 символів.'; // Оновлено
-            } else if (error.response.data.includes("can only contain letters")) {
-                errorMessage = 'Новий пароль містить неприпустимі символи.'; // Оновлено
-            }
-             else {
-                 errorMessage = error.response.data; // Інше повідомлення BadRequest
-            }
-       } else if (error.response.status === 401) { // Unauthorized
-            errorMessage = 'Помилка авторизації. Спробуйте увійти знову.';
-            clearAuthData();
-            router.push('/login');
-       } else if (error.response.status === 404) { // Not Found
-            errorMessage = 'Користувача не знайдено.'; // Малоймовірно через [Authorize]
-       }
-        else { // Інші помилки сервера (500 тощо)
-           errorMessage = error.response.data?.message
-                          || error.response.data?.title
-                          || (error.response.data?.errors ? JSON.stringify(error.response.data.errors) : 'Помилка сервера.');
-       }
-     } else if (error.request) {
-       errorMessage = 'Немає відповіді від сервера.';
-     } else {
-       errorMessage = error.message;
-     }
+            if (error.response.data.includes("Old password is incorrect")) { errorMessage = 'Невірний поточний пароль.'; } 
+            else if (error.response.data.includes("do not match")) { errorMessage = 'Новий пароль не співпадає.'; } 
+            else { errorMessage = error.response.data; }
+       } else { errorMessage = error.response.data?.message || 'Помилка сервера.'; }
+     } else if (error.request) { errorMessage = 'Немає відповіді від сервера.'; } 
+     else { errorMessage = error.message; }
      toast.error(`Не вдалося змінити пароль: ${errorMessage}`);
   }
 }
+
 function forgotPassword() {
-  if (user.value.email) {
-    // Передаємо email як query параметр
-    router.push({ name: 'forgot-password', query: { email: user.value.email } }); 
-    toast.info('Перенаправляємо на сторінку відновлення пароля...');
-  } else {
-    // Якщо email чомусь не завантажився, перенаправляємо без нього
-    toast.warning('Не вдалося визначити ваш email. Будь ласка, введіть його вручну.');
-    router.push({ name: 'forgot-password' }); 
-  }
+    if (user.value.email) {
+      router.push({ name: 'forgot-password', query: { email: user.value.email } }); 
+      toast.info('Перенаправляємо на сторінку відновлення пароля...');
+    } else {
+      toast.warning('Не вдалося визначити ваш email. Введіть його вручну.');
+      router.push({ name: 'forgot-password' }); 
+    }
 }
 </script>
 
@@ -630,7 +628,6 @@ function forgotPassword() {
   .profile-container {
     grid-template-columns: 1fr 3fr;
   }
-  
   .profile-view h1 {
     padding-left: calc( ( (100% - 40px) / 4 ) + 40px );
   }
@@ -849,6 +846,17 @@ button {
 .btn-primary:hover {
   background-color: #aa0000;
 }
+.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+.btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 
 .forgot-password-link {
   display: block;
@@ -866,80 +874,32 @@ button {
   margin-top: 0;
   padding-top: 0;
 }
+
+/* === СТИЛІ ВЕРИФІКАЦІЇ === */
 .email-verification-section {
-  background-color: rgba(0, 0, 0, 0.2); /* Трохи темніший фон */
+  background-color: rgba(0, 0, 0, 0.2); 
   padding: 15px 20px;
   border-radius: 8px;
   margin-bottom: 30px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .verification-status {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
-  margin: 0 0 15px 0; /* Відступ тільки знизу, якщо це статус */
+  margin: 0 0 15px 0; 
 }
 .verification-status.warning {
-  color: #ffd700; /* Жовтий */
+  color: #ffd700; 
 }
 .verification-status.success {
-  color: #28a745; /* Зелений */
-   margin-bottom: 30px; /* Збільшуємо відступ, якщо email вже підтверджено */
+  color: #28a745; 
+   margin-bottom: 30px; 
 }
 .verification-status svg {
   flex-shrink: 0;
-}
-
-.verification-actions {
-  text-align: center;
-}
-
-.verification-code-input label {
-  font-size: 13px;
-  color: #ccc;
-  margin-bottom: 8px;
-  display: block;
-  text-align: left;
-}
-
-.verification-code-input .input-group {
-  display: flex;
-  gap: 10px;
-  align-items: center; /* Вирівнюємо інпут та кнопку по вертикалі */
-}
-
-.verification-code-input input {
-  flex-grow: 1; /* Інпут займає доступний простір */
-  margin: 0; /* Прибираємо стандартні відступи */
-  text-align: center;
-  letter-spacing: 0.2em;
-  font-size: 16px;
-  padding: 0 5px; /* Зменшуємо бокові падінги */
-}
-
-.verification-code-input .btn-primary {
-  flex-shrink: 0; /* Кнопка не стискається */
-  margin-top: 0; /* Прибираємо стандартний відступ кнопки */
-  padding: 10px 15px; /* Робимо кнопку трохи меншою */
-  font-size: 14px;
-}
-
-.resend-link {
-  background: none;
-  border: none;
-  color: #ccc;
-  text-decoration: underline;
-  cursor: pointer;
-  font-size: 13px;
-  padding: 0;
-  margin-top: 10px;
-  display: inline-block;
-}
-.resend-link:hover:not(:disabled) {
-  color: #fff;
 }
 .info-text {
   font-size: 14px;
@@ -948,9 +908,52 @@ button {
   margin-bottom: 20px;
   line-height: 1.5;
 }
-.resend-link:disabled {
+.verification-code-input label {
+  font-size: 13px;
+  color: #ccc;
+  margin-bottom: 8px;
+  display: block;
+  text-align: left;
+}
+.verification-code-input .input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center; 
+}
+.verification-code-input input {
+  flex-grow: 1; 
+  margin: 0; 
+  text-align: center;
+  letter-spacing: 0.2em;
+  font-size: 16px;
+  padding: 0 5px; 
+}
+.verification-code-input .btn-primary {
+  flex-shrink: 0; 
+  margin-top: 0; 
+  padding: 10px 15px; 
+  font-size: 14px;
+}
+.btn-link {
+    background: none;
+    border: none;
+    color: #ccc;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font-size: 13px;
+    font-family: 'Open Sans', sans-serif;
+}
+.btn-link:hover:not(:disabled) {
+  color: #fff;
+}
+.btn-link:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     text-decoration: none;
+}
+.resend-link {
+  margin-top: 10px;
+  display: inline-block;
 }
 </style>

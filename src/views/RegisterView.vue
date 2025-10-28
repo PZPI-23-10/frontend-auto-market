@@ -49,7 +49,7 @@
                 +{{ country.phoneCode }}
               </option>
             </select>
-            <input v-model="phone" type="tel" placeholder="Phone Number" class="phone-input"/>
+            <input v-model="phone" type="tel" placeholder="Phone Number" class="phone-input" @keydown="filterPhoneInput" maxlength="10"/>
           </div>
         </div>
       </transition>
@@ -82,9 +82,9 @@
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'; // Убраны ненужные импорты
+import { ref } from 'vue'; 
 import { useRouter } from 'vue-router';
-import { useToast } from 'vue-toastification'; // Імпорт для сповіщень
+import { useToast } from 'vue-toastification'; 
 import { useAuth } from '@/store/auth'; 
 const { setAuthData } = useAuth();
 import axios from 'axios';
@@ -282,6 +282,27 @@ async function completeRegistration() {
 
     toast.error(errorMessage); // Показуємо фінальне повідомлення
   }
+}
+function filterPhoneInput(event) {
+  // Дозволені клавіші (керування, навігація, Backspace, Delete, Tab, Enter)
+  const allowedKeys = [
+    'Backspace', 'Delete', 'Tab', 'Enter', 
+    'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+    'Home', 'End'
+  ];
+  if ((event.ctrlKey || event.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(event.key.toLowerCase())) {
+    return; // Дозволити
+  }
+
+  if (
+    (event.key >= '0' && event.key <= '9') || // Цифри 0-9
+    allowedKeys.includes(event.key) ||
+    (event.key.startsWith('Numpad') && !isNaN(event.key.substring(6)))
+  ) {
+    return; 
+  }
+
+  event.preventDefault();
 }
 </script>
 
