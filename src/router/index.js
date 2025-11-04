@@ -4,7 +4,8 @@ import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import ProfileView from '@/views/ProfileView.vue' 
-import VerifyEmailView from '@/views/VerifyEmailView.vue' 
+import VerifyEmailView from '@/views/VerifyEmailView.vue'
+import CreateListingView from '@/views/CreateListingView.vue'
 import ForgotPasswordView from '@/components/ForgotPasswordView.vue'
 import { useAuth } from '@/store/auth' 
 
@@ -14,6 +15,7 @@ const routes = [
   { path: '/register', name: 'register', component: RegisterView },
   { path: '/profile', name: 'profile', component: ProfileView, meta: { requiresAuth: true } }, 
   { path: '/verify-email', name: 'verify-email', component: VerifyEmailView, meta: { requiresAuth: true } }, 
+  { path: '/create-listing', name: 'create-listing', component: CreateListingView  },
   { path: '/forgot-password', name: 'forgot-password', component: ForgotPasswordView  },
 ]
 
