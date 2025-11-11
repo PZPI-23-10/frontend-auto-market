@@ -43,18 +43,23 @@
         {{ listing.year }} - {{ listing.location }}
       </p>
       
-      <!-- Характеристики -->
+      <!-- ОНОВЛЕНИЙ БЛОК ХАРАКТЕРИСТИК (з іконками) -->
       <div class="specs-horizontal">
         <div class="spec-item">
-          <strong>Пробіг:</strong> {{ listing.mileage }} тис. км
+          <!-- Іконка "Приборна панель" -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0-20 0"/><path d="m14 14-2-2-2 2"/><path d="M12 12v-6"/></svg>
+          <span>{{ listing.mileage }} тис. км</span>
         </div>
         <div class="spec-item">
-          <strong>Паливо:</strong> {{ listing.fuel }}
+          <!-- Іконка "Заправка" -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 11h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1Z"/><path d="M18 11V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"/><path d="M6 11h4"/><path d="M6 15h2"/></svg>
+          <span>{{ listing.fuel }}</span>
         </div>
-        <!-- 
-          Тут можна додати більше характеристик, 
-          наприклад, "Коробка передач", "Привід" і т.д.
-        -->
+        <div class="spec-item">
+          <!-- Іконка "Коробка передач" -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
+          <span>{{ listing.transmission }}</span>
+        </div>
       </div>
       
       <!-- (МОК) Кнопка "Зберегти" (сердечко) -->
@@ -279,18 +284,30 @@ function toggleFavorite() {
 @media (min-width: 768px) {
   .specs-horizontal {
     flex-direction: row; /* На десктопі - в ряд */
-    gap: 20px;
+    gap: 15px; /* <--- Зменшив відступ */
+    flex-wrap: wrap; /* Дозволяє переносити, якщо не влізе */
   }
 }
 
+/* --- ОНОВЛЕНІ СТИЛІ ДЛЯ ХАРАКТЕРИСТИК --- */
 .spec-item {
-  font-size: 14px;
+  display: flex; /* <--- (FLEX) */
+  align-items: center; /* <--- (FLEX) Центрує іконку і текст */
+  font-size: 13px; /* <--- Трохи менший шрифт */
   color: #ccc;
+  gap: 8px; /* <--- (FLEX) Відступ між іконкою і текстом */
 }
 .spec-item strong {
   color: #fff;
   font-weight: 500;
 }
+.spec-item svg {
+  width: 16px; /* <--- Розмір іконки */
+  height: 16px;
+  stroke: #ffd700; /* <--- Акцентний жовтий колір */
+  flex-shrink: 0; /* Щоб іконка не стискалася */
+}
+/* --- КІНЕЦЬ ОНОВЛЕНЬ --- */
 
 .favorite-btn {
   position: absolute;
