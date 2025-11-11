@@ -7,7 +7,7 @@ import ProfileView from '@/views/ProfileView.vue'
 import VerifyEmailView from '@/views/VerifyEmailView.vue'
 import CreateListingView from '@/views/CreateListingView.vue'
 import ListingsView from '@/views/ListingsView.vue'
-// import ListingDetailView from '@/views/ListingDetailView.vue'
+import ListingDetailView from '@/views/ListingDetailView.vue'
 import ForgotPasswordView from '@/components/ForgotPasswordView.vue'
 import { useAuth } from '@/store/auth' 
 
@@ -16,7 +16,7 @@ const routes = [
   { path: '/login', name: 'login', component: LoginView },
   { path: '/register', name: 'register', component: RegisterView },
   { path: '/listings', name: 'listings', component: ListingsView },
-  // { path: '/listing/:id', name: 'listing-detail', component: ListingDetailView },
+  { path: '/listing/:id', name: 'listing-detail', component: ListingDetailView },
   { path: '/profile', name: 'profile', component: ProfileView, meta: { requiresAuth: true } }, 
   { path: '/verify-email', name: 'verify-email', component: VerifyEmailView, meta: { requiresAuth: true } }, 
   { path: '/create-listing', name: 'create-listing', component: CreateListingView  },

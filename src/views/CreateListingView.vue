@@ -38,8 +38,18 @@
               <option v-for="fuelType in fuelTypes" :key="fuelType" :value="fuelType">
                 {{ fuelType }}
               </option>
-            </select>
-          </div>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="transmission">Коробка передач</label>
+          <select id="transmission" v-model="listing.transmission" required>
+            <option value="" disabled>Оберіть тип</option>
+            <option v-for="t in transmissionTypes" :key="t" :value="t">
+              {{ t }}
+            </option>
+          </select>
+        </div>
         </section>
         
         <section class="form-card">
@@ -104,6 +114,7 @@ const fieldNames = {
   brand: 'Бренд',
   model: 'Модель',
   fuel: 'Тип палива',
+  transmission: 'Коробка передач',
   location: 'Місто',
   mileage: 'Пробіг',
   price: 'Ціна'
@@ -121,6 +132,7 @@ const listing = ref({
   year: new Date().getFullYear(),
   mileage: '',
   fuel: '',
+  transmission: '',
   price: '',
   currency: 'USD', 
   location: '',
@@ -131,6 +143,7 @@ const listingPhotos = ref([]); // Тут ми зберігаємо файли, �
 
 // --- Опції для Select'ів ---
 const fuelTypes = ref(['Бензин', 'Дизель', 'Електро', 'Гібрид', 'Газ/Бензин']);
+const transmissionTypes = ref(['Механіка', 'Автомат', 'Робот']);
 const years = computed(() => {
   const currentYear = new Date().getFullYear();
   const startYear = 1970;
@@ -160,8 +173,8 @@ function handleSubmit() {
   // 2. БЛОК ВАЛІДАЦІЇ (ДО ВІДПРАВКИ)
   // ---
   
-  // Перевіряємо текстові поля
-  const requiredText = ['brand', 'model', 'fuel', 'location'];
+// Перевіряємо текстові поля
+  const requiredText = ['brand', 'model', 'fuel', 'location', 'transmission']; 
   for (const field of requiredText) {
     if (!listing.value[field]) {
       // Використовуємо словник для гарного повідомлення (виправлення №3)

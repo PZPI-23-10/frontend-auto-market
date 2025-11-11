@@ -1,0 +1,481 @@
+<template>
+  <div class="detail-view">
+    <div class="container">
+      
+      <div v-if="isLoading || !listing" class="loading-card">
+        <div v-if="isLoading">
+          <div class="spinner"></div>
+          <h2>Завантаження даних...</h2>
+        </div>
+        <h2 v-if="!isLoading && !listing">Помилка. Оголошення не знайдено.</h2>
+      </div>
+
+      <div v-if="!isLoading && listing" class="page-layout">
+        
+        <main class="main-content">
+          
+          <section class="form-card">
+            <h2>{{ listing.brand }} {{ listing.model }} ({{ listing.year }})</h2>
+            
+            <div class="photo-gallery">
+              <div class="main-image">
+                <img :src="selectedImageUrl" alt="Main car photo">
+              </div>
+              <div class="thumbnails">
+                <div 
+                  v-for="(img, index) in galleryImages" 
+                  :key="index"
+                  class="thumb-item"
+                  :class="{ active: index === selectedImageIndex }"
+                  @click="selectImage(index)"
+                >
+                  <img :src="img" alt="thumb">
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-card">
+            <h2>Опис від продавця</h2>
+            <p class="description-text">
+              {{ listing.description || 'Продавець не додав опис.' }}
+            </p>
+          </section>
+
+        </main>
+        
+        <aside class="sidebar">
+          
+          <div class="filter-card">
+            <h2 class="price">{{ formattedPrice }}</h2>
+            <p class="location">{{ listing.location }}</p>
+            <button class="btn-secondary message-btn">
+              Написати повідомлення
+            </button>
+          </div>
+          
+          <div class="filter-card seller-card">
+            <h4>Продавець</h4>
+            <div class="seller-info">
+              <img class="seller-avatar" :src="seller.avatarUrl || defaultAvatar" alt="Аватар продавця">
+              <div class="seller-details">
+                <strong>{{ seller.name }}</strong>
+                </div>
+            </div>
+            
+            <div class="seller-contacts">
+              <div class="contact-item">
+                <span>Email:</span>
+                <a :href="`mailto:${seller.email}`">{{ seller.email }}</a>
+              </div>
+              <div class="contact-item">
+                <span>Телефон:</span>
+                <a :href="`tel:${seller.phone}`">{{ seller.phone }}</a>
+              </div>
+            </div>
+          </div>
+          
+          <div class="filter-card specs-card">
+            <h2>Характеристики</h2>
+            <ul class="specs-list">
+              <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                <span>Бренд</span>
+                <strong>{{ listing.brand }}</strong>
+              </li>
+              <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16.94V17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v.06Z"/><path d="M20 17h2a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v.06"/><path d="M19 12V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v5"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+                <span>Модель</span>
+                <strong>{{ listing.model }}</strong>
+              </li>
+              <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Рік</span>
+                <strong>{{ listing.year }}</strong>
+              </li>
+              <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0-20 0"/><path d="m14 14-2-2-2 2"/><path d="M12 12v-6"/></svg>
+                <span>Пробіг</span>
+                <strong>{{ listing.mileage }} тис. км</strong>
+              </li>
+              <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 11h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1Z"/><path d="M18 11V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"/><path d="M6 11h4"/><path d="M6 15h2"/></svg>
+                <span>Паливо</span>
+                <strong>{{ listing.fuel }}</strong>
+              </li>
+              <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
+                <span>Коробка</span>
+                <strong>{{ listing.transmission }}</strong>
+              </li>
+            </ul>
+          </div>
+
+        </aside>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router'; 
+import { useToast } from 'vue-toastification';
+import defaultAvatar from '@/assets/default-avatar.png'; // (Перевірте ваш шлях)
+
+const route = useRoute();
+const toast = useToast();
+
+const isLoading = ref(true);
+const listing = ref(null); 
+
+// (МОК) ДАНІ ПРОДАВЦЯ (без 'memberSince')
+const seller = ref({
+  name: 'Олександр Іваненко',
+  email: 'user@example.com',
+  phone: '+380 99 123 4567',
+  avatarUrl: null
+});
+
+// (Логіка Галереї, "База даних", onMounted, formattedPrice - без змін)
+const PLACEHOLDER_IMG = 'https://placehold.co/800x600/333/555?text=No+Photo';
+const selectedImageIndex = ref(0);
+const galleryImages = computed(() => {
+  if (listing.value && listing.value.images && listing.value.images.length > 0) {
+    return listing.value.images;
+  }
+  return [PLACEHOLDER_IMG];
+});
+const selectedImageUrl = computed(() => {
+  return galleryImages.value[selectedImageIndex.value];
+});
+function selectImage(index) {
+  selectedImageIndex.value = index;
+}
+const mockCars = [
+    { id: 1, brand: 'Audi', model: 'A6', year: 2020, mileage: 50, fuel: 'Дизель', price: 35000, currency: 'USD', location: 'Київ', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800', 'https://images.unsplash.com/photo-1612999332206-819194885c3b?q=80&w=800'], description: 'Чудовий стан, повна комплектація, один власник. Обслуговувалась тільки на офіційному СТО.' },
+    { id: 2, brand: 'Tesla', model: 'Model 3', year: 2022, mileage: 15, fuel: 'Електро', price: 40000, currency: 'USD', location: 'Львів', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1554844078-f24c7694d509?q=80&w=800'], description: 'Майже нова, батарея 98%. Автопілот.' },
+    { id: 3, brand: 'BMW', model: 'X5', year: 2019, mileage: 80, fuel: 'Бензин', price: 45000, currency: 'USD', location: 'Одеса', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=800'], description: 'M-пакет, панорама, проекція. Авто в ідеалі.' },
+    { id: 4, brand: 'Volkswagen', model: 'Passat', year: 2018, mileage: 120, fuel: 'Дизель', price: 22000, currency: 'USD', location: 'Харків', transmission: 'Механіка', images: [], description: 'Робоча машина, є нюанси по кузову.' },
+    { id: 5, brand: 'Toyota', model: 'Camry', year: 2021, mileage: 30, fuel: 'Гібрид', price: 33000, currency: 'USD', location: 'Київ', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1604132223204-b81b53f180f1?q=80&w=800'] },
+];
+onMounted(() => {
+  isLoading.value = true;
+  const carId = parseInt(route.params.id); 
+  console.log(`(Симуляція) Запит на бекенд: /api/listing/${carId}`);
+  setTimeout(() => { 
+    const foundCar = mockCars.find(car => car.id === carId); 
+    if (foundCar) {
+      listing.value = foundCar;
+      toast.success('Дані завантажено');
+    } else {
+      toast.error('Оголошення не знайдено');
+    }
+    isLoading.value = false;
+  }, 1000); 
+});
+const formattedPrice = computed(() => {
+  if (!listing.value) return '';
+  return `${listing.value.price.toLocaleString('en-US')} ${listing.value.currency}`;
+});
+function showPhoneNumber() {
+  toast.success(`Телефон продавця: ${seller.value.phone}`);
+}
+</script>
+
+<style scoped>
+/* (Фон, контейнер, макет, картки, спіннер - без змін) */
+.detail-view {
+  background-image: url('@/assets/car-header1.jpg'); 
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh;
+  position: relative;
+  padding: 100px 20px 40px 20px;
+  font-family: 'Open Sans', sans-serif;
+  color: #fff;
+}
+.detail-view::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 0;
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.page-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 25px;
+}
+@media (min-width: 992px) {
+  .page-layout {
+    grid-template-columns: 3fr 1fr;
+    align-items: start;
+  }
+}
+.form-card,
+.filter-card,
+.loading-card {
+  background-color: rgba(30, 30, 30, 0.7);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 40px rgba(8,7,16,0.6);
+  padding: 30px;
+}
+.loading-card {
+  text-align: center;
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.loading-card h2 {
+  margin-top: 20px;
+}
+.form-card h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 10px;
+  font-weight: 500;
+}
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+.description-text {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #eee;
+  white-space: pre-wrap; 
+}
+
+/* (Сайдбар, ціна, кнопка - без змін) */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  position: sticky;
+  top: 100px;
+  align-self: start;
+}
+.price {
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffd700;
+  margin: 0;
+}
+.location {
+  font-size: 16px;
+  color: #ccc;
+  margin: 5px 0 20px 0;
+}
+.btn-submit {
+  font-family: 'Open Sans', sans-serif;
+  width: 100%;
+  padding: 12px 0;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  background-color: #cc0000;
+  color: #fff;
+  font-size: 16px;
+}
+.btn-submit:hover {
+  background-color: #aa0000;
+}
+
+/* (Галерея - без змін) */
+.main-image {
+  width: 100%;
+  height: auto;
+  max-height: 500px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+.main-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  min-height: 300px;
+}
+.thumbnails {
+  display: flex;
+  flex-wrap: wrap; 
+  gap: 10px;
+  margin-top: 15px;
+}
+.thumb-item {
+  width: 100px;
+  height: 70px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 3px solid #555;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+.thumb-item:hover {
+  border-color: #ffd700;
+}
+.thumb-item.active {
+  border-color: #cc0000;
+}
+.thumb-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 5px solid #555;
+  border-top-color: #ffd700;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---
+ * 6. ОНОВЛЕНІ СТИЛІ КАРТОК (Продавець та Характеристики)
+ --- */
+ 
+/* Картка Продавця (без 'memberSince') */
+.seller-card {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+.seller-card h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+  color: #ccc;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+}
+.seller-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+.seller-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #555;
+}
+.seller-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+}
+.seller-details strong {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.seller-contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+.contact-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+}
+.contact-item span {
+  color: #ccc;
+}
+.contact-item a {
+  color: #ffd700;
+  text-decoration: none;
+  font-weight: 600;
+}
+.contact-item a:hover {
+  text-decoration: underline;
+}
+
+/* Кнопка "Написати повідомлення" (в картці продавця) */
+.message-btn {
+  font-family: 'Open Sans', sans-serif;
+  width: 100%;
+  padding: 12px 0;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: 0.3s;
+  background-color: rgba(255,255,255,0.27);
+  color: #fff;
+}
+.message-btn:hover {
+  background-color: rgba(255,255,255,0.4);
+}
+
+.contact-btn {
+  margin-top: 5px;
+}
+
+.specs-card h2 {
+  margin-top: 0;
+  font-weight: 500;
+}
+.specs-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.specs-list li {
+  display: flex; 
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 10px; 
+}
+.specs-list li:last-child {
+  border-bottom: none;
+}
+.specs-list li span {
+  color: #ccc;
+  display: flex; 
+  align-items: center;
+  gap: 8px; 
+}
+.specs-list li strong {
+  color: #fff;
+  font-weight: 600;
+  text-align: right;
+  flex-shrink: 0;
+}
+.specs-list li svg {
+  width: 18px;
+  height: 18px;
+  stroke: #ffd700;
+  flex-shrink: 0;
+}
+</style>
