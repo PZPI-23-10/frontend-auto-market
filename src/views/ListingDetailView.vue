@@ -19,7 +19,12 @@
             
             <div class="photo-gallery">
               <div class="main-image">
-                <img :src="selectedImageUrl" alt="Main car photo">
+                <img 
+                  :src="selectedImageUrl" 
+                  alt="Main car photo"
+                  @error="$event.target.src = placeholderImage"
+                  @click="openModal(selectedImageUrl)"
+                >
               </div>
               <div class="thumbnails">
                 <div 
@@ -29,7 +34,11 @@
                   :class="{ active: index === selectedImageIndex }"
                   @click="selectImage(index)"
                 >
-                  <img :src="img" alt="thumb">
+                  <img 
+                    :src="img" 
+                    alt="thumb"
+                    @error="$event.target.src = placeholderImage"
+                    >
                 </div>
               </div>
             </div>
@@ -49,10 +58,7 @@
           <div class="filter-card">
             <h2 class="price">{{ formattedPrice }}</h2>
             <p class="location">{{ listing.location }}</p>
-            <button class="btn-secondary message-btn">
-              Написати повідомлення
-            </button>
-          </div>
+            </div>
           
           <div class="filter-card seller-card">
             <h4>Продавець</h4>
@@ -60,7 +66,7 @@
               <img class="seller-avatar" :src="seller.avatarUrl || defaultAvatar" alt="Аватар продавця">
               <div class="seller-details">
                 <strong>{{ seller.name }}</strong>
-                </div>
+              </div>
             </div>
             
             <div class="seller-contacts">
@@ -73,6 +79,10 @@
                 <a :href="`tel:${seller.phone}`">{{ seller.phone }}</a>
               </div>
             </div>
+
+            <button class="btn-secondary message-btn">
+              Написати повідомлення
+            </button>
           </div>
           
           <div class="filter-card specs-card">
@@ -114,6 +124,14 @@
         </aside>
       </div>
     </div>
+    
+    <div v-if="isModalOpen" class="image-modal-overlay" @click="closeModal">
+      <div class="image-modal-content" @click.stop> 
+        <button class="modal-close-btn" @click="closeModal">&times;</button>
+        <img :src="currentImageInModal" alt="Повноекранне зображення" class="modal-image" />
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -121,7 +139,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router'; 
 import { useToast } from 'vue-toastification';
-import defaultAvatar from '@/assets/default-avatar.png'; // (Перевірте ваш шлях)
+import defaultAvatar from '@/assets/default-avatar.png'; 
+import placeholderImage from '@/assets/no-photo.png'; 
 
 const route = useRoute();
 const toast = useToast();
@@ -129,7 +148,6 @@ const toast = useToast();
 const isLoading = ref(true);
 const listing = ref(null); 
 
-// (МОК) ДАНІ ПРОДАВЦЯ (без 'memberSince')
 const seller = ref({
   name: 'Олександр Іваненко',
   email: 'user@example.com',
@@ -137,14 +155,14 @@ const seller = ref({
   avatarUrl: null
 });
 
-// (Логіка Галереї, "База даних", onMounted, formattedPrice - без змін)
+// --- Логіка Галереї ---
 const PLACEHOLDER_IMG = 'https://placehold.co/800x600/333/555?text=No+Photo';
 const selectedImageIndex = ref(0);
 const galleryImages = computed(() => {
   if (listing.value && listing.value.images && listing.value.images.length > 0) {
     return listing.value.images;
   }
-  return [PLACEHOLDER_IMG];
+  return [placeholderImage];
 });
 const selectedImageUrl = computed(() => {
   return galleryImages.value[selectedImageIndex.value];
@@ -152,13 +170,29 @@ const selectedImageUrl = computed(() => {
 function selectImage(index) {
   selectedImageIndex.value = index;
 }
+
+// --- Логіка Модального вікна ---
+const isModalOpen = ref(false);
+const currentImageInModal = ref(''); 
+function openModal(imageSrc) {
+  currentImageInModal.value = imageSrc;
+  isModalOpen.value = true;
+  document.body.style.overflow = 'hidden'; 
+}
+function closeModal() {
+  isModalOpen.value = false;
+  currentImageInModal.value = '';
+  document.body.style.overflow = '';
+}
+
+// (МОК) "База даних" (без змін)
 const mockCars = [
     { id: 1, brand: 'Audi', model: 'A6', year: 2020, mileage: 50, fuel: 'Дизель', price: 35000, currency: 'USD', location: 'Київ', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800', 'https://images.unsplash.com/photo-1612999332206-819194885c3b?q=80&w=800'], description: 'Чудовий стан, повна комплектація, один власник. Обслуговувалась тільки на офіційному СТО.' },
-    { id: 2, brand: 'Tesla', model: 'Model 3', year: 2022, mileage: 15, fuel: 'Електро', price: 40000, currency: 'USD', location: 'Львів', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1554844078-f24c7694d509?q=80&w=800'], description: 'Майже нова, батарея 98%. Автопілот.' },
-    { id: 3, brand: 'BMW', model: 'X5', year: 2019, mileage: 80, fuel: 'Бензин', price: 45000, currency: 'USD', location: 'Одеса', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=800'], description: 'M-пакет, панорама, проекція. Авто в ідеалі.' },
     { id: 4, brand: 'Volkswagen', model: 'Passat', year: 2018, mileage: 120, fuel: 'Дизель', price: 22000, currency: 'USD', location: 'Харків', transmission: 'Механіка', images: [], description: 'Робоча машина, є нюанси по кузову.' },
-    { id: 5, brand: 'Toyota', model: 'Camry', year: 2021, mileage: 30, fuel: 'Гібрид', price: 33000, currency: 'USD', location: 'Київ', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1604132223204-b81b53f180f1?q=80&w=800'] },
+    // (інші машини)
 ];
+
+// (МОК) Завантаження даних (без змін)
 onMounted(() => {
   isLoading.value = true;
   const carId = parseInt(route.params.id); 
@@ -174,13 +208,16 @@ onMounted(() => {
     isLoading.value = false;
   }, 1000); 
 });
+
 const formattedPrice = computed(() => {
   if (!listing.value) return '';
   return `${listing.value.price.toLocaleString('en-US')} ${listing.value.currency}`;
 });
-function showPhoneNumber() {
-  toast.success(`Телефон продавця: ${seller.value.phone}`);
-}
+
+// ---
+// ФУНКЦІЯ 'showPhoneNumber' БІЛЬШЕ НЕ ПОТРІБНА І ВИДАЛЕНА
+// ---
+
 </script>
 
 <style scoped>
@@ -260,7 +297,7 @@ function showPhoneNumber() {
   white-space: pre-wrap; 
 }
 
-/* (Сайдбар, ціна, кнопка - без змін) */
+/* --- ОНОВЛЕНИЙ САЙДБАР --- */
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -280,22 +317,7 @@ function showPhoneNumber() {
   color: #ccc;
   margin: 5px 0 20px 0;
 }
-.btn-submit {
-  font-family: 'Open Sans', sans-serif;
-  width: 100%;
-  padding: 12px 0;
-  border-radius: 6px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.3s;
-  background-color: #cc0000;
-  color: #fff;
-  font-size: 16px;
-}
-.btn-submit:hover {
-  background-color: #aa0000;
-}
+/* (Кнопка .btn-submit видалена з картки ціни) */
 
 /* (Галерея - без змін) */
 .main-image {
@@ -311,6 +333,7 @@ function showPhoneNumber() {
   height: 100%;
   object-fit: contain;
   min-height: 300px;
+  cursor: zoom-in;
 }
 .thumbnails {
   display: flex;
@@ -351,12 +374,8 @@ function showPhoneNumber() {
     transform: rotate(360deg);
   }
 }
-
-/* ---
- * 6. ОНОВЛЕНІ СТИЛІ КАРТОК (Продавець та Характеристики)
- --- */
  
-/* Картка Продавця (без 'memberSince') */
+/* Картка Продавця */
 .seller-card {
   padding-top: 20px;
   padding-bottom: 20px;
@@ -385,14 +404,13 @@ function showPhoneNumber() {
 .seller-details {
   display: flex;
   flex-direction: column;
-  justify-content: center; 
+  justify-content: center;
 }
 .seller-details strong {
   font-size: 16px;
   font-weight: 600;
   color: #fff;
 }
-
 .seller-contacts {
   display: flex;
   flex-direction: column;
@@ -435,10 +453,13 @@ function showPhoneNumber() {
   background-color: rgba(255,255,255,0.4);
 }
 
+/* СТИЛЬ ДЛЯ КНОПКИ "Показати телефон" (ВИДАЛЕНИЙ)
 .contact-btn {
   margin-top: 5px;
 }
+*/
 
+/* Характеристики (з іконками) */
 .specs-card h2 {
   margin-top: 0;
   font-weight: 500;
@@ -449,22 +470,22 @@ function showPhoneNumber() {
   margin: 0;
 }
 .specs-list li {
-  display: flex; 
+  display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 14px;
   padding: 12px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  gap: 10px; 
+  gap: 10px;
 }
 .specs-list li:last-child {
   border-bottom: none;
 }
 .specs-list li span {
   color: #ccc;
-  display: flex; 
+  display: flex;
   align-items: center;
-  gap: 8px; 
+  gap: 8px;
 }
 .specs-list li strong {
   color: #fff;
@@ -477,5 +498,66 @@ function showPhoneNumber() {
   height: 18px;
   stroke: #ffd700;
   flex-shrink: 0;
+}
+
+/* Модальне вікно (без змін) */
+.image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  overflow-y: auto;
+  padding: 40px 0; 
+  box-sizing: border-box;
+}
+.image-modal-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(30, 30, 30, 0.7);
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 40px rgba(8,7,16,0.6);
+  padding: 20px;
+  box-sizing: border-box;
+  margin: auto 0; 
+}
+.modal-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.modal-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #cc0000;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+  z-index: 10001;
+}
+.modal-close-btn:hover {
+  background: #aa0000;
 }
 </style>

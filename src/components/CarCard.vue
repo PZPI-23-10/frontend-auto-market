@@ -1,21 +1,15 @@
 <template>
-  <!-- 
-    Картка все ще "скляна", але тепер з горизонтальним макетом.
-    Вона адаптивна: на мобільних фото буде зверху, текст знизу.
-  -->
   <div class="car-card" @mouseenter="pauseAutoplay" @mouseleave="startAutoplay">
     
     <!-- ЛІВА ЧАСТИНА: КАУСЕЛЬ ЗОБРАЖЕНЬ -->
     <div class="card-image-wrapper">
       
-      <!-- 
-        Ми показуємо поточне зображення, 
-        яке контролюється `currentImageIndex` 
-      -->
+
       <img 
-        :src="currentImageUrl || 'https://via.placeholder.com/400x300?text=No+Photo'" 
+        :src="currentImageUrl" 
         alt="Car image"
-        @click="goToDetails" 
+        @click="goToDetails"
+        @error="$event.target.src = placeholderImage" 
       >
       
       <div class="price-tag">
@@ -71,9 +65,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'; // <--- Додано onMounted, onUnmounted
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
+import placeholderImage from '@/assets/no-photo.png';
 
 const props = defineProps({
   listing: {
@@ -85,23 +80,20 @@ const props = defineProps({
 const router = useRouter();
 const toast = useToast();
 
-// --- ЛОГІКА КАРУСЕЛІ ---
 const currentImageIndex = ref(0);
-const autoplayInterval = ref(null); // <--- Для зберігання ID інтервалу
-const autoplayTime = 3000; // 3 секунди
+const autoplayInterval = ref(null);
+const autoplayTime = 3000;
 
-// Перевіряємо, чи є масив 'images' і чи він не порожній
 const hasImages = computed(() => 
   props.listing.images && props.listing.images.length > 0
 );
 
-// 'computed' для поточного URL зображення
 const currentImageUrl = computed(() => {
   if (hasImages.value) {
     return props.listing.images[currentImageIndex.value];
   }
-  // Заглушка, якщо `mainImage` теж немає
-  return props.listing.mainImage || null;
+  // 2. ВИКОРИСТОВУЄМО ЛОКАЛЬНУ ЗАГЛУШКУ
+  return placeholderImage;
 });
 
 function nextImage() {
@@ -115,9 +107,7 @@ function prevImage() {
     (currentImageIndex.value - 1 + props.listing.images.length) % props.listing.images.length;
 }
 
-// --- НОВА ЛОГІКА АВТОПРОКРУТКИ ---
 function startAutoplay() {
-  // Запускаємо, тільки якщо фото > 1 і таймер ще не запущено
   if (hasImages.value && !autoplayInterval.value) { 
     autoplayInterval.value = setInterval(nextImage, autoplayTime);
   }
@@ -133,9 +123,8 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  pauseAutoplay(); // Очищуємо таймер при видаленні компонента
+  pauseAutoplay();
 });
-// ---
 
 const formattedPrice = computed(() => {
   if (!props.listing || typeof props.listing.price !== 'number') return 'N/A';
@@ -147,7 +136,6 @@ function goToDetails() {
 }
 
 function toggleFavorite() {
-  // (МОК)
   toast.info('Оголошення додано в "Обране" (симуляція)');
 }
 </script>
@@ -277,37 +265,36 @@ function toggleFavorite() {
 
 .specs-horizontal {
   display: flex;
-  flex-direction: column; /* На мобілці - одне під одним */
+  flex-direction: column; 
   gap: 10px;
-  margin-top: auto; /* * Притискає цей блок до низу картки */
+  margin-top: auto; 
 }
 @media (min-width: 768px) {
   .specs-horizontal {
-    flex-direction: row; /* На десктопі - в ряд */
-    gap: 15px; /* <--- Зменшив відступ */
-    flex-wrap: wrap; /* Дозволяє переносити, якщо не влізе */
+    flex-direction: row; 
+    gap: 15px;
+    flex-wrap: wrap; 
   }
 }
 
 /* --- ОНОВЛЕНІ СТИЛІ ДЛЯ ХАРАКТЕРИСТИК --- */
 .spec-item {
-  display: flex; /* <--- (FLEX) */
-  align-items: center; /* <--- (FLEX) Центрує іконку і текст */
-  font-size: 13px; /* <--- Трохи менший шрифт */
+  display: flex;
+  align-items: center; 
+  font-size: 13px; 
   color: #ccc;
-  gap: 8px; /* <--- (FLEX) Відступ між іконкою і текстом */
+  gap: 8px;
 }
 .spec-item strong {
   color: #fff;
   font-weight: 500;
 }
 .spec-item svg {
-  width: 16px; /* <--- Розмір іконки */
+  width: 16px;
   height: 16px;
-  stroke: #ffd700; /* <--- Акцентний жовтий колір */
-  flex-shrink: 0; /* Щоб іконка не стискалася */
+  stroke: #ffd700; 
+  flex-shrink: 0;
 }
-/* --- КІНЕЦЬ ОНОВЛЕНЬ --- */
 
 .favorite-btn {
   position: absolute;

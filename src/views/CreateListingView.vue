@@ -107,7 +107,6 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
-// Імпортуємо наш новий компонент
 import PhotoUploader from '@/components/PhotoUploader.vue'; 
 
 const fieldNames = {

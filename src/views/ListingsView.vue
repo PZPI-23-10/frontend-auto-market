@@ -312,8 +312,6 @@ function handleFilter() {
   border: 2px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 40px rgba(8,7,16,0.6);
   padding: 30px;
-  position: sticky;
-  top: 100px;
 }
 .filter-card h2 {
   margin-top: 0; margin-bottom: 20px;
