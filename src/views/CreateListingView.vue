@@ -3,7 +3,7 @@
     <div class="form-container">
       <h1>Створити нове оголошення</h1>
       
-        <form @submit.prevent="handleSubmit" novalidate>
+      <form @submit.prevent="handleSubmit" novalidate>
 
         <section class="form-card">
           <h2>Основна інформація</h2>
@@ -38,24 +38,22 @@
               <option v-for="fuelType in fuelTypes" :key="fuelType" :value="fuelType">
                 {{ fuelType }}
               </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="transmission">Коробка передач</label>
-          <select id="transmission" v-model="listing.transmission" required>
-            <option value="" disabled>Оберіть тип</option>
-            <option v-for="t in transmissionTypes" :key="t" :value="t">
-              {{ t }}
-            </option>
-          </select>
-        </div>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="transmission">Коробка передач</label>
+            <select id="transmission" v-model="listing.transmission" required>
+              <option value="" disabled>Оберіть тип</option>
+              <option v-for="t in transmissionTypes" :key="t" :value="t">
+                {{ t }}
+              </option>
+            </select>
+          </div>
         </section>
         
         <section class="form-card">
           <h2>Ціна та Розташування</h2>
           <div class="form-row">
-            
             <div class="form-group price-group">
               <label for="price">Ціна</label>
               <div class="input-group">
@@ -84,27 +82,39 @@
         <section class="form-card">
           <h2>Фотографії</h2>
           <PhotoUploader 
-            :maxFiles="5" 
+            :maxFiles="10" 
             @files-updated="updateFiles" 
           />
         </section>
 
         <div class="form-actions">
+          
+          <button 
+            type="button" 
+            class="btn-secondary" 
+            @click="goBack" 
+            :disabled="isSubmitting"
+          >
+            Назад
+          </button>
+          
           <button type="submit" class="btn-submit" :disabled="isSubmitting">
             {{ isSubmitting ? 'Публікуємо...' : 'Опублікувати оголошення' }}
           </button>
         </div>
       </form>
     </div>
+    
     <div v-if="isSubmitting" class="loading-overlay">
       <div class="spinner"></div>
       <h2>Публікація...</h2>
     </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue'; 
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import PhotoUploader from '@/components/PhotoUploader.vue'; 
@@ -124,6 +134,8 @@ const router = useRouter();
 const toast = useToast();
 const isSubmitting = ref(false);
 
+const DRAFT_STORAGE_KEY = 'newListingDraft';
+
 // --- Дані форми ---
 const listing = ref({
   brand: '',
@@ -137,8 +149,7 @@ const listing = ref({
   location: '',
   description: ''
 });
-
-const listingPhotos = ref([]); // Тут ми зберігаємо файли, які прийшли з PhotoUploader
+const listingPhotos = ref([]);
 
 // --- Опції для Select'ів ---
 const fuelTypes = ref(['Бензин', 'Дизель', 'Електро', 'Гібрид', 'Газ/Бензин']);
@@ -153,36 +164,57 @@ const years = computed(() => {
   return yearList;
 });
 
+// --- Автозбереження/Автозавантаження (без змін) ---
+watch(listing, (newData) => {
+  console.log('Зберігаємо чернетку...');
+  localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(newData));
+}, {
+  deep: true
+});
+
+onMounted(() => {
+  const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+  if (savedDraft) {
+    try {
+      listing.value = JSON.parse(savedDraft);
+      toast.info('Вашу попередню чернетку відновлено!');
+    } catch (e) {
+      console.error('Не вдалося відновити чернетку:', e);
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+    }
+  }
+});
+
 // ---
 // ЛОГІКА ДЛЯ КОМПОНЕНТА
 // ---
 function updateFiles(files) {
-
   listingPhotos.value = files;
 }
 
 /**
- * (MOCK) Тимчасова функція відправки форми
+ * НОВА ФУНКЦІЯ: Повернутися назад
+ */
+function goBack() {
+  // Просто повертає на попередню сторінку в історії браузера
+  router.back();
+}
+
+
+/**
+ * (MOCK) Функція відправки форми (без змін)
  */
 function handleSubmit() {
-  // 1. Перевіряємо, чи вже йде відправка
   if (isSubmitting.value) return;
   
-  // ---
-  // 2. БЛОК ВАЛІДАЦІЇ (ДО ВІДПРАВКИ)
-  // ---
-  
-// Перевіряємо текстові поля
-  const requiredText = ['brand', 'model', 'fuel', 'location', 'transmission']; 
+  // --- Валідація ---
+  const requiredText = ['brand', 'model', 'fuel', 'location', 'transmission'];
   for (const field of requiredText) {
     if (!listing.value[field]) {
-      // Використовуємо словник для гарного повідомлення (виправлення №3)
       toast.warning(`Будь ласка, заповніть поле "${fieldNames[field]}"`);
-      return; // Зупиняємо відправку (isSubmitting = false)
+      return; 
     }
   }
-  
-  // Перевіряємо числові поля
   if (!listing.value.mileage || listing.value.mileage <= 0) {
     toast.warning(`Будь ласка, введіть коректний "${fieldNames.mileage}"`);
     return;
@@ -191,33 +223,23 @@ function handleSubmit() {
     toast.warning(`Будь ласка, введіть коректну "${fieldNames.price}"`);
     return;
   }
-
-  // Перевіряємо фото (виправлення №1: тепер ця перевірка в кінці)
   if (listingPhotos.value.length === 0) {
     toast.warning('Будь ласка, додайте хоча б одне фото.');
     return;
   }
   
-  // ---
-  // 3. ВАЛІДАЦІЯ ПРОЙШЛА УСПІШНО
-  // ---
-  
-  // ТІЛЬКИ ТЕПЕР вмикаємо стан "Публікуємо..." (виправлення №2)
   isSubmitting.value = true;
-
-  // 4. Симуляція завантаження
-  // toast.info('Публікуємо оголошення (симуляція)...');
   
   console.log('--- ДАНІ ДЛЯ ВІДПРАВКИ ---');
   console.log('Дані:', listing.value);
   console.log('Файли:', listingPhotos.value);
   
-  // 5. Симулюємо відповідь сервера через 2 секунди
   setTimeout(() => {
     isSubmitting.value = false;
     toast.success('Оголошення успішно опубліковано!');
     
-    // 6. Редірект
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+    
     router.push('/my-listings'); 
     
   }, 2000);
@@ -225,7 +247,7 @@ function handleSubmit() {
 </script>
 
 <style scoped>
-/* --- 1. Фон (як у ProfileView) --- */
+/* (Фон, контейнер, картки, поля - все без змін) */
 .create-listing-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
@@ -244,24 +266,17 @@ function handleSubmit() {
   background: rgba(0, 0, 0, 0.6);
   z-index: 0;
 }
-
 .price-group .input-group {
   display: flex;
   gap: 10px; 
 }
-
-/* Поле ціни займає весь доступний простір */
 .price-group .input-group input {
   width: 100%;
 }
-
-/* Селект валюти має фіксовану ширину */
 .price-group .input-group select {
   width: 100px;
-  flex-shrink: 0; /* Не стискатися */
+  flex-shrink: 0;
 }
-
-/* --- 2. Контейнер форми --- */
 .form-container {
   max-width: 800px;
   margin: 0 auto;
@@ -272,8 +287,6 @@ function handleSubmit() {
   margin-bottom: 30px;
   text-align: center;
 }
-
-/* --- 3. Скляна картка (як у ProfileView) --- */
 .form-card {
   background-color: rgba(30, 30, 30, 0.7);
   border-radius: 12px;
@@ -290,8 +303,6 @@ function handleSubmit() {
   padding-bottom: 10px;
   font-weight: 500;
 }
-
-/* --- 4. Поля форми (як у RegisterView) --- */
 .form-group {
   margin-bottom: 20px;
   position: relative;
@@ -359,15 +370,16 @@ function handleSubmit() {
   }
 }
 
-/* --- 5. Кнопка відправки (як у LoginView) --- */
+/* ---
+ * ОНОВЛЕНІ СТИЛІ ДЛЯ КНОПОК
+ --- */
 .form-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 15px; /* <--- Відступ між кнопками */
 }
 .btn-submit {
   font-family: 'Open Sans', sans-serif;
-  width: 100%;
-  max-width: 360px;
   padding: 12px 0;
   border-radius: 6px;
   border: none;
@@ -378,6 +390,7 @@ function handleSubmit() {
   color: #fff;
   font-size: 16px;
   text-transform: uppercase;
+  flex: 2; /* <--- Робить "Опублікувати" більшою */
 }
 .btn-submit:hover {
   background-color: #aa0000;
@@ -387,17 +400,41 @@ function handleSubmit() {
   cursor: not-allowed;
 }
 
-/* СТИЛІ ДЛЯ ФОТО ТЕПЕР ВІДСУТНІ
-  (Вони живуть у src/components/PhotoUploader.vue)
-*/
+/* --- НОВИЙ СТИЛЬ ДЛЯ КНОПКИ "НАЗАД" --- */
+.btn-secondary {
+  font-family: 'Open Sans', sans-serif;
+  padding: 12px 0;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  /* Стиль з RegisterView */
+  background-color: rgba(255,255,255,0.27); 
+  color: #fff;
+  font-size: 16px;
+  text-transform: uppercase;
+  flex: 1; /* <--- Робить її меншою */
+}
+.btn-secondary:hover {
+  background-color: rgba(255,255,255,0.4);
+}
+.btn-secondary:disabled {
+  background-color: #555;
+  color: #999;
+  cursor: not-allowed;
+}
+/* --- КІНЕЦЬ НОВИХ СТИЛІВ --- */
 
+
+/* (Оверлей завантаження - без змін) */
 .loading-overlay {
-  position: fixed; /* Перекриває весь екран */
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.85); /* Сильніше затемнення */
+  background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(5px);
   display: flex;
   flex-direction: column;
@@ -407,23 +444,19 @@ function handleSubmit() {
   color: white;
   font-family: 'Open Sans', sans-serif;
 }
-
 .loading-overlay h2 {
   margin-top: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;
 }
-
-/* Простий CSS-спіннер */
 .spinner {
   width: 60px;
   height: 60px;
-  border: 5px solid #555; /* Сірий фон */
-  border-top-color: #ffd700; /* Ваш акцентний жовтий */
+  border: 5px solid #555;
+  border-top-color: #ffd700;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
-
 @keyframes spin {
   to {
     transform: rotate(360deg);

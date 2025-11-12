@@ -23,13 +23,20 @@
           
           <li v-if="!isAuthPage" class="navbar-dropdown"><a href="#">Магазин</a>
             <ul class="dropdown-content">
-              <li><a href="#">Усі машини</a></li>
-              <li><a href="#">Електричні</a></li>
-              <li><a href="#">Гибріди</a></li>
-              <li><a href="#">Спортивні машини</a></li>
+              <li>
+                <router-link :to="{ path: '/listings' }">Усі машини</router-link>
+              </li>
+              <li>
+                <router-link :to="{ path: '/listings', query: { fuel: 'Електро' } }">Електричні</router-link>
+              </li>
+              <li>
+                <router-link :to="{ path: '/listings', query: { fuel: 'Гібрид' } }">Гибріди</router-link>
+              </li>
+              <li>
+                <router-link :to="{ path: '/listings', query: { type: 'sport' } }">Спортивні машини</router-link>
+              </li>
             </ul>
           </li>
-          
           <li class="navbar-dropdown lang-mobile">
             <a href="#">Мова</a>
             <ul class="dropdown-content">
@@ -46,6 +53,9 @@
               <router-link to="/profile">Мій Профіль</router-link>
             </li>
             <li class="login-mobile">
+              <router-link to="/favorites">Обране</router-link>
+            </li>
+            <li class="login-mobile">
               <a href="#" @click.prevent="handleLogout">Вийти</a>
             </li>
           </template>
@@ -54,6 +64,11 @@
         <div class="navbar-right">
           <ul class="user-nav">
             
+            <li v-if="isLoggedIn" class="nav-icon-btn">
+              <router-link to="/favorites" class="heart-toggle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              </router-link>
+            </li>
             <li class="navbar-dropdown lang-desktop">
               <a href="#" class="lang-toggle">
                 <img src="@/assets/Logo/world.png" alt="Language" class="world-img" />
@@ -77,7 +92,7 @@
                 <li><a href="#" @click.prevent="handleLogout">Вийти</a></li>
               </ul>
             </li>
-            </ul>
+          </ul>
           <button class="nav-toggler" @click="toggleNav">
             <span></span>
           </button>
@@ -90,13 +105,15 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuth } from '@/store/auth'
+// Переконайтеся, що ви імпортуєте 'isAuthenticated' з вашого auth.js
+import { useAuth } from '@/store/auth' 
 
 const isOpen = ref(false)
 const route = useRoute()
 const router = useRouter()
 
-const { isAuthenticated: isLoggedIn, isVerified, clearAuthData } = useAuth()
+// Використовуємо 'isAuthenticated' з вашого auth.js і перейменовуємо в 'isLoggedIn'
+const { isAuthenticated: isLoggedIn, clearAuthData } = useAuth()
 
 function handleLogout() {
   clearAuthData() 
@@ -119,6 +136,10 @@ function changeLanguage(lang) {
 </script>
 
 <style scoped>
+/* (Всі ваші старі стилі: .logo-img, .container, .navbar-area і т.д. 
+   залишаються БЕЗ ЗМІН) 
+*/
+
 .logo-img {
   width: 140px; 
   margin-top:20px ; 
@@ -137,14 +158,12 @@ function changeLanguage(lang) {
 body {
   font-family: 'Open Sans', sans-serif;
 }
-
 .container {
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
   padding: 0 20px;
 }
-
 .navbar-area {
   position: absolute    ;
   top: 0;
@@ -155,7 +174,6 @@ body {
   backdrop-filter: blur(6px);
   transition: background 0.3s ease;
 }
-
 .site-navbar {
   display: flex;
   justify-content: space-between;
@@ -163,36 +181,29 @@ body {
   height: 70px;
   position: relative;
 }
-
-/* === ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ СПИСКОВ === */
 .site-navbar ul {
   display: flex;
   list-style: none;
   gap: 20px;
   transition: all 0.3s ease;
-  margin: 0; /* Добавлен сброс */
-  padding: 0; /* Добавлен сброс */
+  margin: 0;
+  padding: 0;
 }
-
 .site-navbar ul li a {
   color: #fff;
   text-decoration: none;
   text-transform: uppercase;
   padding: 10px 15px;
   transition: color 0.3s ease;
-  display: block; /* Добавлено для предсказуемости */
+  display: block;
 }
-
 .site-navbar ul li a:hover {
   color: #ffd700;
 }
-
-/* Контейнер для правых элементов */
 .navbar-right {
   display: flex;
   align-items: center;
 }
-
 .nav-toggler {
   border: none;
   background: transparent;
@@ -204,7 +215,6 @@ body {
   height: 40px;
   width: 40px;
 }
-
 .nav-toggler span,
 .nav-toggler span::before,
 .nav-toggler span::after {
@@ -216,15 +226,12 @@ body {
   border-radius: 3px;
   transition: 0.3s;
 }
-
 .nav-toggler span::before {
   transform: translateY(-8px);
 }
 .nav-toggler span::after {
   transform: translateY(5px);
 }
-
-/* === ОБЩИЕ СТИЛИ ВЫПАДАЮЩЕГО СПИСКА === */
 .site-navbar .dropdown-content {
   background: rgba(0, 0, 0, 0.3);
   border-radius: 5px;
@@ -236,13 +243,11 @@ body {
   list-style: none;
   gap: 0;
 }
-
 .site-navbar .dropdown-content li {
   margin: 0;
   padding: 0;
   line-height: 1; 
 }
-
 .site-navbar .dropdown-content li a {
   display: block;
   padding: 10px 20px;
@@ -251,29 +256,53 @@ body {
   line-height: normal;
   white-space: nowrap;
 }
-
 .site-navbar .dropdown-content li a:hover {
   background-color: rgba(255, 255, 255, 0.1);
   color: #ffd700;
 }
 
-/* === ДЕСКТОП ВЕРСИЯ === */
+/* * НОВІ СТИЛІ ДЛЯ ІКОНКИ "СЕРДЕЧКО"
+ */
+.heart-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* (Вирівнюємо так само, як посилання "Профіль") */
+  padding: 10px 15px; 
+}
+.heart-toggle svg {
+  width: 24px;
+  height: 24px;
+  stroke: #fff;
+  fill: none; /* <--- Важливо, щоб воно не було залите */
+  transition: all 0.3s ease;
+}
+.heart-toggle:hover svg {
+  stroke: #ffd700; /* Жовта обводка при наведенні */
+}
+/* Можна додати клас .active, якщо сторінка /favorites,
+   і зробити його заповненим:
+.router-link-active svg {
+  fill: #ffd700;
+  stroke: #ffd700;
+} 
+*/
+
+/* * КІНЕЦЬ НОВИХ СТИЛІВ
+ */
+
 @media screen and (min-width: 769px) {
   .navbar-dropdown {
     position: relative;
   }
-  
-  /* 1. ЦЕНТРИРУЕМ ОСНОВНОЕ МЕНЮ */
   .site-navbar ul.main-nav {
     position: absolute;
-    left:  58%;
+    left:   58%;
     transform: translateX(-50%);
   }
-
-  /* 2. ПОКАЗЫВАЕМ ПРАВЫЕ ЭЛЕМЕНТЫ */
   .user-nav {
     display: flex;
-    align-items: center; /* <-- ВОТ ИСПРАВЛЕНИЕ, которое выравнивает "Увійти" */
+    align-items: center;
   }
   .login-desktop {
     display: block;
@@ -287,60 +316,47 @@ body {
   .lang-mobile {
     display: none;
   }
-
-  /* 3. СТИЛИ ДЛЯ ЦЕНТРАЛЬНЫХ ВЫПАДАЮЩИХ СПИСКОВ */
   .site-navbar .main-nav .dropdown-content {
     backdrop-filter: blur(6px);
     position: absolute;
     top: 100%;
-    left: 50%; /* Центрируем */
-    transform: translateX(-50%); /* Центрируем */
+    left: 50%;
+    transform: translateX(-50%);
     overflow: hidden;
     max-height: 0;
     transition: max-height 0.6s ease;
     border-radius: 5px;
   }
-
-  /* 4. СТИЛИ ДЛЯ ПРАВЫХ ВЫПАДАЮЩИХ СПИСКОВ (ЯЗЫК) */
   .site-navbar .user-nav .dropdown-content {
     backdrop-filter: blur(6px);
     position: absolute;
     top: 100%;
-    right: 0; /* Выравниваем по правому краю */
-    left: auto; /* Сбрасываем left */
-    transform: none; /* Сбрасываем transform */
+    right: 0;
+    left: auto;
+    transform: none;
     overflow: hidden;
     max-height: 0;
     transition: max-height 0.6s ease;
     border-radius: 5px;
   }
-
-  /* 5. Убираем лишний отступ у иконки языка */
   .site-navbar .user-nav a.lang-toggle {
-    padding: 10px 0; /* Убираем боковые отступы */
+    padding: 10px 0;
   }
-
-
   .site-navbar .dropdown-content li {
     border-top: 1px solid #444;
   }
-
   .site-navbar .dropdown-content li:first-child {
     border-top: none;
   }
-
   .navbar-dropdown:hover .dropdown-content {
     max-height: 500px;
   }
 }
 
-/* === МОБИЛЬНАЯ ВЕРСИЯ === */
 @media screen and (max-width: 768px) {
   .nav-toggler {
     display: flex;
   }
-
-  /* 1. СКРЫВАЕМ ПРАВЫЕ ЭЛЕМЕНТЫ */
   .user-nav {
     display: none;
   }
@@ -356,8 +372,6 @@ body {
   .lang-mobile {
     display: block;
   }
-
-  /* 2. СТИЛИЗУЕМ МОБИЛЬНОЕ МЕНЮ (теперь это .main-nav) */
   .site-navbar ul.main-nav {
     position: absolute;
     top: 70px;
@@ -380,8 +394,6 @@ body {
     padding: 15px;
     font-size: 16px;
   }
-
-  /* 3. СТИЛИ ДЛЯ ВЫПАДАЮЩИХ СПИСКОВ В МОБ. ВЕРСИИ */
   .site-navbar .dropdown-content {
     position: static;
     width: 100%;
@@ -389,12 +401,10 @@ body {
     backdrop-filter: none;
     align-items: stretch;
   }
-
   .site-navbar .dropdown-content li {
     border-top: none;
     width: 100%;
   }
-
   .site-navbar .dropdown-content li a {
     padding: 12px 20px;
     width: 100%;

@@ -121,7 +121,6 @@
                     +{{ country.phoneCode }} ({{ country.code }})
                   </option>
                 </select>
-                <!-- === 2. ДОДАНО @keydown ДЛЯ ФІЛЬТРАЦІЇ === -->
                 <input 
                   type="tel" 
                   id="phoneNumber" 
@@ -144,7 +143,6 @@
               </div>
               <div class="form-group">
                 <label for="birthday">День народження</label>
-                <!-- === 1. ВИДАЛЕНО 'disabled' === -->
                 <input type="date" id="birthday" v-model="user.birthday"> 
               </div>
             </div>
@@ -190,9 +188,17 @@
         </div>
 
         <div v-if="activeTab === 'orders'" class="tab-pane">
-          <h2>Виставлені замовлення</h2>
+          
+          <div class="tab-header">
+            <h2>Виставлені замовлення</h2>
+            <button @click="goToCreateListing" class="btn-primary add-listing-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Створити оголошення
+            </button>
+          </div>
+          
           <p>Тут буде список ваших виставлених на продаж автомобілів або замовлень.</p>
-        </div>
+          </div>
 
       </main>
     </div>
@@ -211,7 +217,9 @@ const toast = useToast();
 const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Account';
 const VERIFY_EMAIL_URL = `${API_BASE_URL}/verify-email`;
 const SEND_VERIFICATION_URL = `${API_BASE_URL}/send-verification-email`;
-const router = useRouter();
+const router = useRouter(); // <--- Вже ініціалізовано
+
+// 2. Дістаємо 'clearAuthData' з 'useAuth'
 const { userId, token, clearAuthData } = useAuth();
 
 const countries = ref([
@@ -232,7 +240,7 @@ const user = ref({
   country: 'UA',
   address: '',
   birthday: '', 
-  bio: '',     
+  bio: '',     
   avatarUrl: null,
   isVerified: false 
 });
@@ -248,9 +256,9 @@ const selectedFile = ref(null);
 const initialAvatarUrl = ref(null); 
 
 const verificationCodeSent = ref(false); 
-const verificationCode = ref('');      
-const isLoadingEmail = ref(false);     
-const isLoadingVerify = ref(false);    
+const verificationCode = ref('');      
+const isLoadingEmail = ref(false);     
+const isLoadingVerify = ref(false);    
 
 const fullName = computed(() => {
   if (!user.value.firstName && !user.value.lastName) {
@@ -269,7 +277,7 @@ onMounted(async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}?userId=${userId.value}`, {
       headers: { 'Authorization': `Bearer ${token.value}` }
-    });   
+    });   
     
     const data = response.data;
     console.log("Profile data received:", data); 
@@ -322,9 +330,9 @@ onMounted(async () => {
            errorMessage = 'Сесія застаріла.';
        }
      } else if (error.request) {
-        errorMessage = 'Немає відповіді від сервера.';
+       errorMessage = 'Немає відповіді від сервера.';
      } else {
-        errorMessage = error.message;
+       errorMessage = error.message;
      }
      toast.error(errorMessage);
   }
@@ -365,8 +373,8 @@ async function verifyCode() {
     console.log(`Відправляємо код ${verificationCode.value} на ${VERIFY_EMAIL_URL}`);
     try {
         await axios.post(VERIFY_EMAIL_URL, 
-            { code: verificationCode.value }, 
-            { headers: { 'Authorization': `Bearer ${token.value}`, 'Content-Type': 'application/json' } }
+          { code: verificationCode.value }, 
+          { headers: { 'Authorization': `Bearer ${token.value}`, 'Content-Type': 'application/json' } }
         );
         toast.success('Email успішно підтверджено!');
         user.value.isVerified = true; 
@@ -380,7 +388,7 @@ async function verifyCode() {
         } else if (error.response?.status === 401) {
             errMsg = 'Помилка авторизації.';
         } else {
-             errMsg = error.response?.data || 'Помилка сервера.';
+           errMsg = error.response?.data || 'Помилка сервера.';
         }
         toast.error(`Помилка: ${errMsg}`);
     } finally {
@@ -404,7 +412,6 @@ async function saveProfile() {
   formData.append('phoneNumber', `+${user.value.phoneCode}${user.value.phoneNumber}`);
   if (user.value.birthday) {
       try {
-          // ‼️ ВАЖЛИВО: Переконайся, що бекенд очікує UTC
           formData.append('dateOfBirth', new Date(user.value.birthday).toISOString()); 
       } catch (e) {
           toast.error("Невірний формат дати.");
@@ -430,23 +437,19 @@ async function saveProfile() {
     toast.success('Профіль оновлено!'); 
     selectedFile.value = null; 
 
-    // Оновлюємо початкову URL, якщо фото було успішно завантажено
-    // (Але бекенд не повертає нову URL, тому краще перезавантажити дані)
-    // await onMounted(); // Це не спрацює, краще показати toast
     if (selectedFile.value) {
       toast.info('Оновіть сторінку, щоб побачити новий аватар.');
     }
-
 
   } catch (error) {
      console.error('Помилка збереження (Axios):', error);
      let errorMessage = 'Помилка збереження.';
      if (error.response) {
-        if (error.response.data?.errors) {
-            errorMessage = Object.values(error.response.data.errors).flat().join(' ');
-        } else {
-            errorMessage = error.response.data?.message || error.response.data?.title || 'Помилка сервера';
-        }
+       if (error.response.data?.errors) {
+           errorMessage = Object.values(error.response.data.errors).flat().join(' ');
+       } else {
+           errorMessage = error.response.data?.message || error.response.data?.title || 'Помилка сервера';
+       }
      } 
      else if (error.request) { errorMessage = 'Немає відповіді від сервера.'; } 
      else { errorMessage = error.message; }
@@ -454,40 +457,24 @@ async function saveProfile() {
   }
 }
 
-// === 3. НОВА ФУНКЦІЯ ФІЛЬТРАЦІЇ ВВЕДЕННЯ ===
 function filterPhoneInput(event) {
-  // Дозволені клавіші:
-  // 1. Цифри (0-9)
-  // 2. Control keys (Backspace, Delete, Tab, Enter)
-  // 3. Стрілки (ArrowLeft, ArrowRight, ArrowUp, ArrowDown)
-  // 4. Home, End
-  // 5. Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z (і Cmd для Mac)
-  // 6. NumPad цифри
-  
   const allowedKeys = [
     'Backspace', 'Delete', 'Tab', 'Enter', 
     'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
     'Home', 'End'
   ];
-
-  // Перевіряємо Ctrl/Cmd комбінації
   if ((event.ctrlKey || event.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(event.key.toLowerCase())) {
-    return; // Дозволити
+    return;
   }
-
-  // Перевіряємо цифри (і NumPad) та клавіші керування
   if (
-    (event.key >= '0' && event.key <= '9') || // Цифри 0-9
+    (event.key >= '0' && event.key <= '9') ||
     allowedKeys.includes(event.key) ||
-    (event.key.startsWith('Numpad') && !isNaN(event.key.substring(6))) // NumPad (Numpad0, Numpad1, ...)
+    (event.key.startsWith('Numpad') && !isNaN(event.key.substring(6)))
   ) {
-    return; // Дозволити
+    return;
   }
-
-  // Забороняємо всі інші клавіші (літери, спецсимволи)
   event.preventDefault();
 }
-// === === === === === === === === === === ===
 
 function onFileSelected(event) {
   const file = event.target.files[0];
@@ -525,40 +512,40 @@ async function changePassword() {
      toast.warning('Пароль має містити від 5 до 27 символів.');
      return;
    }
- 
-  const CHANGE_PASSWORD_URL = `${API_BASE_URL}/ChangePassword`; 
-  const payload = {
-    Password: passwordForm.value.currentPassword,        
-    NewPassword: passwordForm.value.newPassword,          
-    PasswordConfirmation: passwordForm.value.confirmPassword 
-  };
 
-  console.log(`Sending password change to ${CHANGE_PASSWORD_URL}`, payload);
+ const CHANGE_PASSWORD_URL = `${API_BASE_URL}/ChangePassword`; 
+ const payload = {
+   Password: passwordForm.value.currentPassword,        
+   NewPassword: passwordForm.value.newPassword,          
+   PasswordConfirmation: passwordForm.value.confirmPassword 
+ };
 
-  try {
-    await axios.post(CHANGE_PASSWORD_URL, payload, {
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${token.value}` 
-        }
-    });
-    
-    toast.success('Пароль успішно змінено!'); // Змінено повідомлення
-    passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
-    
-  } catch (error) {
-     console.error('Помилка зміни пароля (Axios):', error);
-     let errorMessage = 'Помилка зміни пароля.';
-      if (error.response) {
+ console.log(`Sending password change to ${CHANGE_PASSWORD_URL}`, payload);
+
+ try {
+   await axios.post(CHANGE_PASSWORD_URL, payload, {
+       headers: { 
+         'Content-Type': 'application/json', 
+         'Authorization': `Bearer ${token.value}` 
+       }
+   });
+   
+   toast.success('Пароль успішно змінено!');
+   passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
+   
+ } catch (error) {
+    console.error('Помилка зміни пароля (Axios):', error);
+    let errorMessage = 'Помилка зміни пароля.';
+     if (error.response) {
        if (error.response.status === 400 && typeof error.response.data === 'string') {
-            if (error.response.data.includes("Old password is incorrect")) { errorMessage = 'Невірний поточний пароль.'; } 
-            else if (error.response.data.includes("do not match")) { errorMessage = 'Новий пароль не співпадає.'; } 
-            else { errorMessage = error.response.data; }
+           if (error.response.data.includes("Old password is incorrect")) { errorMessage = 'Невірний поточний пароль.'; } 
+           else if (error.response.data.includes("do not match")) { errorMessage = 'Новий пароль не співпадає.'; } 
+           else { errorMessage = error.response.data; }
        } else { errorMessage = error.response.data?.message || 'Помилка сервера.'; }
      } else if (error.request) { errorMessage = 'Немає відповіді від сервера.'; } 
      else { errorMessage = error.message; }
      toast.error(`Не вдалося змінити пароль: ${errorMessage}`);
-  }
+ }
 }
 
 function forgotPassword() {
@@ -570,10 +557,21 @@ function forgotPassword() {
       router.push({ name: 'forgot-password' }); 
     }
 }
+
+/**
+ * 3. НОВА ФУНКЦІЯ для кнопки
+ */
+function goToCreateListing() {
+  router.push('/create-listing');
+}
 </script>
 
 <style scoped>
-/* === ЗАГАЛЬНИЙ ФОН === */
+/* (Всі старі стилі: .profile-view, .profile-container, .profile-sidebar, 
+   .form-group, .avatar-section, .verification-section, і т.д. - 
+   залишаються БЕЗ ЗМІН) 
+*/
+
 .profile-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
@@ -595,8 +593,6 @@ function forgotPassword() {
   background: rgba(0, 0, 0, 0.6);
   z-index: 0;
 }
-
-/* === ЗАГОЛОВКИ === */
 .profile-view h1 { 
   max-width: 1200px;
   margin: 0 auto 30px auto;
@@ -612,8 +608,6 @@ function forgotPassword() {
   color: #fff;
   font-weight: 500;
 }
-
-/* === ОСНОВНИЙ КОНТЕЙНЕР === */
 .profile-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -623,7 +617,6 @@ function forgotPassword() {
   position: relative;
   z-index: 1;
 }
-
 @media (min-width: 992px) {
   .profile-container {
     grid-template-columns: 1fr 3fr;
@@ -632,8 +625,6 @@ function forgotPassword() {
     padding-left: calc( ( (100% - 40px) / 4 ) + 40px );
   }
 }
-
-/* === "СКЛЯНІ" КАРТКИ === */
 .profile-sidebar,
 .profile-content {
   background-color: rgba(30, 30, 30, 0.7);
@@ -644,8 +635,6 @@ function forgotPassword() {
   padding: 30px;
   align-self: start;
 }
-
-/* === НАВІГАЦІЯ (ЛІВА КОЛОНКА) === */
 .profile-sidebar {
   padding: 15px; 
 }
@@ -674,8 +663,6 @@ function forgotPassword() {
   color: #ffd700;
   font-weight: 600;
 }
-
-/* === КОНТЕНТ (ПРАВА КОЛОНКА) === */
 .avatar-upload-section {
   display: flex;
   align-items: center;
@@ -735,8 +722,6 @@ function forgotPassword() {
   color: #bbb;
   margin-top: 8px; 
 }
-
-/* === ФОРМИ === */
 .form-group {
   margin-bottom: 20px;
   position: relative;
@@ -799,7 +784,6 @@ function forgotPassword() {
   color: #aaa;
   cursor: not-allowed;
 }
-
 .form-row {
   display: grid;
   grid-template-columns: 1fr;
@@ -810,7 +794,6 @@ function forgotPassword() {
     grid-template-columns: 1fr 1fr;
   }
 }
-
 .phone-group .input-group {
   display: flex;
   gap: 10px;
@@ -822,14 +805,12 @@ function forgotPassword() {
 .phone-group .input-group input {
   width: 100%;
 }
-
 .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
 }
-
 button {
   font-family: 'Open Sans', sans-serif;
   padding: 12px 20px; 
@@ -857,7 +838,6 @@ button {
     opacity: 0.6;
     cursor: not-allowed;
 }
-
 .forgot-password-link {
   display: block;
   text-align: right;
@@ -869,13 +849,10 @@ button {
 .forgot-password-link:hover {
   text-decoration: underline;
 }
-
 .password-section {
   margin-top: 0;
   padding-top: 0;
 }
-
-/* === СТИЛІ ВЕРИФІКАЦІЇ === */
 .email-verification-section {
   background-color: rgba(0, 0, 0, 0.2); 
   padding: 15px 20px;
@@ -896,7 +873,7 @@ button {
 }
 .verification-status.success {
   color: #28a745; 
-   margin-bottom: 30px; 
+  margin-bottom: 30px; 
 }
 .verification-status svg {
   flex-shrink: 0;
@@ -955,5 +932,38 @@ button {
 .resend-link {
   margin-top: 10px;
   display: inline-block;
+}
+
+/* * 4. НОВІ СТИЛІ ДЛЯ "ВИСТАВЛЕНІ ЗАМОВЛЕННЯ"
+ */
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* Копіюємо стилі з h2 */
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 10px;
+}
+
+/* Прибираємо подвійні рамки/відступи з h2, 
+   оскільки вони тепер на .tab-header */
+.tab-header h2 {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.add-listing-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  padding: 10px 15px; /* Трохи менша кнопка */
+  margin-top: 0; /* Скидаємо відступ */
+}
+.add-listing-btn svg {
+  width: 16px;
+  height: 16px;
 }
 </style>

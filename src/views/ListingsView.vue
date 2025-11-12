@@ -120,12 +120,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'; // <--- Додано onMounted
+import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
+import { useRoute } from 'vue-router'; // <--- 1. ІМПОРТУЄМО РОУТ
 import CarCard from '@/components/CarCard.vue';
 
 const toast = useToast();
+const route = useRoute(); // <--- 2. ІНІЦІАЛІЗУЄМО
 
+// Фільтри
 const filters = ref({
   brand: '',
   model: '',
@@ -137,28 +140,88 @@ const filters = ref({
   transmission: ''
 });
 
+// Опції для <select>
 const fuelTypes = ref(['Бензин', 'Дизель', 'Електро', 'Гібрид', 'Газ/Бензин']);
 const transmissionTypes = ref(['Автомат', 'Механіка', 'Робот']);
 
-// ---
-// (МОК) РОЗШИРЕНІ ДАНІ
-// ---
-// 'allMockCars' - це наша "база даних", 
-// ми ніколи не змінюємо цей масив
+// "База даних"
 const allMockCars = ref([]); 
-
-// 'filteredListings' - це те, що бачить користувач 
-// (спочатку - всі авто, потім - результат фільтрації)
+// Те, що ми показуємо
 const filteredListings = ref([]);
 
-// Створюємо "мок" дані при завантаженні компонента
+// Логіка пагінації (без змін)
+const currentPage = ref(1);
+const itemsPerPage = 5;
+const totalPages = computed(() => {
+  return Math.ceil(filteredListings.value.length / itemsPerPage);
+});
+const paginatedListings = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return filteredListings.value.slice(start, end);
+});
+function goToPage(page) {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/**
+ * (МОК) Функція фільтрації (тепер вона головна)
+ */
+function applyFilters() {
+  toast.info('(Симуляція) Застосовуємо фільтри...');
+  
+  let result = [...allMockCars.value]; 
+
+  if (filters.value.brand) {
+    result = result.filter(car => 
+      car.brand.toLowerCase().includes(filters.value.brand.toLowerCase())
+    );
+  }
+  if (filters.value.model) {
+    result = result.filter(car => 
+      car.model.toLowerCase().includes(filters.value.model.toLowerCase())
+    );
+  }
+  if (filters.value.priceMin) {
+    result = result.filter(car => car.price >= filters.value.priceMin);
+  }
+  if (filters.value.priceMax) {
+    result = result.filter(car => car.price <= filters.value.priceMax);
+  }
+  if (filters.value.yearMin) {
+    result = result.filter(car => car.year >= filters.value.yearMin);
+  }
+  if (filters.value.yearMax) {
+    result = result.filter(car => car.year <= filters.value.yearMax);
+  }
+  if (filters.value.fuel) {
+    result = result.filter(car => car.fuel === filters.value.fuel);
+  }
+  if (filters.value.transmission) {
+    result = result.filter(car => car.transmission === filters.value.transmission);
+  }
+  
+  filteredListings.value = result;
+  currentPage.value = 1;
+}
+
+// Функція, яку викликає кнопка
+function handleFilter() {
+  // (Коли буде API, ми оновимо URL тут)
+  applyFilters();
+}
+
+// ---
+// 3. НОВА ЛОГІКА: "Читаємо" URL при завантаженні
+// ---
 onMounted(() => {
+  // (Створюємо "мок" дані)
   const generatedCars = [
-    // Ваші старі 3 машини
     { id: 1, brand: 'Audi', model: 'A6', year: 2020, mileage: 50, fuel: 'Дизель', price: 35000, currency: 'USD', location: 'Київ', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800', 'https://images.unsplash.com/photo-1612999332206-819194885c3b?q=80&w=800'] },
     { id: 2, brand: 'Tesla', model: 'Model 3', year: 2022, mileage: 15, fuel: 'Електро', price: 40000, currency: 'USD', location: 'Львів', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1554844078-f24c7694d509?q=80&w=800'] },
     { id: 3, brand: 'BMW', model: 'X5', year: 2019, mileage: 80, fuel: 'Бензин', price: 45000, currency: 'USD', location: 'Одеса', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=800'] },
-    // Нові (просто копії)
     { id: 4, brand: 'Volkswagen', model: 'Passat', year: 2018, mileage: 120, fuel: 'Дизель', price: 22000, currency: 'USD', location: 'Харків', transmission: 'Механіка', images: ['https://images.unsplash.com/photo-1551830820-330a14b901a8?q=80&w=800'] },
     { id: 5, brand: 'Toyota', model: 'Camry', year: 2021, mileage: 30, fuel: 'Гібрид', price: 33000, currency: 'USD', location: 'Київ', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1604132223204-b81b53f180f1?q=80&w=800'] },
     { id: 6, brand: 'Audi', model: 'Q8', year: 2021, mileage: 25, fuel: 'Бензин', price: 65000, currency: 'USD', location: 'Дніпро', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1593361685162-d96f0183b3f2?q=80&w=800'] },
@@ -172,93 +235,33 @@ onMounted(() => {
     { id: 14, brand: 'BMW', model: '5 Series', year: 2021, mileage: 30, fuel: 'Бензин', price: 52000, currency: 'USD', location: 'Одеса', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1617178613169-d17c9c0f999c?q=80&w=800'] },
   ];
   allMockCars.value = generatedCars;
-  filteredListings.value = generatedCars;
+  
+  // (МОК) "Читаємо" URL
+  const urlQuery = route.query;
+  let filtersApplied = false;
+  
+  if (urlQuery.brand) {
+    filters.value.brand = urlQuery.brand;
+    filtersApplied = true;
+  }
+  if (urlQuery.model) {
+    filters.value.model = urlQuery.model;
+    filtersApplied = true;
+  }
+  if (urlQuery.fuel) {
+    filters.value.fuel = urlQuery.fuel;
+    filtersApplied = true;
+  }
+  
+  // Якщо ми прийшли з URL, де були фільтри...
+  if (filtersApplied) {
+    applyFilters(); // ...одразу фільтруємо список
+  } else {
+    // ...інакше просто показуємо всі авто
+    filteredListings.value = generatedCars;
+  }
 });
 
-// ---
-// НОВА ЛОГІКА ПАГІНАЦІЇ
-// ---
-const currentPage = ref(1);
-const itemsPerPage = 5; // <--- Змініть це число, щоб бачити більше/менше
-
-// Загальна кількість сторінок (на основі відфільтрованих)
-const totalPages = computed(() => {
-  return Math.ceil(filteredListings.value.length / itemsPerPage);
-});
-
-// "Нарізаний" масив, який ми реально показуємо
-const paginatedListings = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return filteredListings.value.slice(start, end);
-});
-
-// Функція для зміни сторінки
-function goToPage(page) {
-  if (page < 1 || page > totalPages.value) return;
-  currentPage.value = page;
-  
-  // (Опціонально) Скролл сторінки нагору при зміні сторінки
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-// ---
-
-/**
- * (МОК) ОНОВЛЕНА ФУНКЦІЯ ФІЛЬТРАЦІЇ
- * (Ми не йдемо на API, а фільтруємо 'allMockCars' локально)
- */
-function handleFilter() {
-  toast.info('(Симуляція) Застосовуємо фільтри...');
-  
-  let result = [...allMockCars.value]; // Починаємо з повного списку
-
-  // 1. Фільтруємо по бренду (якщо він є)
-  if (filters.value.brand) {
-    result = result.filter(car => 
-      car.brand.toLowerCase().includes(filters.value.brand.toLowerCase())
-    );
-  }
-  // 2. Фільтруємо по моделі (якщо вона є)
-  if (filters.value.model) {
-    result = result.filter(car => 
-      car.model.toLowerCase().includes(filters.value.model.toLowerCase())
-    );
-  }
-  // 3. Фільтруємо по ціні (min/max)
-  if (filters.value.priceMin) {
-    result = result.filter(car => car.price >= filters.value.priceMin);
-  }
-  if (filters.value.priceMax) {
-    result = result.filter(car => car.price <= filters.value.priceMax);
-  }
-  
-  // --- ДОДАНО ВІДСУТНЮ ЛОГІКУ ---
-  
-  // 3.5 Фільтруємо по року (min/max)
-  if (filters.value.yearMin) {
-    result = result.filter(car => car.year >= filters.value.yearMin);
-  }
-  if (filters.value.yearMax) {
-    result = result.filter(car => car.year <= filters.value.yearMax);
-  }
-
-  // 3.6 Фільтруємо по паливу (якщо обрано)
-  if (filters.value.fuel) {
-    result = result.filter(car => car.fuel === filters.value.fuel);
-  }
-
-  // 3.7 Фільтруємо по коробці передач (якщо обрано)
-  if (filters.value.transmission) {
-    result = result.filter(car => car.transmission === filters.value.transmission);
-  }
-  // --- КІНЕЦЬ ДОДАНОЇ ЛОГІКИ ---
-  
-  // 4. Оновлюємо наш робочий масив
-  filteredListings.value = result;
-  
-  // 5. Скидаємо сторінку на першу
-  currentPage.value = 1;
-}
 </script>
 
 <style scoped>
