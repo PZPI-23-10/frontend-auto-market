@@ -14,8 +14,10 @@ const i18n = createI18n({
   messages: {
     ua: ua, 
     en: en 
-  }
+  },
+  legacy: false
 })
+
 const options = {
     timeout: 3500,               
     closeOnClick: true,           

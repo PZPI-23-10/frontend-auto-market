@@ -5,7 +5,7 @@ const userId = ref(localStorage.getItem('userId') || null);
 const token = ref(localStorage.getItem('token') || null);
 const isVerified = ref(JSON.parse(localStorage.getItem('isVerified') || 'false')); 
 
-const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Account'; 
+const PROFILE_BASE_URL = 'https://backend-auto-market.onrender.com/api/Profile';
 
 export function useAuth() {
 
@@ -37,10 +37,10 @@ export function useAuth() {
 
   async function checkVerificationStatus() {
       if (!token.value || !userId.value) return; 
-      try {
-          const response = await axios.get(`${API_BASE_URL}?userId=${userId.value}`, {
-              headers: { 'Authorization': `Bearer ${token.value}` }
-          });
+        try {
+            const response = await axios.get(PROFILE_BASE_URL, { 
+                headers: { 'Authorization': `Bearer ${token.value}` }
+            });
           const newStatus = response.data.isVerified || false;
           if (newStatus !== isVerified.value) {
               console.log('Verification status updated from server:', newStatus);

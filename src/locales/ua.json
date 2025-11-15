@@ -18,6 +18,7 @@
     "profile": "Профіль",
     "settings": "Налаштування"
   },
+
   "uploader": {
     "label": "Натисніть або перетягніть фото (до {count} шт.)",
     "maxFilesWarning": "Можна завантажити максимум {count} фото.",
@@ -25,19 +26,75 @@
     "previewAlt": "прев'ю",
     "modalAlt": "Повноекранне зображення"
   },
-  "carCard": {
+
+"carCard": {
     "imageAlt": "Фото авто",
     "priceNA": "N/A",
     "mileage": "{km} тис. км",
     "specMileage": "Пробіг",
     "specFuel": "Тип пального",
     "specTransmission": "Коробка передач",
+    "specBodyType": "Тип кузова",
+    "specColor": "Колір",
+    "specDriveTrain": "Привід", 
+    "specEngineSize": "Об'єм двигуна", 
+    "engineSize": "{size} л.", 
     "toggleFavorite": "Додати в обране",
     "favoriteToast": "Оголошення додано в 'Обране' (симуляція)"
   },
-  "common": {
-    "back": "Назад"
+
+"driveTrainTypes": {
+    "front": "Передній",
+    "rear": "Задній",
+    "full": "Повний"
   },
+  "bodyTypes": {
+    "sedan": "Седан",
+    "hatchback": "Хетчбек",
+    "universal": "Універсал",
+    "coupe": "Купе",
+    "cabriolet": "Кабріолет",
+    "suv": "Позашляховик",
+    "crossover": "Кросовер",
+    "pickup": "Пікап",
+    "minivan": "Мінівен"
+  },
+  "colors": {
+    "black": "Чорний",
+    "white": "Білий",
+    "blue": "Синій",
+    "red": "Червоний",
+    "grey": "Сірий",
+    "green": "Зелений",
+    "other": "Інший"
+  },
+  "technicalStates": {
+    "full": "Повністю справне",
+    "repair_needed": "На ходу, потребує ремонту",
+    "not_running": "Не на ходу",
+    "after_accident": "Після ДТП"
+  },
+  "paintworkStates": {
+    "like_new": "Як нове",
+    "traces": "Є сліди використання",
+    "scratches": "Є незначні подряпини",
+    "needs_repair": "Потребує ремонту"
+  },
+  "comfort": {
+    "title": "Комфорт та опції",
+    "airConditioning": "Кондиціонер",
+    "climateControl": "Клімат-контроль",
+    "heatedSeats": "Підігрів сидінь",
+    "rearCamera": "Камера заднього виду",
+    "parkingSensors": "Парктроніки",
+    "sunroof": "Люк / Панорама",
+    "noOptions": "Додаткові опції не вказані."
+  },
+  "common": {
+    "yes": "Так",
+    "no": "Ні"
+  },
+
   "fields": {
     "brand": "Бренд",
     "model": "Модель",
@@ -47,8 +104,17 @@
     "fuel": "Тип палива",
     "transmission": "Коробка передач",
     "price": "Ціна",
-    "location": "Місто"
+    "location": "Місто",
+    "bodyType": "Тип кузова",
+    "driveTrain": "Привід",
+    "engineSize": "Об'єм двигуна",
+    "color": "Колір",
+    "paintwork": "Лакофарбове покриття",
+    "technicalCondition": "Технічний стан",
+    "inAccident": "Участь в ДТП",
+    "metallic": "Металік"
   },
+
   "fuelTypes": {
     "petrol": "Бензин",
     "diesel": "Дизель",
@@ -56,11 +122,13 @@
     "hybrid": "Гібрид",
     "gas_petrol": "Газ/Бензин"
   },
+
   "transmissionTypes": {
     "manual": "Механіка",
     "automatic": "Автомат",
     "robot": "Робот"
   },
+
   "createListing": {
     "title": "Створити нове оголошення",
     "sectionBasic": "Основна інформація",

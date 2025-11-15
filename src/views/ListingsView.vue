@@ -48,7 +48,7 @@
                 <label for="transmission">{{ t('fields.transmission') }}</label>
                 <select id="transmission" v-model="filters.transmission">
                   <option value="">{{ t('listings.filter.anyTransmission') }}</option>
-                                    <option v-for="t in transmissionTypes" :key="t" :value="t">{{ t('transmissionTypes.' + t) }}</option>
+                                    <option v-for="type in transmissionTypes" :key="type" :value="type">{{ t('transmissionTypes.' + type) }}</option>
                 </select>
               </div>
               
@@ -111,12 +111,12 @@
 import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
 import { useRoute } from 'vue-router'; 
-import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
+import { useI18n } from 'vue-i18n';
 import CarCard from '@/components/CarCard.vue';
 
 const toast = useToast();
 const route = useRoute(); 
-const { t } = useI18n(); // 2. ОТРИМАННЯ t
+const { t } = useI18n(); 
 
 // Фільтри
 const filters = ref({
@@ -207,21 +207,21 @@ function handleFilter() {
 
 onMounted(() => {
   // 5. ОНОВЛЕНО: (Створюємо "мок" дані з КЛЮЧАМИ)
-  const generatedCars = [
-    { id: 1, brand: 'Audi', model: 'A6', year: 2020, mileage: 50, fuel: 'diesel', price: 35000, currency: 'USD', location: 'Київ', transmission: 'automatic', images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800', 'https://images.unsplash.com/photo-1612999332206-819194885c3b?q=80&w=800'] },
-    { id: 2, brand: 'Tesla', model: 'Model 3', year: 2022, mileage: 15, fuel: 'electric', price: 40000, currency: 'USD', location: 'Львів', transmission: 'automatic', images: ['https://images.unsplash.com/photo-1554844078-f24c7694d509?q=80&w=800'] },
-    { id: 3, brand: 'BMW', model: 'X5', year: 2019, mileage: 80, fuel: 'petrol', price: 45000, currency: 'USD', location: 'Одеса', transmission: 'automatic', images: ['https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=800'] },
-    { id: 4, brand: 'Volkswagen', model: 'Passat', year: 2018, mileage: 120, fuel: 'diesel', price: 22000, currency: 'USD', location: 'Харків', transmission: 'manual', images: ['https://images.unsplash.com/photo-1551830820-330a14b901a8?q=80&w=800'] },
-    { id: 5, brand: 'Toyota', model: 'Camry', year: 2021, mileage: 30, fuel: 'hybrid', price: 33000, currency: 'USD', location: 'Київ', transmission: 'automatic', images: ['https://images.unsplash.com/photo-1604132223204-b81b53f180f1?q=80&w=800'] },
-    { id: 6, brand: 'Audi', model: 'Q8', year: 2021, mileage: 25, fuel: 'petrol', price: 65000, currency: 'USD', location: 'Дніпро', transmission: 'automatic', images: ['https://images.unsplash.com/photo-1593361685162-d96f0183b3f2?q=80&w=800'] },
-    { id: 7, brand: 'BMW', model: '3 Series', year: 2017, mileage: 150, fuel: 'petrol', price: 20000, currency: 'USD', location: 'Львів', transmission: 'manual', images: ['https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=800'] },
-    { id: 8, brand: 'Audi', model: 'A6', year: 2019, mileage: 60, fuel: 'diesel', price: 32000, currency: 'USD', location: 'Одеса', transmission: 'automatic', images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800'] },
-    { id: 9, brand: 'Tesla', model: 'Model X', year: 2021, mileage: 40, fuel: 'electric', price: 55000, currency: 'USD', location: 'Київ', transmission: 'automatic', images: ['https://images.unsplash.com/photo-1617997869485-6013a6c18843?q=80&w=800'] },
-    { id: 10, brand: 'BMW', model: 'X5', year: 2020, mileage: 50, fuel: 'hybrid', price: 48000, currency: 'USD', location: 'Харків', transmission: 'automatic', images: ['https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=800'] },
-    { id: 11, brand: 'Volkswagen', model: 'Golf', year: 2016, mileage: 180, fuel: 'gas_petrol', price: 14000, currency: 'USD', location: 'Львів', transmission: 'manual', images: ['https://images.unsplash.com/photo-1541899121764-4c4f9a009e9e?q=80&w=800'] },
-    { id: 12, brand: 'Toyota', model: 'RAV4', year: 2019, mileage: 70, fuel: 'hybrid', price: 29000, currency: 'USD', location: 'Київ', transmission: 'automatic', images: ['https://images.unsplash.com/photo-1587546224372-4dcfb6f93d6d?q=80&w=800'] },
-    { id: 13, brand: 'Audi', model: 'A4', year: 2018, mileage: 90, fuel: 'diesel', price: 26000, currency: 'USD', location: 'Дніпро', transmission: 'robot', images: ['https://images.unsplash.com/photo-1616422285863-18703e720e17?q=80&w=800'] },
-    { id: 14, brand: 'BMW', model: '5 Series', year: 2021, mileage: 30, fuel: 'petrol', price: 52000, currency: 'USD', location: 'Одеса', transmission: 'automatic', images: ['https://images.unsplash.com/photo-1617178613169-d17c9c0f999c?q=80&w=800'] },
+const generatedCars = [
+    { id: 1, brand: 'Audi', model: 'A6', year: 2020, mileage: 50, fuel: 'diesel', price: 35000, currency: 'USD', location: 'Київ', transmission: 'automatic', bodyType: 'sedan', color: 'black', driveTrain: 'full', engineSize: 2.0, images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800', 'https://images.unsplash.com/photo-1612999332206-819194885c3b?q=80&w=800'] },
+    { id: 2, brand: 'Tesla', model: 'Model 3', year: 2022, mileage: 15, fuel: 'electric', price: 40000, currency: 'USD', location: 'Львів', transmission: 'automatic', bodyType: 'sedan', color: 'white', driveTrain: 'full', engineSize: 0, images: ['https://images.unsplash.com/photo-1554844078-f24c7694d509?q=80&w=800'] },
+    { id: 3, brand: 'BMW', model: 'X5', year: 2019, mileage: 80, fuel: 'petrol', price: 45000, currency: 'USD', location: 'Одеса', transmission: 'automatic', bodyType: 'suv', color: 'blue', driveTrain: 'full', engineSize: 3.0, images: ['https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=800'] },
+    { id: 4, brand: 'Volkswagen', model: 'Passat', year: 2018, mileage: 120, fuel: 'diesel', price: 22000, currency: 'USD', location: 'Харків', transmission: 'manual', bodyType: 'universal', color: 'grey', driveTrain: 'front', engineSize: 2.0, images: ['https://images.unsplash.com/photo-1551830820-330a14b901a8?q=80&w=800'] },
+    { id: 5, brand: 'Toyota', model: 'Camry', year: 2021, mileage: 30, fuel: 'hybrid', price: 33000, currency: 'USD', location: 'Київ', transmission: 'automatic', bodyType: 'sedan', color: 'black', driveTrain: 'front', engineSize: 2.5, images: ['https://images.unsplash.com/photo-1604132223204-b81b53f180f1?q=80&w=800'] },
+    { id: 6, brand: 'Audi', model: 'Q8', year: 2021, mileage: 25, fuel: 'petrol', price: 65000, currency: 'USD', location: 'Дніпро', transmission: 'automatic', bodyType: 'suv', color: 'grey', driveTrain: 'full', engineSize: 3.0, images: ['https://images.unsplash.com/photo-1593361685162-d96f0183b3f2?q=80&w=800'] },
+    { id: 7, brand: 'BMW', model: '3 Series', year: 2017, mileage: 150, fuel: 'petrol', price: 20000, currency: 'USD', location: 'Львів', transmission: 'manual', bodyType: 'coupe', color: 'red', driveTrain: 'rear', engineSize: 2.0, images: ['https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=800'] },
+    { id: 8, brand: 'Audi', model: 'A6', year: 2019, mileage: 60, fuel: 'diesel', price: 32000, currency: 'USD', location: 'Одеса', transmission: 'automatic', bodyType: 'sedan', color: 'white', driveTrain: 'full', engineSize: 2.0, images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800'] },
+    { id: 9, brand: 'Tesla', model: 'Model X', year: 2021, mileage: 40, fuel: 'electric', price: 55000, currency: 'USD', location: 'Київ', transmission: 'automatic', bodyType: 'suv', color: 'black', driveTrain: 'full', engineSize: 0, images: ['https://images.unsplash.com/photo-1617997869485-6013a6c18843?q=80&w=800'] },
+    { id: 10, brand: 'BMW', model: 'X5', year: 2020, mileage: 50, fuel: 'hybrid', price: 48000, currency: 'USD', location: 'Харків', transmission: 'automatic', bodyType: 'suv', color: 'black', driveTrain: 'full', engineSize: 3.0, images: ['https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=800'] },
+    { id: 11, brand: 'Volkswagen', model: 'Golf', year: 2016, mileage: 180, fuel: 'gas_petrol', price: 14000, currency: 'USD', location: 'Львів', transmission: 'manual', bodyType: 'hatchback', color: 'blue', driveTrain: 'front', engineSize: 1.4, images: ['https://images.unsplash.com/photo-1541899121764-4c4f9a009e9e?q=80&w=800'] },
+    { id: 12, brand: 'Toyota', model: 'RAV4', year: 2019, mileage: 70, fuel: 'hybrid', price: 29000, currency: 'USD', location: 'Київ', transmission: 'automatic', bodyType: 'suv', color: 'white', driveTrain: 'full', engineSize: 2.5, images: ['https://images.unsplash.com/photo-1587546224372-4dcfb6f93d6d?q=80&w=800'] },
+    { id: 13, brand: 'Audi', model: 'A4', year: 2018, mileage: 90, fuel: 'diesel', price: 26000, currency: 'USD', location: 'Дніпро', transmission: 'robot', bodyType: 'sedan', color: 'grey', driveTrain: 'front', engineSize: 2.0, images: ['https://images.unsplash.com/photo-1616422285863-18703e720e17?q=80&w=800'] },
+    { id: 14, brand: 'BMW', model: '5 Series', year: 2021, mileage: 30, fuel: 'petrol', price: 52000, currency: 'USD', location: 'Одеса', transmission: 'automatic', bodyType: 'sedan', color: 'black', driveTrain: 'rear', engineSize: 3.0, images: ['https://images.unsplash.com/photo-1617178613169-d17c9c0f999c?q=80&w=800'] },
   ];
   allMockCars.value = generatedCars;
   
