@@ -2,69 +2,69 @@
   <div class="login-container">
     <div class="progressbar-wrapper">
       <ul id="progressbar">
-        <li :class="{ active: currentStep >= 1 }"><span>Account Setup</span></li>
-        <li :class="{ active: currentStep >= 2 }"><span>Personal Data</span></li>
-        <li :class="{ active: currentStep >= 3 }"><span>Address</span></li>
+        <li :class="{ active: currentStep >= 1 }"><span>{{ t('register.progressbar.account') }}</span></li>
+        <li :class="{ active: currentStep >= 2 }"><span>{{ t('register.progressbar.personal') }}</span></li>
+        <li :class="{ active: currentStep >= 3 }"><span>{{ t('register.progressbar.address') }}</span></li>
       </ul>
     </div>
 
     <form @submit.prevent="">
-      <h3>Створення акаунту</h3>
+      <h3>{{ t('register.title') }}</h3>
 
       <transition name="fade-slide" mode="out-in">
         <div v-if="currentStep === 1" class="step">
-          <label>Email</label>
-          <input v-model="email" type="email" placeholder="Email" />
+          <label>{{ t('register.step1.email') }}</label>
+          <input v-model="email" type="email" :placeholder="t('register.step1.email')" />
 
-          <label>Password</label>
-          <input v-model="password" type="password" placeholder="Password" />
+          <label>{{ t('register.step1.password') }}</label>
+          <input v-model="password" type="password" :placeholder="t('register.step1.password')" />
 
-          <label>Confirm Password</label>
-          <input v-model="confirmPassword" type="password" placeholder="Confirm Password" />
+          <label>{{ t('register.step1.confirmPassword') }}</label>
+          <input v-model="confirmPassword" type="password" :placeholder="t('register.step1.confirmPassword')" />
         </div>
       </transition>
 
       <transition name="fade-slide" mode="out-in">
         <div v-if="currentStep === 2" class="step">
-          <label>First Name</label>
-          <input v-model="firstName" type="text" placeholder="First Name" />
+          <label>{{ t('register.step2.firstName') }}</label>
+          <input v-model="firstName" type="text" :placeholder="t('register.step2.firstName')" />
 
-          <label>Last Name</label>
-          <input v-model="lastName" type="text" placeholder="Last Name" />
+          <label>{{ t('register.step2.lastName') }}</label>
+          <input v-model="lastName" type="text" :placeholder="t('register.step2.lastName')" />
 
-          <label>Date of Birth</label>
-          <input v-model="dateOfBirth" type="date" placeholder="Date of Birth" />
+          <label>{{ t('register.step2.dob') }}</label>
+          <input v-model="dateOfBirth" type="date" :placeholder="t('register.step2.dob')" />
 
-          <label>Country</label>
+          <label>{{ t('register.step2.country') }}</label>
           <select v-model="personalCountry" class="country-select">
-            <option v-for="country in countries" :key="country.code" :value="country.code">
-              {{ country.name }}
+                        <option v-for="country in countries" :key="country.code" :value="country.code">
+              {{ t(country.nameKey) }}
             </option>
           </select>
 
-          <label>Phone Number</label>
+          <label>{{ t('register.step2.phone') }}</label>
           <div class="phone-input-container">
             <select v-model="phoneCountry" class="phone-country-select">
               <option v-for="country in countries" :key="country.code" :value="country.phoneCode">
                 +{{ country.phoneCode }}
               </option>
             </select>
-            <input v-model="phone" type="tel" placeholder="Phone Number" class="phone-input" @keydown="filterPhoneInput" maxlength="10"/>
+            <input v-model="phone" type="tel" :placeholder="t('register.step2.phonePlaceholder')" class="phone-input" @keydown="filterPhoneInput" maxlength="10"/>
           </div>
         </div>
       </transition>
 
       <transition name="fade-slide" mode="out-in">
         <div v-if="currentStep === 3" class="step">
-          <label>Address (optional)</label>
-          <input v-model="address" type="text" placeholder="Address" />
+          <label>{{ t('register.step3.address') }}</label>
+          <input v-model="address" type="text" :placeholder="t('register.step3.addressPlaceholder')" />
 
           <div class="buttons">
             <button type="button" class="register-btn" @click="prevStep">
-              Previous
+              {{ t('register.buttons.previous') }}
             </button>
             <button type="button" class="login-btn" @click="completeRegistration">
-              Complete Registration
+              {{ t('register.buttons.complete') }}
             </button>
           </div>
         </div>
@@ -72,10 +72,10 @@
 
       <div class="buttons" v-if="currentStep < 3" :class="{ single: currentStep === 1 }">
         <button v-if="currentStep > 1" type="button" class="register-btn" @click="prevStep">
-          Previous
+          {{ t('register.buttons.previous') }}
         </button>
         <button type="button" class="login-btn" @click="nextStep">
-          Next
+          {{ t('register.buttons.next') }}
         </button>
       </div>
     </form>
@@ -86,13 +86,16 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification'; 
 import { useAuth } from '@/store/auth'; 
-const { setAuthData } = useAuth();
+import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
 import axios from 'axios';
-const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Account';
+
+const { setAuthData } = useAuth();
+const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Auth';
 const API_URL_REGISTER = `${API_BASE_URL}/register`;
-const API_URL_CHECK_EMAIL = `${API_BASE_URL}/emailExists`;
-const toast = useToast(); // Ініціалізація toast
+const API_URL_CHECK_EMAIL = `${API_BASE_URL}/email-exists`;
+const toast = useToast(); 
 const router = useRouter();
+const { t } = useI18n(); // 2. ОТРИМАННЯ t
 
 const currentStep = ref(1);
 
@@ -107,11 +110,12 @@ const phoneCountry = ref('380');
 const phone = ref('');
 const address = ref('');
 
+// 3. ОНОВЛЕНО: Використання ключів для локалізації
 const countries = ref([
-  { code: 'UA', name: 'Ukraine', phoneCode: '380' },
-  { code: 'US', name: 'United States', phoneCode: '1' },
-  { code: 'PL', name: 'Poland', phoneCode: '48' },
-  { code: 'DE', name: 'Germany', phoneCode: '49' }
+  { code: 'UA', nameKey: 'countries.ua', phoneCode: '380' },
+  { code: 'US', nameKey: 'countries.us', phoneCode: '1' },
+  { code: 'PL', nameKey: 'countries.pl', phoneCode: '48' },
+  { code: 'DE', nameKey: 'countries.de', phoneCode: '49' }
 ]);
 
 // --- Функція валідації Email ---
@@ -122,28 +126,26 @@ function isValidEmail(email) {
 
 // --- Навігація між кроками з валідацією ---
 async function nextStep() {
-  // Валідація Кроку 1
+  // 4. ЛОКАЛІЗАЦІЯ ВАЛІДАЦІЇ
   if (currentStep.value === 1) {
-    // --- Попередні перевірки (порожні поля, формат, довжина, співпадіння) ---
     if (!email.value || !password.value || !confirmPassword.value) {
-        toast.warning('Будь ласка, заповніть email та обидва поля пароля.'); // <-- Додано Toast
+        toast.warning(t('register.validation.allFields')); 
         return;
     }
     if (!isValidEmail(email.value)) {
-        toast.warning('Будь ласка, введіть коректний email.'); // <-- Додано Toast
+        toast.warning(t('register.validation.invalidEmail'));
         return;
     }
     if (password.value.length < 5 || password.value.length > 27) {
-        toast.warning('Пароль має містити від 5 до 27 символів.'); // <-- Додано Toast
+        toast.warning(t('register.validation.passwordLength', { min: 5, max: 27 }));
         return;
     }
     if (password.value !== confirmPassword.value) {
-        toast.warning('Паролі не співпадають.'); // <-- Додано Toast
+        toast.warning(t('register.validation.passwordMismatch'));
         return;
     }
-    // --- Кінець попередніх перевірок ---
 
-    // === ПЕРЕВІРКА EMAIL НА БЕК-ЕНДІ (ЧЕРЕЗ GET) ===
+    // 5. ЛОКАЛІЗАЦІЯ ПОМИЛОК API
     try {
       console.log(`Перевіряємо email: ${email.value} на ${API_URL_CHECK_EMAIL}`);
       const response = await axios.get(API_URL_CHECK_EMAIL, {
@@ -152,31 +154,30 @@ async function nextStep() {
       const emailExists = response.data;
 
       if (emailExists === true) {
-        toast.error('Користувач з таким email вже існує.');
-        return; // НЕ переходимо
+        toast.error(t('register.errors.emailExists'));
+        return;
       }
-      // Якщо email вільний, продовжуємо
-
     } catch (error) {
       console.error('Помилка перевірки email:', error);
-      let errorMessage = 'Не вдалося перевірити email. Спробуйте пізніше.';
-      if (error.response) { /* ... обробка помилок сервера ... */ }
-      else if (error.request) { /* ... обробка помилок мережі ... */ }
-      else { /* ... обробка інших помилок ... */ }
+      let errorMessage = t('register.errors.emailCheckFailed');
+      if (error.response) { 
+        errorMessage = error.response.data?.message || t('register.errors.serverError');
+      }
+      else if (error.request) {
+        errorMessage = t('register.errors.noConnection');
+      }
       toast.error(errorMessage);
-      return; // НЕ переходимо
+      return; 
     }
   }
 
-  // Валідація Кроку 2
   if (currentStep.value === 2) {
     if (!firstName.value || !lastName.value || !dateOfBirth.value || !phone.value) {
-        toast.warning('Будь ласка, заповніть ім\'я, прізвище, дату народження та телефон.'); // <-- Додано Toast
+        toast.warning(t('register.validation.step2Required'));
         return;
     }
   }
 
-  // Перехід на наступний крок (якщо всі перевірки пройшли)
   if (currentStep.value < 3) currentStep.value++;
 }
 
@@ -186,22 +187,22 @@ function prevStep() {
 
 // --- Відправка форми реєстрації ---
 async function completeRegistration() {
+  // 6. ЛОКАЛІЗАЦІЯ ВАЛІДАЦІЇ
   let formattedDateOfBirth = '';
   if (dateOfBirth.value) {
     try {
       formattedDateOfBirth = new Date(dateOfBirth.value).toISOString();
     } catch (e) {
-      toast.error('Невірний формат дати народження.');
+      toast.error(t('register.errors.invalidDate'));
       return;
     }
   } else {
-    toast.warning('Будь ласка, вкажіть дату народження.');
+    toast.warning(t('register.validation.dateRequired'));
     return;
   }
 
-  // Перевірки на кроці 2 (можна повторити тут для безпеки)
   if (!firstName.value || !lastName.value || !phone.value) {
-      toast.warning('Будь ласка, заповніть ім\'я, прізвище та телефон.');
+      toast.warning(t('register.validation.step2Required'));
       return;
   }
 
@@ -218,95 +219,81 @@ async function completeRegistration() {
 
   console.log("Відправляємо дані:", JSON.stringify(payload, null, 2));
 
+  // 7. ЛОКАЛІЗАЦІЯ ВІДПОВІДІ API
   try {
-    // ‼️ Використовуємо API_URL_REGISTER ‼️
     const response = await axios.post(API_URL_REGISTER, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-      }
+      headers: { 'Content-Type': 'application/json' }
     });
 
     console.log('Відповідь від сервера (Axios):', response.data);
      const data = response.data; 
    if (!data.accessToken || !data.userId) {
-      throw new Error('Сервер не повернув токен доступу після реєстрації.');
+      throw new Error(t('register.errors.noToken'));
     }
     setAuthData(data.userId, data.accessToken); 
     
-    toast.info('Реєстрація успішна! Будь ласка, підтвердіть вашу електронну пошту.'); 
-
+    toast.info(t('register.success')); 
     router.push('/');
 
   } catch (error) {
     console.error('Помилка реєстрації (Axios):', error);
     
-    let errorMessage = 'Не вдалося зареєструватися. Спробуйте пізніше.'; // Загальна помилка за замовчуванням
+    let errorMessage = t('register.errors.generic'); 
 
     if (error.response) {
-      // Бекенд відповів помилкою (4xx, 5xx)
-      console.error('Дані помилки від сервера:', error.response.data); // Логуємо повну відповідь сервера
-      
+      console.error('Дані помилки від сервера:', error.response.data);
       const responseData = error.response.data;
       const status = error.response.status;
 
-      if (status === 400) { // Bad Request - зазвичай помилки валідації
+      if (status === 400) { 
         if (typeof responseData === 'string') {
-           // Якщо бекенд повернув просто текст (наприклад, "User with this email already exists.")
-           errorMessage = responseData;
+           errorMessage = responseData; // (Припускаємо, що бекенд вже надсилає локалізований рядок)
         } else if (responseData && responseData.errors) {
-           errorMessage = Object.values(responseData.errors)
-                              .flat() 
-                              .join(' ');
+           errorMessage = Object.values(responseData.errors).flat().join(' ');
            if (!errorMessage) {
-              errorMessage = responseData.title || "Помилка валідації даних.";
+              errorMessage = responseData.title || t('register.errors.validationFailed');
            }
         } else if (responseData?.title) {
-            errorMessage = responseData.title; // Наприклад, "One or more validation errors occurred."
+            errorMessage = responseData.title; 
         } else {
-            errorMessage = "Невірні дані."; // Загальне повідомлення для 400
+            errorMessage = t('register.errors.badData');
         }
-      } else if (status === 500) { // Internal Server Error
-          errorMessage = "Внутрішня помилка сервера. Спробуйте пізніше.";
+      } else if (status === 500) { 
+          errorMessage = t('register.errors.serverError');
       } else {
-          // Інші статуси помилок
-          errorMessage = responseData?.message || JSON.stringify(responseData) || error.response.statusText || `Помилка сервера (${status})`;
+          errorMessage = responseData?.message || JSON.stringify(responseData) || error.response.statusText || t('register.errors.serverError');
       }
-
     } else if (error.request) {
-      // Запит відправлено, але відповідь не отримана
-      errorMessage = 'Не вдалося підключитися до сервера. Перевірте з\'єднання.';
+      errorMessage = t('register.errors.noConnection');
     } else {
-      // Помилка налаштування запиту (рідко)
-      errorMessage = `Помилка запиту: ${error.message}`;
+      errorMessage = t('register.errors.requestFailed', { error: error.message });
     }
-
-    toast.error(errorMessage); // Показуємо фінальне повідомлення
+    toast.error(errorMessage);
   }
 }
 function filterPhoneInput(event) {
-  // Дозволені клавіші (керування, навігація, Backspace, Delete, Tab, Enter)
+  // (Логіка без змін, не потребує локалізації)
   const allowedKeys = [
     'Backspace', 'Delete', 'Tab', 'Enter', 
     'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
     'Home', 'End'
   ];
   if ((event.ctrlKey || event.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(event.key.toLowerCase())) {
-    return; // Дозволити
+    return; 
   }
-
   if (
-    (event.key >= '0' && event.key <= '9') || // Цифри 0-9
+    (event.key >= '0' && event.key <= '9') || 
     allowedKeys.includes(event.key) ||
     (event.key.startsWith('Numpad') && !isNaN(event.key.substring(6)))
   ) {
     return; 
   }
-
   event.preventDefault();
 }
 </script>
 
 <style scoped>
+/* (СТИЛІ НЕ ЗМІНЕНО) */
 /* === 1. АДАПТАЦИЯ ФОНА === */
 .login-container {
   background-image: url('@/assets/car-header1.jpg');
@@ -433,8 +420,7 @@ label, .step label {
 input, textarea, .country-select, .phone-country-select {
   display: block;
   font-family: 'Open Sans', sans-serif;
-  width: 340px;
-
+  width: 100%; /* Змінено з 340px на 100% для гнучкості */
   padding: 10px; 
   border-radius: 3px;
   background-color: rgba(255,255,255,0.1);
@@ -444,6 +430,7 @@ input, textarea, .country-select, .phone-country-select {
   color: #fff;
   margin-bottom: 5px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box; /* Додано для коректного width 100% */
 }
 ::placeholder {
   color: #e5e5e5;
@@ -463,7 +450,7 @@ textarea {
 .login-btn, .register-btn {
   font-family: 'Open Sans', sans-serif;
   width: 100%;
-  max-width: 340px;
+  /* max-width: 340px; (Видалено, .buttons керує шириною) */
   padding: 12px 0;
   border-radius: 6px;
   border: none;
@@ -498,11 +485,11 @@ textarea {
   flex-shrink: 0;
 }
 .country-select {
-  width: 360px;
+  width: 100%; /* Змінено з 360px на 100% */
 }
 .country-select, .phone-country-select {
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); /* Змінено на білу стрілку */
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 16px;
@@ -522,31 +509,31 @@ textarea {
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start; /* Вирівнюємо label зліва */
+  gap: 0px; /* Зменшено gap, відступи керуються label */
 }
 .buttons {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  margin-bottom: 20px;
+  gap: 10px; /* Додано gap для кнопок */
+  margin-top: 20px; /* Додано відступ зверху */
 }
 .buttons button {
   flex: 1;   
-  max-width: 160px; 
+  /* max-width: 160px; (Видалено, flex: 1 краще) */
   padding: 12px 0;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
+  margin-top: 0; /* Скидаємо margin-top, керуємо через .buttons */
 }
-.buttons button + button {
-  margin-left: 10px;   
-}
+/* (Блок button + button видалено, використовуємо gap) */
 .buttons.single {
-  justify-content: center;
+  justify-content: flex-end; /* Кнопка "Next" завжди справа */
 }
 .buttons.single .login-btn {
-  max-width: 160px;
+  flex: 0 1 160px; /* Кнопка "Next" має фіксовану ширину */
 }
 
 /* === 8. АНИМАЦИЯ (без изменений) === */

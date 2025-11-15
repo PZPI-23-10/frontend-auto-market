@@ -7,42 +7,42 @@
       <div class="container hero-container">
         
         <div class="hero-content">
-          <span class="hero-subtitle">NEW IN STOCK</span>
-          <h1 class="hero-title">Upgrade Your Driving Experience</h1>
+                    <span class="hero-subtitle">{{ t('home.hero.subtitle') }}</span>
+          <h1 class="hero-title">{{ t('home.hero.title') }}</h1>
           <div class="hero-buttons">
-            <a href="#" class="btn btn-primary">Discover More</a>
-            <a href="#" class="btn btn-secondary">Meet Horizon GT</a>
+            <a href="#" class="btn btn-primary">{{ t('home.hero.discover') }}</a>
+            <a href="#" class="btn btn-secondary">{{ t('home.hero.meet') }}</a>
           </div>
         </div>
 
         <div class="hero-form">
-          <h2>Find Your Ride</h2>
+          <h2>{{ t('home.form.title') }}</h2>
           <form @submit.prevent="handleSearch">
             <div class="form-group">
-              <label for="brand">BRAND</label>
+                            <label for="brand">{{ t('home.form.brandLabel') }}</label>
               <select id="brand" v-model="searchFilters.brand">
-                <option value="">Brand*</option>
-                <option value="Audi">Audi</option>
+                <option value="">{{ t('home.form.brandPlaceholder') }}</option>
+                                <option value="Audi">Audi</option>
                 <option value="BMW">BMW</option>
                 <option value="Tesla">Tesla</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="model">MODEL</label>
+              <label for="model">{{ t('home.form.modelLabel') }}</label>
               <select id="model" v-model="searchFilters.model">
-                <option value="">Model*</option>
-                </select>
+                <option value="">{{ t('home.form.modelPlaceholder') }}</option>
+                              </select>
             </div>
             <div class="form-group">
-              <label for="type">TYPE</label>
+              <label for="type">{{ t('home.form.typeLabel') }}</label>
               <select id="type" v-model="searchFilters.type">
-                <option value="">Type*</option>
-                <option value="Дизель">Дизель</option>
-                <option value="Бензин">Бензин</option>
-                <option value="Електро">Електро</option>
+                <option value="">{{ t('home.form.typePlaceholder') }}</option>
+                                <option value="diesel">{{ t('fuelTypes.diesel') }}</option>
+                <option value="petrol">{{ t('fuelTypes.petrol') }}</option>
+                <option value="electric">{{ t('fuelTypes.electric') }}</option>
               </select>
             </div>
-            <button type="submit" class="btn-submit">Get Started</button>
+            <button type="submit" class="btn-submit">{{ t('home.form.submit') }}</button>
           </form>
         </div>
 
@@ -50,11 +50,10 @@
     </section>
     
     <section >
-        
-    </section>
+            </section>
 
     <button class="fab-sell-car" @click="handleSellClick">
-      Продати авто +
+            {{ t('home.sellButton') }} +
     </button>
   </div>
 </template>
@@ -64,6 +63,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
+import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
 
 import carImage1 from '@/assets/car-header1.jpg';
 import carImage2 from '@/assets/car-header2.jpg';
@@ -72,6 +72,7 @@ import carImage2 from '@/assets/car-header2.jpg';
 const router = useRouter();
 const toast = useToast();
 const { isAuthenticated } = useAuth();
+const { t } = useI18n(); // 2. ОТРИМАННЯ ФУНКЦІЇ t
 
 // --- Логіка фону (без змін) ---
 const carImages = [ carImage1, carImage2 ];
@@ -99,6 +100,7 @@ function handleSearch() {
     query.model = searchFilters.value.model;
   }
   if (searchFilters.value.type) {
+    // 3. Тепер тут буде 'diesel', 'petrol' і т.д., що коректно
     query.fuel = searchFilters.value.type; 
   }
   router.push({ path: '/listings', query: query });
@@ -109,7 +111,8 @@ function handleSellClick() {
   if (isAuthenticated.value) {
       router.push('/create-listing');
   } else {
-    toast.warning('Будь ласка, увійдіть, щоб продати авто.');
+    // 4. Локалізація Toast
+    toast.warning(t('home.sellWarning'));
     router.push('/login');
   }
 }
@@ -227,10 +230,6 @@ function handleSellClick() {
   text-transform: uppercase;
   margin-bottom: 5px;
 }
-
-/*
- * 🎨 ОНОВЛЕННЯ СТИЛІВ: Додано 'background-image' (стрілка)
- */
 .form-group select {
   width: 100%;
   padding: 12px;
@@ -242,14 +241,11 @@ function handleSellClick() {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  
-  /* --- ДОДАНО СТРІЛКУ (з інших ваших компонентів) --- */
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 20px;
 }
-
 .form-group select option {
   background: #333;
   color: #fff;
@@ -270,8 +266,6 @@ function handleSellClick() {
 .btn-submit:hover {
   background: #aa0000;
 }
-
-/* === МОБИЛЬНАЯ ВЕРСИЯ (без змін) === */
 @media screen and (max-width: 768px) {
   .hero-section {
     padding-top: 100px;
@@ -299,18 +293,11 @@ function handleSellClick() {
     width: 100%; 
   }
 } 
-/* === КІНЕЦЬ @media === */
-
-
-/* * 🎨 ОНОВЛЕННЯ 3: СТИЛІ КНОПКИ "ПРОДАТИ"
- * (Тепер вони знаходяться ЗЗОВНІ @media-запиту)
- */
 .fab-sell-car {
   position: fixed;
   bottom: 30px;
   right: 30px;
   z-index: 1000; 
-  
   background: #cc0000;
   color: #fff;
   border: none;

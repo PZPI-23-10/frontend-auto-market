@@ -9,36 +9,47 @@
         <ul :class="{ open: isOpen }" class="main-nav">
           
           <li v-if="!isAuthPage" class="navbar-dropdown">
-            <a href="#">Хто Ми Такі</a>
+            <a href="#">
+             
+              <span>{{ $t('nav.whoWeAre') }}</span>
+            </a>
             <ul class="dropdown-content">
-              <li><a href="#">Про нас</a></li>
-              <li><a href="#">Зв'яжіться з нами</a></li>
-              <li><a href="#">Відгуки</a></li>
+              <li><a href="#">{{ $t('nav.aboutUs') }}</a></li>
+              <li><a href="#">{{ $t('nav.contactUs') }}</a></li>
+              <li><a href="#">{{ $t('nav.reviews') }}</a></li>
             </ul>
           </li>
           
           <li v-if="!isAuthPage" class="navbar-dropdown">
-            <a href="#">Новини</a>
+            <a href="#">
+              <span>{{ $t('nav.news') }}</span>
+            </a>
           </li>
           
-          <li v-if="!isAuthPage" class="navbar-dropdown"><a href="#">Магазин</a>
+          <li v-if="!isAuthPage" class="navbar-dropdown">
+            <a href="#">
+              <span>{{ $t('nav.shop') }}</span>
+            </a>
             <ul class="dropdown-content">
               <li>
-                <router-link :to="{ path: '/listings' }">Усі машини</router-link>
+                <router-link :to="{ path: '/listings' }">{{ $t('nav.allCars') }}</router-link>
               </li>
               <li>
-                <router-link :to="{ path: '/listings', query: { fuel: 'Електро' } }">Електричні</router-link>
+                <router-link :to="{ path: '/listings', query: { fuel: 'Електро' } }">{{ $t('nav.electric') }}</router-link>
               </li>
               <li>
-                <router-link :to="{ path: '/listings', query: { fuel: 'Гібрид' } }">Гибріди</router-link>
+                <router-link :to="{ path: '/listings', query: { fuel: 'Гібрид' } }">{{ $t('nav.hybrid') }}</router-link>
               </li>
               <li>
-                <router-link :to="{ path: '/listings', query: { type: 'sport' } }">Спортивні машини</router-link>
+                <router-link :to="{ path: '/listings', query: { type: 'sport' } }">{{ $t('nav.sport') }}</router-link>
               </li>
             </ul>
           </li>
+
           <li class="navbar-dropdown lang-mobile">
-            <a href="#">Мова</a>
+            <a href="#">
+              <span>{{ $t('nav.language') }}</span>
+            </a>
             <ul class="dropdown-content">
               <li><a href="#" @click.prevent="changeLanguage('ua')">Українська</a></li>
               <li><a href="#" @click.prevent="changeLanguage('en')">English</a></li>
@@ -46,31 +57,41 @@
           </li>
 
           <li v-if="!isLoggedIn" class="login-mobile">
-            <router-link to="/login">Увійти</router-link>
+            <router-link to="/login">
+              <span>{{ $t('nav.login') }}</span>
+            </router-link>
           </li>
+          
           <template v-if="isLoggedIn">
             <li class="login-mobile">
-              <router-link to="/profile">Мій Профіль</router-link>
+              <router-link to="/profile">
+                <span>{{ $t('nav.myProfile') }}</span>
+              </router-link>
             </li>
             <li class="login-mobile">
-              <router-link to="/favorites">Обране</router-link>
+              <router-link to="/favorites">
+                <span>{{ $t('nav.favorites') }}</span>
+              </router-link>
             </li>
             <li class="login-mobile">
-              <a href="#" @click.prevent="handleLogout">Вийти</a>
+              <a href="#" @click.prevent="handleLogout">
+                <span>{{ $t('nav.logout') }}</span>
+              </a>
             </li>
           </template>
-          </ul>
+        </ul>
         
         <div class="navbar-right">
           <ul class="user-nav">
             
             <li v-if="isLoggedIn" class="nav-icon-btn">
-              <router-link to="/favorites" class="heart-toggle">
+              <router-link to="/favorites" class="heart-toggle" :title="$t('nav.favorites')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
               </router-link>
             </li>
+
             <li class="navbar-dropdown lang-desktop">
-              <a href="#" class="lang-toggle">
+              <a href="#" class="lang-toggle" :title="$t('nav.language')">
                 <img src="@/assets/Logo/world.png" alt="Language" class="world-img" />
               </a>
               <ul class="dropdown-content dropdown-right">
@@ -80,19 +101,22 @@
             </li>
 
             <li v-if="!isLoggedIn" class="login-desktop">
-              <router-link to="/login">Увійти</router-link>
+              <router-link to="/login">
+                <span>{{ $t('nav.login') }}</span>
+              </router-link>
             </li>
             
             <li v-if="isLoggedIn" class="navbar-dropdown lang-desktop">
               <a href="#" class="lang-toggle" style="padding: 10px 15px;">
-                <span>Профіль</span> 
+                <span>{{ $t('nav.profile') }}</span> 
               </a>
               <ul class="dropdown-content dropdown-right">
-                <li><router-link to="/profile">Налаштування</router-link></li>
-                <li><a href="#" @click.prevent="handleLogout">Вийти</a></li>
+                <li><router-link to="/profile">{{ $t('nav.settings') }}</router-link></li>
+                <li><a href="#" @click.prevent="handleLogout">{{ $t('nav.logout') }}</a></li>
               </ul>
             </li>
           </ul>
+
           <button class="nav-toggler" @click="toggleNav">
             <span></span>
           </button>
@@ -101,18 +125,16 @@
     </div>
   </header>
 </template>
-
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-// Переконайтеся, що ви імпортуєте 'isAuthenticated' з вашого auth.js
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/store/auth' 
 
 const isOpen = ref(false)
 const route = useRoute()
 const router = useRouter()
-
-// Використовуємо 'isAuthenticated' з вашого auth.js і перейменовуємо в 'isLoggedIn'
+const { locale } = useI18n()
 const { isAuthenticated: isLoggedIn, clearAuthData } = useAuth()
 
 function handleLogout() {
@@ -131,7 +153,8 @@ const isAuthPage = computed(() => {
 })
 
 function changeLanguage(lang) {
-  alert(`Выбрана мова: ${lang}`)
+  locale.value = lang
+  localStorage.setItem('lang', lang)
 }
 </script>
 
@@ -195,7 +218,28 @@ body {
   text-transform: uppercase;
   padding: 10px 15px;
   transition: color 0.3s ease;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-icon {
+  width: 20px;    
+  height: 20px;
+  flex-shrink: 0; 
+}
+
+.nav-icon.svg-icon {
+  stroke: #fff;
+  fill: none;
+  transition: stroke 0.3s ease;
+}
+
+.nav-icon.img-icon {
+  margin: 0; 
+}
+
+.site-navbar ul li a:hover .svg-icon {
+  stroke: #ffd700;
 }
 .site-navbar ul li a:hover {
   color: #ffd700;

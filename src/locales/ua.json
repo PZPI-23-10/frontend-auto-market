@@ -1,0 +1,332 @@
+{
+  "nav": {
+    "whoWeAre": "Хто Ми Такі",
+    "aboutUs": "Про нас",
+    "contactUs": "Зв'яжіться з нами",
+    "reviews": "Відгуки",
+    "news": "Новини",
+    "shop": "Магазин",
+    "allCars": "Усі машини",
+    "electric": "Електричні",
+    "hybrid": "Гібриди",
+    "sport": "Спортивні машини",
+    "language": "Мова",
+    "login": "Увійти",
+    "myProfile": "Мій Профіль",
+    "favorites": "Обране",
+    "logout": "Вийти",
+    "profile": "Профіль",
+    "settings": "Налаштування"
+  },
+  "uploader": {
+    "label": "Натисніть або перетягніть фото (до {count} шт.)",
+    "maxFilesWarning": "Можна завантажити максимум {count} фото.",
+    "imageOnlyWarning": "Можна обирати лише зображення.",
+    "previewAlt": "прев'ю",
+    "modalAlt": "Повноекранне зображення"
+  },
+  "carCard": {
+    "imageAlt": "Фото авто",
+    "priceNA": "N/A",
+    "mileage": "{km} тис. км",
+    "specMileage": "Пробіг",
+    "specFuel": "Тип пального",
+    "specTransmission": "Коробка передач",
+    "toggleFavorite": "Додати в обране",
+    "favoriteToast": "Оголошення додано в 'Обране' (симуляція)"
+  },
+  "common": {
+    "back": "Назад"
+  },
+  "fields": {
+    "brand": "Бренд",
+    "model": "Модель",
+    "year": "Рік",
+    "mileage": "Пробіг",
+    "mileageLabel": "Пробіг (тис. км)",
+    "fuel": "Тип палива",
+    "transmission": "Коробка передач",
+    "price": "Ціна",
+    "location": "Місто"
+  },
+  "fuelTypes": {
+    "petrol": "Бензин",
+    "diesel": "Дизель",
+    "electric": "Електро",
+    "hybrid": "Гібрид",
+    "gas_petrol": "Газ/Бензин"
+  },
+  "transmissionTypes": {
+    "manual": "Механіка",
+    "automatic": "Автомат",
+    "robot": "Робот"
+  },
+  "createListing": {
+    "title": "Створити нове оголошення",
+    "sectionBasic": "Основна інформація",
+    "sectionPrice": "Ціна та Розташування",
+    "sectionDesc": "Опис",
+    "sectionPhotos": "Фотографії",
+    "selectDefault": "Оберіть тип",
+    "descLabel": "Розкажіть про авто детальніше",
+    "submit": "Опублікувати оголошення",
+    "submitting": "Публікуємо...",
+    "draftRestored": "Вашу попередню чернетку відновлено!",
+    "publishSuccess": "Оголошення успішно опубліковано!",
+    "validation": {
+      "required": "Будь ласка, заповніть поле \"{field}\"",
+      "invalid": "Будь ласка, введіть коректний \"{field}\"",
+      "noPhotos": "Будь ласка, додайте хоча б одне фото."
+    }
+  },
+  "home": {
+    "hero": {
+      "subtitle": "НОВЕ В НАЯВНОСТІ",
+      "title": "Покращіть свій досвід водіння",
+      "discover": "Дізнатись більше",
+      "meet": "Зустріти Horizon GT"
+    },
+    "form": {
+      "title": "Знайдіть своє авто",
+      "brandLabel": "БРЕНД",
+      "brandPlaceholder": "Бренд*",
+      "modelLabel": "МОДЕЛЬ",
+      "modelPlaceholder": "Модель*",
+      "typeLabel": "ТИП ПАЛИВА",
+      "typePlaceholder": "Тип палива*",
+      "submit": "Почати"
+    },
+    "sellButton": "Продати авто",
+    "sellWarning": "Будь ласка, увійдіть, щоб продати авто."
+  },
+  "listingDetail": {
+    "loading": "Завантаження даних...",
+    "notFound": "Помилка. Оголошення не знайдено.",
+    "mainPhotoAlt": "Головне фото авто",
+    "thumbAlt": "Мініатюра",
+    "descriptionTitle": "Опис від продавця",
+    "noDescription": "Продавець не додав опис.",
+    "sellerTitle": "Продавець",
+    "sellerAvatarAlt": "Аватар продавця",
+    "email": "Email",
+    "phone": "Телефон",
+    "sendMessage": "Написати повідомлення",
+    "specsTitle": "Характеристики",
+    "modalAlt": "Повноекранне зображення",
+    "loadSuccess": "Дані завантажено",
+    "loadError": "Оголошення не знайдено"
+  },
+  "listings": {
+    "title": "Каталог автомобілів",
+    "filter": {
+      "title": "Фільтри",
+      "brandPlaceholder": "Наприклад, BMW",
+      "modelPlaceholder": "Наприклад, A6",
+      "priceLabel": "Ціна (USD)",
+      "priceFrom": "Від",
+      "priceTo": "До",
+      "yearLabel": "Рік",
+      "anyFuel": "Будь-яке",
+      "anyTransmission": "Будь-яка",
+      "submit": "Застосувати",
+      "submitting": "(Симуляція) Застосовуємо фільтри..."
+    },
+    "noResults": "Нічого не знайдено",
+    "noResultsHint": "Спробуйте змінити параметри фільтру"
+  },
+  "login": {
+    "title": "Вхід",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Email",
+    "passwordLabel": "Пароль",
+    "passwordPlaceholder": "Пароль",
+    "forgotPassword": "Забули пароль?",
+    "submit": "Увійти",
+    "or": "АБО",
+    "register": "Реєстрація",
+    "success": "Вхід виконано успішно!",
+    "googleSuccess": "Вхід через Google успішний!",
+    "validation": {
+      "emailPasswordRequired": "Введіть email та пароль"
+    },
+    "errors": {
+      "prefix": "Помилка: {error}",
+      "noToken": "Сервер не повернув 'accessToken' або 'userId'",
+      "invalidCredentials": "Невірний email або пароль",
+      "serverConnection": "Не вдалося підключитися до сервера",
+      "googleGeneric": "Помилка входу через Google",
+      "googleServer": "Помилка сервера при Google логіні",
+      "googleConfig": "Помилка конфігурації входу через Google",
+      "googleInit": "Не вдалося ініціалізувати вхід через Google"
+    }
+  },
+  "profile": {
+    "mainTitle": "Налаштування",
+    "nav": {
+      "profile": "Основний профіль",
+      "password": "Зміна пароля",
+      "orders": "Виставлені замовлення"
+    },
+    "profileTab": {
+      "title": "Основний профіль",
+      "fullNamePlaceholder": "Ім'я Прізвище",
+      "avatarAlt": "Аватар профілю",
+      "verify": {
+        "statusWarning": "Ваш email ще не підтверджено.",
+        "statusSuccess": "Email підтверджено.",
+        "infoText": "Ми надіслали 6-значний код на вашу пошту (<b>{email}</b>) під час реєстрації. Будь ласка, введіть його нижче.",
+        "codeLabel": "Введіть код з листа:",
+        "codePlaceholder": "6 цифр",
+        "verifyButton": "Підтвердити",
+        "verifying": "Перевірка...",
+        "resendButton": "Не отримали код? Надіслати повторно",
+        "resending": "Надсилаємо...",
+        "toast": {
+          "sendSuccess": "Лист з кодом підтвердження надіслано.",
+          "sendFail": "Не вдалося надіслати код.",
+          "codeRequired": "Будь ласка, введіть 6-значний код.",
+          "verifySuccess": "Email успішно підтверджено!",
+          "verifyFailDefault": "Не вдалося підтвердити email.",
+          "invalidCode": "Невірний або застарілий код."
+        }
+      },
+      "form": {
+        "firstName": "Ім'я",
+        "lastName": "Прізвище",
+        "email": "Email",
+        "phone": "Номер телефону",
+        "phonePlaceholder": "99 123 4567",
+        "country": "Країна",
+        "countrySelect": "Оберіть країну",
+        "birthday": "День народження",
+        "address": "Адреса",
+        "bio": "Про себе",
+        "save": "Зберегти зміни"
+      },
+      "toast": {
+        "nameRequired": "Ім'я та прізвище обов'язкові.",
+        "phoneRequired": "Номер телефону обов'язковий.",
+        "invalidDate": "Невірний формат дати.",
+        "saveSuccess": "Профіль оновлено!",
+        "avatarInfo": "Оновіть сторінку, щоб побачити новий аватар.",
+        "saveFailDefault": "Помилка збереження.",
+        "saveFailPrefix": "Не вдалося зберегти: {error}",
+        "imageFileRequired": "Оберіть файл зображення."
+      }
+    },
+    "passwordTab": {
+      "title": "Зміна пароля",
+      "current": "Поточний пароль",
+      "forgot": "Забули пароль?",
+      "new": "Новий пароль",
+      "confirm": "Підтвердити новий пароль",
+      "save": "Оновити пароль",
+      "toast": {
+        "checkPasswords": "Перевірте введені паролі.",
+        "lengthError": "Пароль має містити від {min} до {max} символів.",
+        "saveSuccess": "Пароль успішно змінено!",
+        "saveFailDefault": "Помилка зміни пароля.",
+        "oldPasswordError": "Невірний поточний пароль.",
+        "mismatchError": "Новий пароль не співпадає.",
+        "saveFailPrefix": "Не вдалося змінити пароль: {error}",
+        "redirecting": "Перенаправляємо на сторінку відновлення пароля...",
+        "noEmailWarning": "Не вдалося визначити ваш email. Введіть його вручну."
+      }
+    },
+    "ordersTab": {
+      "title": "Виставлені замовлення",
+      "create": "Створити оголошення",
+      "placeholder": "Тут буде список ваших виставлених на продаж автомобілів або замовлень."
+    },
+    "errors": {
+      "prefix": "Помилка: {error}",
+      "notLoggedIn": "Ви не увійшли в систему. Перенаправляємо на сторінку логіну.",
+      "loadProfileDefault": "Не вдалося завантажити профіль.",
+      "serverError": "Помилка сервера.",
+      "sessionExpired": "Сесія застаріла.",
+      "noResponse": "Немає відповіді від сервера.",
+      "authError": "Помилка авторизації."
+    }
+  },
+  "countries": {
+    "ua": "Україна",
+    "pl": "Польща",
+    "de": "Німеччина",
+    "us": "США",
+    "gb": "Велика Британія"
+  },
+  "register": {
+    "title": "Створення акаунту",
+    "progressbar": {
+      "account": "Налаштування акаунту",
+      "personal": "Особисті дані",
+      "address": "Адреса"
+    },
+    "step1": {
+      "email": "Email",
+      "password": "Пароль",
+      "confirmPassword": "Підтвердіть пароль"
+    },
+    "step2": {
+      "firstName": "Ім'я",
+      "lastName": "Прізвище",
+      "dob": "Дата народження",
+      "country": "Країна",
+      "phone": "Номер телефону",
+      "phonePlaceholder": "99 123 4567"
+    },
+    "step3": {
+      "address": "Адреса (необов'язково)",
+      "addressPlaceholder": "Адреса"
+    },
+    "buttons": {
+      "previous": "Назад",
+      "next": "Далі",
+      "complete": "Завершити реєстрацію"
+    },
+    "validation": {
+      "allFields": "Будь ласка, заповніть email та обидва поля пароля.",
+      "invalidEmail": "Будь ласка, введіть коректний email.",
+      "passwordLength": "Пароль має містити від {min} до {max} символів.",
+      "passwordMismatch": "Паролі не співпадають.",
+      "step2Required": "Будь ласка, заповніть ім'я, прізвище, дату народження та телефон.",
+      "dateRequired": "Будь ласка, вкажіть дату народження."
+    },
+    "errors": {
+      "emailExists": "Користувач з таким email вже існує.",
+      "emailCheckFailed": "Не вдалося перевірити email. Спробуйте пізніше.",
+      "serverError": "Внутрішня помилка сервера. Спробуйте пізніше.",
+      "noConnection": "Не вдалося підключитися до сервера. Перевірте з'єднання.",
+      "invalidDate": "Невірний формат дати народження.",
+      "noToken": "Сервер не повернув токен доступу після реєстрації.",
+      "generic": "Не вдалося зареєструватися. Спробуйте пізніше.",
+      "validationFailed": "Помилка валідації даних.",
+      "badData": "Невірні дані.",
+      "requestFailed": "Помилка запиту: {error}"
+    },
+    "success": "Реєстрація успішна! Будь ласка, підтвердіть вашу електронну пошту."
+  },
+  "verifyEmail": {
+    "title": "Підтвердження Email",
+    "infoText": "Будь ласка, введіть 6-значний код, який було надіслано на вашу електронну адресу.",
+    "codeLabel": "Код підтвердження",
+    "codePlaceholder": "Введіть код",
+    "verifyButton": "Підтвердити",
+    "verifyingButton": "Перевірка...",
+    "resendButton": "Надіслати код повторно",
+    "toast": {
+      "codeRequired": "Будь ласка, введіть 6-значний код.",
+      "noToken": "Помилка: Токен авторизації не знайдено. Увійдіть знову.",
+      "success": "Email успішно підтверджено!",
+      "errorDefault": "Не вдалося підтвердити email.",
+      "badRequest": "Невірний запит.",
+      "invalidCode": "Невірний або застарілий код підтвердження.",
+      "unauthorized": "Помилка авторизації. Спробуйте увійти знову.",
+      "notFound": "Користувача не знайдено.",
+      "serverError": "Помилка сервера.",
+      "noResponse": "Немає відповіді від сервера.",
+      "errorPrefix": "Помилка: {error}",
+      "resendNotImplemented": "Функція повторної відправки коду ще не реалізована."
+    }
+  }
+}

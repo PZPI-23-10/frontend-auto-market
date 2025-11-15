@@ -1,6 +1,6 @@
 <template>
   <div class="profile-view">
-    <h1>Налаштування</h1> 
+    <h1>{{ t('profile.mainTitle') }}</h1> 
     <div class="profile-container">
       
       <aside class="profile-sidebar">
@@ -12,7 +12,7 @@
                 :class="{ active: activeTab === 'profile' }"
                 @click.prevent="activeTab = 'profile'"
               >
-                Основний профіль
+                {{ t('profile.nav.profile') }}
               </a>
             </li>
             <li>
@@ -21,7 +21,7 @@
                 :class="{ active: activeTab === 'password' }"
                 @click.prevent="activeTab = 'password'"
               >
-                Зміна пароля
+                {{ t('profile.nav.password') }}
               </a>
             </li>
             <li>
@@ -30,7 +30,7 @@
                 :class="{ active: activeTab === 'orders' }"
                 @click.prevent="activeTab = 'orders'"
               >
-                Виставлені замовлення
+                {{ t('profile.nav.orders') }}
               </a>
             </li>
           </ul>
@@ -40,41 +40,39 @@
       <main class="profile-content">
 
         <div v-if="activeTab === 'profile'" class="tab-pane">
-          <h2>Основний профіль</h2>
+          <h2>{{ t('profile.profileTab.title') }}</h2>
           <div v-if="!user.isVerified" class="email-verification-section">
             <p class="verification-status warning">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-              Ваш email ще не підтверджено.
+              {{ t('profile.profileTab.verify.statusWarning') }}
             </p>
-            <p class="info-text">
-              Ми надіслали 6-значний код на вашу пошту (<b>{{ user.email }}</b>) під час реєстрації. Будь ласка, введіть його нижче.
-            </p>
+            <p class="info-text" v-html="t('profile.profileTab.verify.infoText', { email: user.email })"></p>
             <div class="verification-code-input">
-              <label for="verifyCode">Введіть код з листа:</label>
+              <label for="verifyCode">{{ t('profile.profileTab.verify.codeLabel') }}</label>
               <div class="input-group">
                 <input 
                   id="verifyCode" 
                   type="text" 
                   v-model="verificationCode" 
                   maxlength="6" 
-                  placeholder="6 цифр"
+                  :placeholder="t('profile.profileTab.verify.codePlaceholder')"
                 />
                 <button @click="verifyCode" class="btn-primary" :disabled="isLoadingVerify">
-                  {{ isLoadingVerify ? 'Перевірка...' : 'Підтвердити' }}
+                  {{ isLoadingVerify ? t('profile.profileTab.verify.verifying') : t('profile.profileTab.verify.verifyButton') }}
                 </button>
               </div>
               <button @click="sendVerificationEmail" class="btn-link resend-link" :disabled="isLoadingEmail">
-                {{ isLoadingEmail ? 'Надсилаємо...' : 'Не отримали код? Надіслати повторно' }}
+                {{ isLoadingEmail ? t('profile.profileTab.verify.resending') : t('profile.profileTab.verify.resendButton') }}
               </button>
             </div>
           </div>
           <p v-else class="verification-status success">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            Email підтверджено.
+            {{ t('profile.profileTab.verify.statusSuccess') }}
           </p>
           <div class="avatar-upload-section">
             <div class="avatar-preview" @click="triggerFileUpload">
-              <img :src="user.avatarUrl || defaultAvatar" alt="Аватар профілю">
+              <img :src="user.avatarUrl || defaultAvatar" :alt="t('profile.profileTab.avatarAlt')">
               <div class="avatar-edit-overlay">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -101,23 +99,23 @@
           <form @submit.prevent="saveProfile">
             <div class="form-row">
               <div class="form-group">
-                <label for="firstName">Ім'я</label>
+                <label for="firstName">{{ t('profile.profileTab.form.firstName') }}</label>
                 <input type="text" id="firstName" v-model="user.firstName">
               </div>
               <div class="form-group">
-                <label for="lastName">Прізвище</label>
+                <label for="lastName">{{ t('profile.profileTab.form.lastName') }}</label>
                 <input type="text" id="lastName" v-model="user.lastName">
               </div>
             </div>
             <div class="form-group">
-              <label for="email">Email</label>
+              <label for="email">{{ t('profile.profileTab.form.email') }}</label>
               <input type="email" id="email" v-model="user.email" disabled>
             </div>
             <div class="form-group phone-group">
-              <label for="phoneCode">Номер телефону</label>
+              <label for="phoneCode">{{ t('profile.profileTab.form.phone') }}</label>
               <div class="input-group">
                 <select id="phoneCode" v-model="user.phoneCode">
-                  <option v-for="country in countries" :key="country.code" :value="country.phoneCode">
+                                    <option v-for="country in countries" :key="country.code" :value="country.phoneCode">
                     +{{ country.phoneCode }} ({{ country.code }})
                   </option>
                 </select>
@@ -125,7 +123,7 @@
                   type="tel" 
                   id="phoneNumber" 
                   v-model="user.phoneNumber" 
-                  placeholder="99 123 4567"
+                  :placeholder="t('profile.profileTab.form.phonePlaceholder')"
                   @keydown="filterPhoneInput" 
                   maxlength="10"
                 >
@@ -133,55 +131,55 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label for="country">Країна</label>
+                <label for="country">{{ t('profile.profileTab.form.country') }}</label>
                 <select id="country" v-model="user.country">
-                  <option value="" disabled>Оберіть країну</option>
-                  <option v-for="country in countries" :key="country.code" :value="country.code">
-                    {{ country.name }}
+                  <option value="" disabled>{{ t('profile.profileTab.form.countrySelect') }}</option>
+                                    <option v-for="country in countries" :key="country.code" :value="country.code">
+                    {{ t(country.nameKey) }}
                   </option>
                 </select>
               </div>
               <div class="form-group">
-                <label for="birthday">День народження</label>
+                <label for="birthday">{{ t('profile.profileTab.form.birthday') }}</label>
                 <input type="date" id="birthday" v-model="user.birthday"> 
               </div>
             </div>
             <div class="form-group">
-              <label for="address">Адреса</label>
+              <label for="address">{{ t('profile.profileTab.form.address') }}</label>
               <input type="text" id="address" v-model="user.address">
             </div>
             <div class="form-group">
-              <label for="bio">Про себе</label>
+              <label for="bio">{{ t('profile.profileTab.form.bio') }}</label>
               <textarea id="bio" v-model="user.bio" rows="4"></textarea>
             </div>
             
             <div class="form-actions">
-              <button type="submit" class="btn-primary">Зберегти зміни</button>
+              <button type="submit" class="btn-primary">{{ t('profile.profileTab.form.save') }}</button>
             </div>
           </form>
         </div>
 
         <div v-if="activeTab === 'password'" class="tab-pane">
           <section class="password-section">
-            <h2>Зміна пароля</h2>
+            <h2>{{ t('profile.passwordTab.title') }}</h2>
             <form @submit.prevent="changePassword">
               <div class="form-group">
-                <label for="currentPassword">Поточний пароль</label>
+                <label for="currentPassword">{{ t('profile.passwordTab.current') }}</label>
                 <input type="password" id="currentPassword" v-model="passwordForm.currentPassword">
                 <a href="#" @click.prevent="forgotPassword" class="forgot-password-link">
-                  Забули пароль?
+                  {{ t('profile.passwordTab.forgot') }}
                 </a>
               </div>
               <div class="form-group">
-                <label for="newPassword">Новий пароль</label>
+                <label for="newPassword">{{ t('profile.passwordTab.new') }}</label>
                 <input type="password" id="newPassword" v-model="passwordForm.newPassword">
               </div>
               <div class="form-group">
-                <label for="confirmPassword">Підтвердити новий пароль</label>
+                <label for="confirmPassword">{{ t('profile.passwordTab.confirm') }}</label>
                 <input type="password" id="confirmPassword" v-model="passwordForm.confirmPassword">
               </div>
               <div class="form-actions">
-                <button type="submit" class="btn-primary">Оновити пароль</button>
+                <button type="submit" class="btn-primary">{{ t('profile.passwordTab.save') }}</button>
               </div>
             </form>
           </section>
@@ -190,14 +188,14 @@
         <div v-if="activeTab === 'orders'" class="tab-pane">
           
           <div class="tab-header">
-            <h2>Виставлені замовлення</h2>
+            <h2>{{ t('profile.ordersTab.title') }}</h2>
             <button @click="goToCreateListing" class="btn-primary add-listing-btn">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              Створити оголошення
+              {{ t('profile.ordersTab.create') }}
             </button>
           </div>
           
-          <p>Тут буде список ваших виставлених на продаж автомобілів або замовлень.</p>
+          <p>{{ t('profile.ordersTab.placeholder') }}</p>
           </div>
 
       </main>
@@ -210,24 +208,27 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
+import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
 import defaultAvatar from '@/assets/default-avatar.png'; 
 import axios from 'axios';
 
 const toast = useToast();
-const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Account';
+const { t } = useI18n(); // 2. ОТРИМАННЯ t
+const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Auth';
+const API_PROFILE_BASE_URL = 'https://backend-auto-market.onrender.com/api/Profile'
 const VERIFY_EMAIL_URL = `${API_BASE_URL}/verify-email`;
 const SEND_VERIFICATION_URL = `${API_BASE_URL}/send-verification-email`;
-const router = useRouter(); // <--- Вже ініціалізовано
+const router = useRouter(); 
 
-// 2. Дістаємо 'clearAuthData' з 'useAuth'
 const { userId, token, clearAuthData } = useAuth();
 
+// 3. ОНОВЛЕНО: Використання ключів для локалізації
 const countries = ref([
-  { code: 'UA', name: 'Україна', phoneCode: '380' },
-  { code: 'PL', name: 'Польща', phoneCode: '48' },
-  { code: 'DE', name: 'Німеччина', phoneCode: '49' },
-  { code: 'US', name: 'США', phoneCode: '1' },
-  { code: 'GB', name: 'Велика Британія', phoneCode: '44' },
+  { code: 'UA', nameKey: 'countries.ua', phoneCode: '380' },
+  { code: 'PL', nameKey: 'countries.pl', phoneCode: '48' },
+  { code: 'DE', nameKey: 'countries.de', phoneCode: '49' },
+  { code: 'US', nameKey: 'countries.us', phoneCode: '1' },
+  { code: 'GB', nameKey: 'countries.gb', phoneCode: '44' },
 ]);
 
 const activeTab = ref('profile');
@@ -240,7 +241,7 @@ const user = ref({
   country: 'UA',
   address: '',
   birthday: '', 
-  bio: '',     
+  bio: '',     
   avatarUrl: null,
   isVerified: false 
 });
@@ -256,32 +257,33 @@ const selectedFile = ref(null);
 const initialAvatarUrl = ref(null); 
 
 const verificationCodeSent = ref(false); 
-const verificationCode = ref('');      
-const isLoadingEmail = ref(false);     
-const isLoadingVerify = ref(false);    
+const verificationCode = ref('');      
+const isLoadingEmail = ref(false);     
+const isLoadingVerify = ref(false);    
 
 const fullName = computed(() => {
   if (!user.value.firstName && !user.value.lastName) {
-    return 'Ім\'я Прізвище'; 
+    return t('profile.profileTab.fullNamePlaceholder'); // 4. Локалізований резервний текст
   }
   return `${user.value.firstName} ${user.value.lastName}`.trim(); 
 });
 
 onMounted(async () => {
   if (!userId.value || !token.value) {
-    toast.error('Ви не увійшли в систему. Перенаправляємо на сторінку логіну.');
+    toast.error(t('profile.errors.notLoggedIn')); // 5. Локалізація
     router.push('/login');
     return;
   } 
 
   try {
-    const response = await axios.get(`${API_BASE_URL}?userId=${userId.value}`, {
+    const response = await axios.get(`${API_PROFILE_BASE_URL}?userId=${userId.value}`, {
       headers: { 'Authorization': `Bearer ${token.value}` }
-    });   
+    });   
     
     const data = response.data;
     console.log("Profile data received:", data); 
 
+    // (Логіка заповнення user.value залишається без змін)
     user.value.firstName = data.firstName || '';
     user.value.lastName = data.lastName || '';
     user.value.email = data.email || '';
@@ -321,16 +323,17 @@ onMounted(async () => {
 
   } catch (error) {
      console.error('Помилка завантаження профілю (Axios):', error);
-     let errorMessage = 'Не вдалося завантажити профіль.';
+     // 6. Локалізація блоку помилок
+     let errorMessage = t('profile.errors.loadProfileDefault');
      if (error.response) {
-       errorMessage = error.response.data?.message || error.response.data || 'Помилка сервера.';
+       errorMessage = error.response.data?.message || error.response.data || t('profile.errors.serverError');
        if (error.response.status === 401) {
            clearAuthData(); 
            router.push('/login');
-           errorMessage = 'Сесія застаріла.';
+           errorMessage = t('profile.errors.sessionExpired');
        }
      } else if (error.request) {
-       errorMessage = 'Немає відповіді від сервера.';
+       errorMessage = t('profile.errors.noResponse');
      } else {
        errorMessage = error.message;
      }
@@ -340,7 +343,7 @@ onMounted(async () => {
 
 async function sendVerificationEmail() {
    if (!token.value) {
-       toast.error('Помилка авторизації.');
+       toast.error(t('profile.errors.authError')); // 7. Локалізація
        return;
    }
    isLoadingEmail.value = true;
@@ -349,12 +352,12 @@ async function sendVerificationEmail() {
        await axios.post(SEND_VERIFICATION_URL, {}, { 
            headers: { 'Authorization': `Bearer ${token.value}` }
        });
-       toast.success('Лист з кодом підтвердження надіслано.');
+       toast.success(t('profile.profileTab.verify.toast.sendSuccess')); // 8. Локалізація
        verificationCodeSent.value = true; 
    } catch (error) {
        console.error('Помилка відправки коду:', error);
-       let errMsg = error.response?.data || 'Не вдалося надіслати код.';
-       toast.error(`Помилка: ${errMsg}`);
+       let errMsg = error.response?.data || t('profile.profileTab.verify.toast.sendFail'); // 9. Локалізація
+       toast.error(t('profile.errors.prefix', { error: errMsg })); // 10. Локалізація
    } finally {
        isLoadingEmail.value = false;
    }
@@ -362,11 +365,11 @@ async function sendVerificationEmail() {
 
 async function verifyCode() {
     if (!verificationCode.value || verificationCode.value.length !== 6) {
-        toast.warning('Будь ласка, введіть 6-значний код.');
+        toast.warning(t('profile.profileTab.verify.toast.codeRequired')); // 11. Локалізація
         return;
     }
     if (!token.value) {
-        toast.error('Помилка авторизації.');
+        toast.error(t('profile.errors.authError')); // 12. Локалізація
         return;
     }
     isLoadingVerify.value = true;
@@ -376,21 +379,22 @@ async function verifyCode() {
           { code: verificationCode.value }, 
           { headers: { 'Authorization': `Bearer ${token.value}`, 'Content-Type': 'application/json' } }
         );
-        toast.success('Email успішно підтверджено!');
+        toast.success(t('profile.profileTab.verify.toast.verifySuccess')); // 13. Локалізація
         user.value.isVerified = true; 
         verificationCodeSent.value = false; 
         verificationCode.value = ''; 
     } catch (error) {
         console.error('Помилка перевірки коду:', error);
-        let errMsg = 'Не вдалося підтвердити email.';
+        // 14. Локалізація блоку помилок
+        let errMsg = t('profile.profileTab.verify.toast.verifyFailDefault');
         if (error.response?.status === 400) {
-            errMsg = error.response.data || 'Невірний або застарілий код.';
+            errMsg = error.response.data || t('profile.profileTab.verify.toast.invalidCode');
         } else if (error.response?.status === 401) {
-            errMsg = 'Помилка авторизації.';
+            errMsg = t('profile.errors.authError');
         } else {
-           errMsg = error.response?.data || 'Помилка сервера.';
+           errMsg = error.response?.data || t('profile.errors.serverError');
         }
-        toast.error(`Помилка: ${errMsg}`);
+        toast.error(t('profile.errors.prefix', { error: errMsg }));
     } finally {
         isLoadingVerify.value = false;
     }
@@ -398,11 +402,11 @@ async function verifyCode() {
 
 async function saveProfile() {
   if (!user.value.firstName || !user.value.lastName) {
-    toast.warning("Ім'я та прізвище обов'язкові.");
+    toast.warning(t('profile.profileTab.toast.nameRequired')); // 15. Локалізація
     return;
   }
   if (!user.value.phoneNumber) {
-      toast.warning('Номер телефону обов\'язковий.');
+      toast.warning(t('profile.profileTab.toast.phoneRequired')); // 16. Локалізація
       return;
   }
   
@@ -414,7 +418,7 @@ async function saveProfile() {
       try {
           formData.append('dateOfBirth', new Date(user.value.birthday).toISOString()); 
       } catch (e) {
-          toast.error("Невірний формат дати.");
+          toast.error(t('profile.profileTab.toast.invalidDate')); // 17. Локалізація
           return; 
       }
   }
@@ -429,35 +433,37 @@ async function saveProfile() {
   console.log("Sending profile update (FormData):", Object.fromEntries(formData.entries())); 
   
   try {
-    await axios.put(`${API_BASE_URL}/edit`, formData, { 
+    await axios.put(`${API_PROFILE_BASE_URL}/update`, formData, { 
       headers: { 
         'Authorization': `Bearer ${token.value}`
       }
     });
-    toast.success('Профіль оновлено!'); 
+    toast.success(t('profile.profileTab.toast.saveSuccess')); // 18. Локалізація
     selectedFile.value = null; 
 
     if (selectedFile.value) {
-      toast.info('Оновіть сторінку, щоб побачити новий аватар.');
+      toast.info(t('profile.profileTab.toast.avatarInfo')); // 19. Локалізація
     }
 
   } catch (error) {
      console.error('Помилка збереження (Axios):', error);
-     let errorMessage = 'Помилка збереження.';
+     // 20. Локалізація блоку помилок
+     let errorMessage = t('profile.profileTab.toast.saveFailDefault');
      if (error.response) {
        if (error.response.data?.errors) {
            errorMessage = Object.values(error.response.data.errors).flat().join(' ');
        } else {
-           errorMessage = error.response.data?.message || error.response.data?.title || 'Помилка сервера';
+           errorMessage = error.response.data?.message || error.response.data?.title || t('profile.errors.serverError');
        }
      } 
-     else if (error.request) { errorMessage = 'Немає відповіді від сервера.'; } 
+     else if (error.request) { errorMessage = t('profile.errors.noResponse'); } 
      else { errorMessage = error.message; }
-     toast.error(`Не вдалося зберегти: ${errorMessage}`);
+     toast.error(t('profile.profileTab.toast.saveFailPrefix', { error: errorMessage }));
   }
 }
 
 function filterPhoneInput(event) {
+  // (Логіка без змін, не потребує локалізації)
   const allowedKeys = [
     'Backspace', 'Delete', 'Tab', 'Enter', 
     'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
@@ -485,7 +491,7 @@ function onFileSelected(event) {
       return;
   }
   if (!file.type.startsWith('image/')) {
-      toast.error('Оберіть файл зображення.');
+      toast.error(t('profile.profileTab.toast.imageFileRequired')); // 21. Локалізація
       selectedFile.value = null; 
       user.value.avatarUrl = initialAvatarUrl.value || null; 
       currentInput.value = ''; 
@@ -504,19 +510,20 @@ function triggerFileUpload() {
 }
 
 async function changePassword() {
+   // 22. Локалізація блоку валідації
    if (!passwordForm.value.currentPassword || !passwordForm.value.newPassword || passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-       toast.warning('Перевірте введені паролі.');
+       toast.warning(t('profile.passwordTab.toast.checkPasswords'));
        return;
    }
    if (passwordForm.value.newPassword.length < 5 || passwordForm.value.newPassword.length > 27) {
-     toast.warning('Пароль має містити від 5 до 27 символів.');
+     toast.warning(t('profile.passwordTab.toast.lengthError', { min: 5, max: 27 }));
      return;
    }
 
  const CHANGE_PASSWORD_URL = `${API_BASE_URL}/ChangePassword`; 
  const payload = {
-   Password: passwordForm.value.currentPassword,        
-   NewPassword: passwordForm.value.newPassword,          
+   Password: passwordForm.value.currentPassword,        
+   NewPassword: passwordForm.value.newPassword,          
    PasswordConfirmation: passwordForm.value.confirmPassword 
  };
 
@@ -530,48 +537,42 @@ async function changePassword() {
        }
    });
    
-   toast.success('Пароль успішно змінено!');
+   toast.success(t('profile.passwordTab.toast.saveSuccess')); // 23. Локалізація
    passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
    
  } catch (error) {
     console.error('Помилка зміни пароля (Axios):', error);
-    let errorMessage = 'Помилка зміни пароля.';
+    // 24. Локалізація блоку помилок
+    let errorMessage = t('profile.passwordTab.toast.saveFailDefault');
      if (error.response) {
        if (error.response.status === 400 && typeof error.response.data === 'string') {
-           if (error.response.data.includes("Old password is incorrect")) { errorMessage = 'Невірний поточний пароль.'; } 
-           else if (error.response.data.includes("do not match")) { errorMessage = 'Новий пароль не співпадає.'; } 
+           if (error.response.data.includes("Old password is incorrect")) { errorMessage = t('profile.passwordTab.toast.oldPasswordError'); } 
+           else if (error.response.data.includes("do not match")) { errorMessage = t('profile.passwordTab.toast.mismatchError'); } 
            else { errorMessage = error.response.data; }
-       } else { errorMessage = error.response.data?.message || 'Помилка сервера.'; }
-     } else if (error.request) { errorMessage = 'Немає відповіді від сервера.'; } 
+       } else { errorMessage = error.response.data?.message || t('profile.errors.serverError'); }
+     } else if (error.request) { errorMessage = t('profile.errors.noResponse'); } 
      else { errorMessage = error.message; }
-     toast.error(`Не вдалося змінити пароль: ${errorMessage}`);
+     toast.error(t('profile.passwordTab.toast.saveFailPrefix', { error: errorMessage }));
  }
 }
 
 function forgotPassword() {
     if (user.value.email) {
       router.push({ name: 'forgot-password', query: { email: user.value.email } }); 
-      toast.info('Перенаправляємо на сторінку відновлення пароля...');
+      toast.info(t('profile.passwordTab.toast.redirecting')); // 25. Локалізація
     } else {
-      toast.warning('Не вдалося визначити ваш email. Введіть його вручну.');
+      toast.warning(t('profile.passwordTab.toast.noEmailWarning')); // 26. Локалізація
       router.push({ name: 'forgot-password' }); 
     }
 }
 
-/**
- * 3. НОВА ФУНКЦІЯ для кнопки
- */
 function goToCreateListing() {
   router.push('/create-listing');
 }
 </script>
 
 <style scoped>
-/* (Всі старі стилі: .profile-view, .profile-container, .profile-sidebar, 
-   .form-group, .avatar-section, .verification-section, і т.д. - 
-   залишаються БЕЗ ЗМІН) 
-*/
-
+/* (СТИЛІ ЗАЛИШАЮТЬСЯ БЕЗ ЗМІН) */
 .profile-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
@@ -933,34 +934,26 @@ button {
   margin-top: 10px;
   display: inline-block;
 }
-
-/* * 4. НОВІ СТИЛІ ДЛЯ "ВИСТАВЛЕНІ ЗАМОВЛЕННЯ"
- */
 .tab-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* Копіюємо стилі з h2 */
   margin-bottom: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   padding-bottom: 10px;
 }
-
-/* Прибираємо подвійні рамки/відступи з h2, 
-   оскільки вони тепер на .tab-header */
 .tab-header h2 {
   margin-bottom: 0;
   border-bottom: none;
   padding-bottom: 0;
 }
-
 .add-listing-btn {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  padding: 10px 15px; /* Трохи менша кнопка */
-  margin-top: 0; /* Скидаємо відступ */
+  padding: 10px 15px; 
+  margin-top: 0; 
 }
 .add-listing-btn svg {
   width: 16px;

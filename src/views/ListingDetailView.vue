@@ -5,9 +5,9 @@
       <div v-if="isLoading || !listing" class="loading-card">
         <div v-if="isLoading">
           <div class="spinner"></div>
-          <h2>Завантаження даних...</h2>
+                    <h2>{{ t('listingDetail.loading') }}</h2>
         </div>
-        <h2 v-if="!isLoading && !listing">Помилка. Оголошення не знайдено.</h2>
+                <h2 v-if="!isLoading && !listing">{{ t('listingDetail.notFound') }}</h2>
       </div>
 
       <div v-if="!isLoading && listing" class="page-layout">
@@ -21,7 +21,7 @@
               <div class="main-image">
                 <img 
                   :src="selectedImageUrl" 
-                  alt="Main car photo"
+                                    :alt="t('listingDetail.mainPhotoAlt')"
                   @error="$event.target.src = placeholderImage"
                   @click="openModal(selectedImageUrl)"
                 >
@@ -36,7 +36,7 @@
                 >
                   <img 
                     :src="img" 
-                    alt="thumb"
+                                        :alt="t('listingDetail.thumbAlt')"
                     @error="$event.target.src = placeholderImage"
                     >
                 </div>
@@ -45,9 +45,9 @@
           </section>
 
           <section class="form-card">
-            <h2>Опис від продавця</h2>
+                        <h2>{{ t('listingDetail.descriptionTitle') }}</h2>
             <p class="description-text">
-              {{ listing.description || 'Продавець не додав опис.' }}
+                            {{ listing.description || t('listingDetail.noDescription') }}
             </p>
           </section>
 
@@ -61,9 +61,9 @@
             </div>
           
           <div class="filter-card seller-card">
-            <h4>Продавець</h4>
+                        <h4>{{ t('listingDetail.sellerTitle') }}</h4>
             <div class="seller-info">
-              <img class="seller-avatar" :src="seller.avatarUrl || defaultAvatar" alt="Аватар продавця">
+                            <img class="seller-avatar" :src="seller.avatarUrl || defaultAvatar" :alt="t('listingDetail.sellerAvatarAlt')">
               <div class="seller-details">
                 <strong>{{ seller.name }}</strong>
               </div>
@@ -71,52 +71,52 @@
             
             <div class="seller-contacts">
               <div class="contact-item">
-                <span>Email:</span>
+                                <span>{{ t('listingDetail.email') }}:</span>
                 <a :href="`mailto:${seller.email}`">{{ seller.email }}</a>
               </div>
               <div class="contact-item">
-                <span>Телефон:</span>
+                                <span>{{ t('listingDetail.phone') }}:</span>
                 <a :href="`tel:${seller.phone}`">{{ seller.phone }}</a>
               </div>
             </div>
 
             <button class="btn-secondary message-btn">
-              Написати повідомлення
+                            {{ t('listingDetail.sendMessage') }}
             </button>
           </div>
           
           <div class="filter-card specs-card">
-            <h2>Характеристики</h2>
+                        <h2>{{ t('listingDetail.specsTitle') }}</h2>
             <ul class="specs-list">
               <li>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                <span>Бренд</span>
+                                <span>{{ t('fields.brand') }}</span>
                 <strong>{{ listing.brand }}</strong>
               </li>
               <li>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16.94V17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v.06Z"/><path d="M20 17h2a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v.06"/><path d="M19 12V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v5"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
-                <span>Модель</span>
+                <span>{{ t('fields.model') }}</span>
                 <strong>{{ listing.model }}</strong>
               </li>
               <li>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                <span>Рік</span>
+                <span>{{ t('fields.year') }}</span>
                 <strong>{{ listing.year }}</strong>
               </li>
               <li>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0-20 0"/><path d="m14 14-2-2-2 2"/><path d="M12 12v-6"/></svg>
-                <span>Пробіг</span>
-                <strong>{{ listing.mileage }} тис. км</strong>
+                <span>{{ t('fields.mileage') }}</span>
+                                <strong>{{ t('carCard.mileage', { km: listing.mileage }) }}</strong>
               </li>
               <li>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 11h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1Z"/><path d="M18 11V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"/><path d="M6 11h4"/><path d="M6 15h2"/></svg>
-                <span>Паливо</span>
-                <strong>{{ listing.fuel }}</strong>
+                <span>{{ t('fields.fuel') }}</span>
+                                <strong>{{ t('fuelTypes.' + listing.fuel) }}</strong>
               </li>
               <li>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
-                <span>Коробка</span>
-                <strong>{{ listing.transmission }}</strong>
+                <span>{{ t('fields.transmission') }}</span>
+                                <strong>{{ t('transmissionTypes.' + listing.transmission) }}</strong>
               </li>
             </ul>
           </div>
@@ -128,7 +128,7 @@
     <div v-if="isModalOpen" class="image-modal-overlay" @click="closeModal">
       <div class="image-modal-content" @click.stop> 
         <button class="modal-close-btn" @click="closeModal">&times;</button>
-        <img :src="currentImageInModal" alt="Повноекранне зображення" class="modal-image" />
+                <img :src="currentImageInModal" :alt="t('listingDetail.modalAlt')" class="modal-image" />
       </div>
     </div>
 
@@ -139,24 +139,25 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router'; 
 import { useToast } from 'vue-toastification';
+import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
 import defaultAvatar from '@/assets/default-avatar.png'; 
 import placeholderImage from '@/assets/no-photo.png'; 
 
 const route = useRoute();
 const toast = useToast();
+const { t, locale } = useI18n(); // 2. ОТРИМАННЯ t ТА locale
 
 const isLoading = ref(true);
 const listing = ref(null); 
 
 const seller = ref({
-  name: 'Олександр Іваненко',
+  name: 'Олександр Іваненко', // (Mock data, можна залишити)
   email: 'user@example.com',
   phone: '+380 99 123 4567',
   avatarUrl: null
 });
 
 // --- Логіка Галереї ---
-const PLACEHOLDER_IMG = 'https://placehold.co/800x600/333/555?text=No+Photo';
 const selectedImageIndex = ref(0);
 const galleryImages = computed(() => {
   if (listing.value && listing.value.images && listing.value.images.length > 0) {
@@ -185,14 +186,39 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
-// (МОК) "База даних" (без змін)
+// (МОК) "База даних" (ОНОВЛЕНО: ВИКОРИСТАННЯ КЛЮЧІВ)
 const mockCars = [
-    { id: 1, brand: 'Audi', model: 'A6', year: 2020, mileage: 50, fuel: 'Дизель', price: 35000, currency: 'USD', location: 'Київ', transmission: 'Автомат', images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800', 'https://images.unsplash.com/photo-1612999332206-819194885c3b?q=80&w=800'], description: 'Чудовий стан, повна комплектація, один власник. Обслуговувалась тільки на офіційному СТО.' },
-    { id: 4, brand: 'Volkswagen', model: 'Passat', year: 2018, mileage: 120, fuel: 'Дизель', price: 22000, currency: 'USD', location: 'Харків', transmission: 'Механіка', images: [], description: 'Робоча машина, є нюанси по кузову.' },
-    // (інші машини)
+    { 
+      id: 1, 
+      brand: 'Audi', 
+      model: 'A6', 
+      year: 2020, 
+      mileage: 50, 
+      fuel: 'diesel', // 3. ЗМІНЕНО З 'Дизель'
+      price: 35000, 
+      currency: 'USD', 
+      location: 'Київ', 
+      transmission: 'automatic', // 4. ЗМІНЕНО З 'Автомат'
+      images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800', 'https://images.unsplash.com/photo-1612999332206-819194885c3b?q=80&w=800'], 
+      description: 'Чудовий стан, повна комплектація, один власник. Обслуговувалась тільки на офіційному СТО.' 
+    },
+    { 
+      id: 4, 
+      brand: 'Volkswagen', 
+      model: 'Passat', 
+      year: 2018, 
+      mileage: 120, 
+      fuel: 'diesel', // 5. ЗМІНЕНО З 'Дизель'
+      price: 22000, 
+      currency: 'USD', 
+      location: 'Харків', 
+      transmission: 'manual', // 6. ЗМІНЕНО З 'Механіка'
+      images: [], 
+      description: 'Робоча машина, є нюанси по кузову.' 
+    },
 ];
 
-// (МОК) Завантаження даних (без змін)
+// (МОК) Завантаження даних (ОНОВЛЕНО: ЛОКАЛІЗАЦІЯ TOAST)
 onMounted(() => {
   isLoading.value = true;
   const carId = parseInt(route.params.id); 
@@ -201,9 +227,9 @@ onMounted(() => {
     const foundCar = mockCars.find(car => car.id === carId); 
     if (foundCar) {
       listing.value = foundCar;
-      toast.success('Дані завантажено');
+      toast.success(t('listingDetail.loadSuccess')); // 7. Локалізація
     } else {
-      toast.error('Оголошення не знайдено');
+      toast.error(t('listingDetail.loadError')); // 8. Локалізація
     }
     isLoading.value = false;
   }, 1000); 
@@ -211,12 +237,9 @@ onMounted(() => {
 
 const formattedPrice = computed(() => {
   if (!listing.value) return '';
-  return `${listing.value.price.toLocaleString('en-US')} ${listing.value.currency}`;
+  // 9. Використання locale.value замість 'en-US'
+  return `${listing.value.price.toLocaleString(locale.value)} ${listing.value.currency}`;
 });
-
-// ---
-// ФУНКЦІЯ 'showPhoneNumber' БІЛЬШЕ НЕ ПОТРІБНА І ВИДАЛЕНА
-// ---
 
 </script>
 
@@ -317,7 +340,6 @@ const formattedPrice = computed(() => {
   color: #ccc;
   margin: 5px 0 20px 0;
 }
-/* (Кнопка .btn-submit видалена з картки ціни) */
 
 /* (Галерея - без змін) */
 .main-image {
@@ -452,12 +474,6 @@ const formattedPrice = computed(() => {
 .message-btn:hover {
   background-color: rgba(255,255,255,0.4);
 }
-
-/* СТИЛЬ ДЛЯ КНОПКИ "Показати телефон" (ВИДАЛЕНИЙ)
-.contact-btn {
-  margin-top: 5px;
-}
-*/
 
 /* Характеристики (з іконками) */
 .specs-card h2 {

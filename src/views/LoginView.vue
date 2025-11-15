@@ -1,27 +1,35 @@
 <template>
   <div class="login-container">
     <form @submit.prevent="login">
-      <h3>Login Here</h3>
+      <h3>{{ t('login.title') }}</h3>
 
-      <label for="username">Email</label>
-      <input id="username" type="text" placeholder="Email" v-model="username" />
+      <label for="username">{{ t('login.emailLabel') }}</label>
+      <input 
+        id="username" 
+        type="text" 
+        :placeholder="t('login.emailPlaceholder')" 
+        v-model="username" 
+      />
 
-      <label for="password">Password</label>
-      <input id="password" type="password" placeholder="Password" v-model="password" />
+      <label for="password">{{ t('login.passwordLabel') }}</label>
+      <input 
+        id="password" 
+        type="password" 
+        :placeholder="t('login.passwordPlaceholder')" 
+        v-model="password" 
+      />
       
-      <!-- === ДОДАНО ПОСИЛАННЯ === -->
       <div class="forgot-password">
-        <router-link to="/forgot-password">Забули пароль?</router-link>
+        <router-link to="/forgot-password">{{ t('login.forgotPassword') }}</router-link>
       </div>
-      <!-- === === === === === === -->
 
-      <button type="submit" class="login-btn">Log In</button>
+      <button type="submit" class="login-btn">{{ t('login.submit') }}</button>
 
-      <div class="divider"><span>OR</span></div>
+      <div class="divider"><span>{{ t('login.or') }}</span></div>
       <div id="googleSignInButton"></div>
 
       <button type="button" class="register-btn" @click="goToRegister">
-        Register
+        {{ t('login.register') }}
       </button>
     </form>
   </div>
@@ -31,15 +39,17 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
+import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
 import axios from 'axios';
 
-const API_LOGIN_URL = 'https://backend-auto-market.onrender.com/api/Account/login';
-const API_GOOGLE_LOGIN_URL = 'https://backend-auto-market.onrender.com/api/Account/web/google';
+const API_LOGIN_URL = 'https://backend-auto-market.onrender.com/api/Auth/login';
+const API_GOOGLE_LOGIN_URL = 'https://backend-auto-market.onrender.com/api/Auth/web/google';
 const GOOGLE_CLIENT_ID = '71975591740-1ikt0qhpb1g570oogv7pomahcr09hqf8.apps.googleusercontent.com';
 
 // --- Ініціалізація ---
 const { setAuthData } = useAuth();
 const toast = useToast();
+const { t } = useI18n(); // 2. ОТРИМАННЯ t
 const username = ref('');
 const password = ref('');
 const router = useRouter();
@@ -47,7 +57,8 @@ const router = useRouter();
 // --- Звичайний логін ---
 async function login() {
   if (!username.value || !password.value) {
-    toast.warning('Введіть email та пароль');
+    // 3. Локалізація
+    toast.warning(t('login.validation.emailPasswordRequired'));
     return;
   }
   try {
@@ -61,21 +72,26 @@ async function login() {
       }
     });
     const data = response.data;
-    if (!data.accessToken || !data.userId) { throw new Error('Сервер не повернув "accessToken" або "userId" у відповіді.'); }
+    if (!data.accessToken || !data.userId) { 
+      // 4. Локалізація (для внутрішньої помилки)
+      throw new Error(t('login.errors.noToken')); 
+    }
     setAuthData(data.userId, data.accessToken);
-    toast.success('Вхід виконано успішно!');
+    // 5. Локалізація
+    toast.success(t('login.success'));
     router.push('/');
   } catch (error) {
     console.error('Помилка логіну (Axios):', error);
-    let errorMessage = 'Помилка логіну';
+    let errorMessage;
+    // 6. Локалізація блоку помилок
     if (error.response) {
-      errorMessage = error.response.data?.message || error.response.data || error.response.statusText || 'Невірний email або пароль';
+      errorMessage = error.response.data?.message || error.response.data || error.response.statusText || t('login.errors.invalidCredentials');
     } else if (error.request) {
-      errorMessage = 'Не вдалося підключитися до сервера';
+      errorMessage = t('login.errors.serverConnection');
     } else {
       errorMessage = error.message;
     }
-    toast.error(`Помилка: ${errorMessage}`);
+    toast.error(t('login.errors.prefix', { error: errorMessage }));
   }
 }
 
@@ -85,28 +101,31 @@ async function handleGoogleCredentialResponse(response) {
   try {
     const backendResponse = await axios.post(API_GOOGLE_LOGIN_URL, { googleToken, rememberMe: true });
     const data = backendResponse.data;
-    if (!data.accessToken || !data.userId) { throw new Error('Бекенд не повернув токени'); }
+    if (!data.accessToken || !data.userId) { throw new Error(t('login.errors.noToken')); } // Використовуємо той самий ключ
     setAuthData(data.userId, data.accessToken);
-    toast.success('Вхід через Google успішний!');
+    // 7. Локалізація
+    toast.success(t('login.googleSuccess'));
     router.push('/');
   } catch (error) {
     console.error('Помилка Google логіну на бекенді:', error);
-    let errorMessage = 'Помилка входу через Google.';
+    let errorMessage;
+    // 8. Локалізація блоку помилок Google
      if (error.response) {
-       errorMessage = error.response.data?.message || error.response.data || 'Помилка сервера при Google логіні.';
+       errorMessage = error.response.data?.message || error.response.data || t('login.errors.googleServer');
      } else if (error.request) {
-       errorMessage = 'Немає відповіді від сервера.';
+       errorMessage = t('login.errors.serverConnection');
      } else {
-       errorMessage = error.message;
+       errorMessage = error.message || t('login.errors.googleGeneric');
      }
-    toast.error(`Помилка: ${errorMessage}`);
+    toast.error(t('login.errors.prefix', { error: errorMessage }));
   }
 }
 
 onMounted(() => {
   if (!GOOGLE_CLIENT_ID) {
     console.error('VITE_GOOGLE_CLIENT_ID не знайдено у змінних середовища!');
-    toast.error('Помилка конфігурації входу через Google.');
+    // 9. Локалізація
+    toast.error(t('login.errors.googleConfig'));
     return; 
   }
 
@@ -118,15 +137,16 @@ onMounted(() => {
       });
       google.accounts.id.renderButton(
         document.getElementById("googleSignInButton"),
-        { theme: "outline", size: "large", width: "300" }
+        { theme: "outline", size: "large", width: "300" } 
       );
     } catch (error) {
       console.error("Помилка ініціалізації Google Sign-In:", error);
-      toast.error("Не вдалося ініціалізувати вхід через Google.");
+      // 10. Локалізація
+      toast.error(t('login.errors.googleInit'));
     }
   } else {
     console.error("Бібліотека Google Identity Services (GSI) не завантажилась або недоступна.");
-   
+    // (Можна також додати toast, якщо ця помилка часто виникає у користувачів)
   }
 });
 
@@ -134,8 +154,9 @@ function goToRegister() {
   router.push('/register');
 }
 </script>
-  <style scoped>
-  /* === 1. АДАПТАЦИЯ ФОНА === */
+  
+<style scoped>
+/* СТИЛІ НЕ ЗМІНЕНО */
   .login-container {
     background-image: url('@/assets/car-header1.jpg');
     background-size: cover;
@@ -155,7 +176,6 @@ function goToRegister() {
     background: rgba(0, 0, 0, 0.4); 
   }
 
-  /* === 2. АДАПТАЦИЯ ФОРМЫ === */
   form {
     width: 360px;
     background-color: rgba(30, 30, 30, 0.7);
@@ -189,12 +209,10 @@ function goToRegister() {
     color: #fff;
   }
 
-  /* === 4. АДАПТАЦИЯ ПОЛЕЙ ВВОДА === */
   input {
     font-family: 'Open Sans', sans-serif;
     display: block;
     width: 100%;
-    /* ‼️ max-width: 340px; УДАЛЕН (избыточен) */
     height: 45px;
     padding: 0 10px;
     border-radius: 3px;
@@ -217,11 +235,9 @@ function goToRegister() {
     color: #e5e5e5;
   }
 
-  /* === 5. АДАПТАЦИЯ КНОПОК === */
   .login-btn, .register-btn {
     font-family: 'Open Sans', sans-serif;
     width: 100%;
-    /* ‼️ max-width: 360px; УДАЛЕН (избыточен) */
     padding: 12px 0;
     border-radius: 6px;
     border: none;
@@ -278,21 +294,54 @@ function goToRegister() {
     margin-right: 4px;
   }
   .forgot-password {
-  width: 100%; /* Щоб вирівняти по правому краю */
+  width: 100%; 
   text-align: right;
-  margin-top: 10px; /* Відступ від поля пароля */
-  margin-bottom: -25px; /* Компенсуємо відступ кнопки Log In */
+  margin-top: 10px; 
+  margin-bottom: -25px; 
 }
 .forgot-password a {
-  color: #ccc; /* Світло-сірий колір */
+  color: #ccc; 
   font-size: 13px;
   text-decoration: none;
 }
 .forgot-password a:hover {
-  color: #fff; /* Білий при наведенні */
+  color: #fff; 
   text-decoration: underline;
 }
 .login-btn {
   margin-top: 45px;
 }
-  </style>
+/* ‼️ СТИЛІ ДЛЯ #googleSignInButton ТА .divider 
+ *   (Вони керуються Google та стилями форми)
+ *   Але ми додамо відступи:
+ */
+.divider {
+  font-family: 'Open Sans', sans-serif;
+  color: #ccc;
+  text-align: center;
+  margin-top: 25px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.divider span {
+  padding: 0 15px;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #555;
+}
+
+#googleSignInButton {
+  margin-top: 20px;
+  /* Google сам встановить ширину 300px */
+}
+
+.register-btn {
+  margin-top: 20px; /* Зменшено відступ, бо він після Google */
+}
+</style>

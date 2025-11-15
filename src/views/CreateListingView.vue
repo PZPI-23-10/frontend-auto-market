@@ -1,25 +1,25 @@
 <template>
   <div class="create-listing-view">
     <div class="form-container">
-      <h1>Створити нове оголошення</h1>
+      <h1>{{ t('createListing.title') }}</h1>
       
       <form @submit.prevent="handleSubmit" novalidate>
 
         <section class="form-card">
-          <h2>Основна інформація</h2>
+          <h2>{{ t('createListing.sectionBasic') }}</h2>
           <div class="form-row">
             <div class="form-group">
-              <label for="brand">Бренд</label>
+              <label for="brand">{{ t('fields.brand') }}</label>
               <input type="text" id="brand" v-model="listing.brand" required>
             </div>
             <div class="form-group">
-              <label for="model">Модель</label>
+              <label for="model">{{ t('fields.model') }}</label>
               <input type="text" id="model" v-model="listing.model" required>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="year">Рік</label>
+              <label for="year">{{ t('fields.year') }}</label>
               <select id="year" v-model="listing.year" required>
                 <option v-for="year in years" :key="year" :value="year">
                   {{ year }}
@@ -27,35 +27,35 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="mileage">Пробіг (тис. км)</label>
+              <label for="mileage">{{ t('fields.mileageLabel') }}</label>
               <input type="number" id="mileage" v-model.number="listing.mileage" required>
             </div>
           </div>
           <div class="form-group">
-            <label for="fuel">Тип палива</label>
+            <label for="fuel">{{ t('fields.fuel') }}</label>
             <select id="fuel" v-model="listing.fuel" required>
-              <option value="" disabled>Оберіть тип</option>
-              <option v-for="fuelType in fuelTypes" :key="fuelType" :value="fuelType">
-                {{ fuelType }}
+              <option value="" disabled>{{ t('createListing.selectDefault') }}</option>
+                            <option v-for="fuelType in fuelTypes" :key="fuelType" :value="fuelType">
+                {{ t('fuelTypes.' + fuelType) }}
               </option>
             </select>
           </div>
           <div class="form-group">
-            <label for="transmission">Коробка передач</label>
+            <label for="transmission">{{ t('fields.transmission') }}</label>
             <select id="transmission" v-model="listing.transmission" required>
-              <option value="" disabled>Оберіть тип</option>
-              <option v-for="t in transmissionTypes" :key="t" :value="t">
-                {{ t }}
+              <option value="" disabled>{{ t('createListing.selectDefault') }}</option>
+                            <option v-for="tType in transmissionTypes" :key="tType" :value="tType">
+                {{ t('transmissionTypes.' + tType) }}
               </option>
             </select>
           </div>
         </section>
         
         <section class="form-card">
-          <h2>Ціна та Розташування</h2>
+          <h2>{{ t('createListing.sectionPrice') }}</h2>
           <div class="form-row">
             <div class="form-group price-group">
-              <label for="price">Ціна</label>
+              <label for="price">{{ t('fields.price') }}</label>
               <div class="input-group">
                 <input type="number" id="price" v-model.number="listing.price" required>
                 <select id="currency" v-model="listing.currency">
@@ -65,22 +65,22 @@
               </div>
             </div>
             <div class="form-group">
-              <label for="location">Місто</label>
+              <label for="location">{{ t('fields.location') }}</label>
               <input type="text" id="location" v-model="listing.location" required>
             </div>
           </div>
         </section>
 
         <section class="form-card">
-          <h2>Опис</h2>
+          <h2>{{ t('createListing.sectionDesc') }}</h2>
           <div class="form-group">
-            <label for="description">Розкажіть про авто детальніше</label>
+            <label for="description">{{ t('createListing.descLabel') }}</label>
             <textarea id="description" v-model="listing.description" rows="6"></textarea>
           </div>
         </section>
 
         <section class="form-card">
-          <h2>Фотографії</h2>
+          <h2>{{ t('createListing.sectionPhotos') }}</h2>
           <PhotoUploader 
             :maxFiles="10" 
             @files-updated="updateFiles" 
@@ -95,11 +95,11 @@
             @click="goBack" 
             :disabled="isSubmitting"
           >
-            Назад
+            {{ t('common.back') }}
           </button>
           
           <button type="submit" class="btn-submit" :disabled="isSubmitting">
-            {{ isSubmitting ? 'Публікуємо...' : 'Опублікувати оголошення' }}
+            {{ isSubmitting ? t('createListing.submitting') : t('createListing.submit') }}
           </button>
         </div>
       </form>
@@ -107,7 +107,7 @@
     
     <div v-if="isSubmitting" class="loading-overlay">
       <div class="spinner"></div>
-      <h2>Публікація...</h2>
+      <h2>{{ t('createListing.submitting') }}</h2>
     </div>
 
   </div>
@@ -117,21 +117,13 @@
 import { ref, computed, watch, onMounted } from 'vue'; 
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
+import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
 import PhotoUploader from '@/components/PhotoUploader.vue'; 
-
-const fieldNames = {
-  brand: 'Бренд',
-  model: 'Модель',
-  fuel: 'Тип палива',
-  transmission: 'Коробка передач',
-  location: 'Місто',
-  mileage: 'Пробіг',
-  price: 'Ціна'
-};
 
 // --- Ініціалізація ---
 const router = useRouter();
 const toast = useToast();
+const { t } = useI18n(); // 2. ОТРИМАННЯ ФУНКЦІЇ t
 const isSubmitting = ref(false);
 
 const DRAFT_STORAGE_KEY = 'newListingDraft';
@@ -151,9 +143,11 @@ const listing = ref({
 });
 const listingPhotos = ref([]);
 
-// --- Опції для Select'ів ---
-const fuelTypes = ref(['Бензин', 'Дизель', 'Електро', 'Гібрид', 'Газ/Бензин']);
-const transmissionTypes = ref(['Механіка', 'Автомат', 'Робот']);
+// --- Опції для Select'ів (ОНОВЛЕНО) ---
+// 3. Тепер масиви зберігають КЛЮЧІ, а не перекладені рядки
+const fuelTypes = ref(['petrol', 'diesel', 'electric', 'hybrid', 'gas_petrol']);
+const transmissionTypes = ref(['manual', 'automatic', 'robot']);
+
 const years = computed(() => {
   const currentYear = new Date().getFullYear();
   const startYear = 1970;
@@ -164,7 +158,7 @@ const years = computed(() => {
   return yearList;
 });
 
-// --- Автозбереження/Автозавантаження (без змін) ---
+// --- Автозбереження/Автозавантаження ---
 watch(listing, (newData) => {
   console.log('Зберігаємо чернетку...');
   localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(newData));
@@ -177,7 +171,8 @@ onMounted(() => {
   if (savedDraft) {
     try {
       listing.value = JSON.parse(savedDraft);
-      toast.info('Вашу попередню чернетку відновлено!');
+      // 4. Локалізація Toast
+      toast.info(t('createListing.draftRestored'));
     } catch (e) {
       console.error('Не вдалося відновити чернетку:', e);
       localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -185,46 +180,40 @@ onMounted(() => {
   }
 });
 
-// ---
-// ЛОГІКА ДЛЯ КОМПОНЕНТА
-// ---
+// --- ЛОГІКА ДЛЯ КОМПОНЕНТА ---
 function updateFiles(files) {
   listingPhotos.value = files;
 }
 
-/**
- * НОВА ФУНКЦІЯ: Повернутися назад
- */
 function goBack() {
-  // Просто повертає на попередню сторінку в історії браузера
   router.back();
 }
 
-
 /**
- * (MOCK) Функція відправки форми (без змін)
+ * (MOCK) Функція відправки форми (ОНОВЛЕНО ВАЛІДАЦІЮ)
  */
 function handleSubmit() {
   if (isSubmitting.value) return;
   
-  // --- Валідація ---
+  // --- Валідація (ОНОВЛЕНО) ---
   const requiredText = ['brand', 'model', 'fuel', 'location', 'transmission'];
   for (const field of requiredText) {
     if (!listing.value[field]) {
-      toast.warning(`Будь ласка, заповніть поле "${fieldNames[field]}"`);
+      // 5. Використання t() замість fieldNames
+      toast.warning(t('createListing.validation.required', { field: t('fields.' + field) }));
       return; 
     }
   }
   if (!listing.value.mileage || listing.value.mileage <= 0) {
-    toast.warning(`Будь ласка, введіть коректний "${fieldNames.mileage}"`);
+    toast.warning(t('createListing.validation.invalid', { field: t('fields.mileage') }));
     return;
   }
   if (!listing.value.price || listing.value.price <= 0) {
-    toast.warning(`Будь ласка, введіть коректну "${fieldNames.price}"`);
+    toast.warning(t('createListing.validation.invalid', { field: t('fields.price') }));
     return;
   }
   if (listingPhotos.value.length === 0) {
-    toast.warning('Будь ласка, додайте хоча б одне фото.');
+    toast.warning(t('createListing.validation.noPhotos'));
     return;
   }
   
@@ -236,7 +225,8 @@ function handleSubmit() {
   
   setTimeout(() => {
     isSubmitting.value = false;
-    toast.success('Оголошення успішно опубліковано!');
+    // 6. Локалізація Toast
+    toast.success(t('createListing.publishSuccess'));
     
     localStorage.removeItem(DRAFT_STORAGE_KEY);
     
@@ -247,7 +237,7 @@ function handleSubmit() {
 </script>
 
 <style scoped>
-/* (Фон, контейнер, картки, поля - все без змін) */
+/* СТИЛІ НЕ ЗМІНЕНО */
 .create-listing-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
@@ -369,14 +359,10 @@ function handleSubmit() {
     flex-direction: row;
   }
 }
-
-/* ---
- * ОНОВЛЕНІ СТИЛІ ДЛЯ КНОПОК
- --- */
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 15px; /* <--- Відступ між кнопками */
+  gap: 15px; 
 }
 .btn-submit {
   font-family: 'Open Sans', sans-serif;
@@ -390,7 +376,7 @@ function handleSubmit() {
   color: #fff;
   font-size: 16px;
   text-transform: uppercase;
-  flex: 2; /* <--- Робить "Опублікувати" більшою */
+  flex: 2; 
 }
 .btn-submit:hover {
   background-color: #aa0000;
@@ -399,8 +385,6 @@ function handleSubmit() {
   background-color: #555;
   cursor: not-allowed;
 }
-
-/* --- НОВИЙ СТИЛЬ ДЛЯ КНОПКИ "НАЗАД" --- */
 .btn-secondary {
   font-family: 'Open Sans', sans-serif;
   padding: 12px 0;
@@ -409,12 +393,11 @@ function handleSubmit() {
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
-  /* Стиль з RegisterView */
   background-color: rgba(255,255,255,0.27); 
   color: #fff;
   font-size: 16px;
   text-transform: uppercase;
-  flex: 1; /* <--- Робить її меншою */
+  flex: 1; 
 }
 .btn-secondary:hover {
   background-color: rgba(255,255,255,0.4);
@@ -424,10 +407,6 @@ function handleSubmit() {
   color: #999;
   cursor: not-allowed;
 }
-/* --- КІНЕЦЬ НОВИХ СТИЛІВ --- */
-
-
-/* (Оверлей завантаження - без змін) */
 .loading-overlay {
   position: fixed;
   top: 0;

@@ -1,13 +1,11 @@
 <template>
   <div class="car-card" @mouseenter="pauseAutoplay" @mouseleave="startAutoplay">
     
-    <!-- ЛІВА ЧАСТИНА: КАУСЕЛЬ ЗОБРАЖЕНЬ -->
-    <div class="card-image-wrapper">
+        <div class="card-image-wrapper">
       
-
       <img 
         :src="currentImageUrl" 
-        alt="Car image"
+                :alt="t('carCard.imageAlt')"
         @click="goToDetails"
         @error="$event.target.src = placeholderImage" 
       >
@@ -16,8 +14,7 @@
         {{ formattedPrice }}
       </div>
       
-      <!-- Кнопки каруселі (з'являються, якщо фото > 1) -->
-      <template v-if="listing.images && listing.images.length > 1">
+            <template v-if="listing.images && listing.images.length > 1">
         <button class="carousel-btn prev" @click.stop="prevImage">
           &#10094;
         </button>
@@ -28,8 +25,7 @@
 
     </div>
     
-    <!-- ПРАВА ЧАСТИНА: ІНФОРМАЦІЯ -->
-    <div class="card-content">
+        <div class="card-content">
       <h3 class="card-title" @click="goToDetails">
         {{ listing.brand }} {{ listing.model }}
       </h3>
@@ -37,27 +33,26 @@
         {{ listing.year }} - {{ listing.location }}
       </p>
       
-      <!-- ОНОВЛЕНИЙ БЛОК ХАРАКТЕРИСТИК (з іконками) -->
-      <div class="specs-horizontal">
+            <div class="specs-horizontal">
         <div class="spec-item">
-          <!-- Іконка "Приборна панель" -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0-20 0"/><path d="m14 14-2-2-2 2"/><path d="M12 12v-6"/></svg>
-          <span>{{ listing.mileage }} тис. км</span>
+                    <svg :title="t('carCard.specMileage')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0-20 0"/><path d="m14 14-2-2-2 2"/><path d="M12 12v-6"/></svg>
+                    <span>{{ t('carCard.mileage', { km: listing.mileage }) }}</span>
         </div>
         <div class="spec-item">
-          <!-- Іконка "Заправка" -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 11h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1Z"/><path d="M18 11V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"/><path d="M6 11h4"/><path d="M6 15h2"/></svg>
+          <svg :title="t('carCard.specFuel')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 11h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1Z"/><path d="M18 11V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"/><path d="M6 11h4"/><path d="M6 15h2"/></svg>
           <span>{{ listing.fuel }}</span>
         </div>
         <div class="spec-item">
-          <!-- Іконка "Коробка передач" -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
+          <svg :title="t('carCard.specTransmission')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
           <span>{{ listing.transmission }}</span>
         </div>
       </div>
       
-      <!-- (МОК) Кнопка "Зберегти" (сердечко) -->
-      <button class="favorite-btn" @click.stop="toggleFavorite">
+      <button 
+        class="favorite-btn" 
+        @click.stop="toggleFavorite"
+                :title="t('carCard.toggleFavorite')"
+      >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
       </button>
     </div>
@@ -68,6 +63,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
+import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
 import placeholderImage from '@/assets/no-photo.png';
 
 const props = defineProps({
@@ -79,6 +75,7 @@ const props = defineProps({
 
 const router = useRouter();
 const toast = useToast();
+const { t, locale } = useI18n(); // 2. ОТРИМУЄМО t ТА locale (для форматування ціни)
 
 const currentImageIndex = ref(0);
 const autoplayInterval = ref(null);
@@ -92,7 +89,6 @@ const currentImageUrl = computed(() => {
   if (hasImages.value) {
     return props.listing.images[currentImageIndex.value];
   }
-  // 2. ВИКОРИСТОВУЄМО ЛОКАЛЬНУ ЗАГЛУШКУ
   return placeholderImage;
 });
 
@@ -127,8 +123,11 @@ onUnmounted(() => {
 });
 
 const formattedPrice = computed(() => {
-  if (!props.listing || typeof props.listing.price !== 'number') return 'N/A';
-  return `${props.listing.price.toLocaleString('en-US')} ${props.listing.currency}`;
+  // 3. Локалізація 'N/A'
+  if (!props.listing || typeof props.listing.price !== 'number') return t('carCard.priceNA');
+  
+  // 4. Використання поточної 'locale' для форматування числа (замість 'en-US')
+  return `${props.listing.price.toLocaleString(locale.value)} ${props.listing.currency}`;
 });
 
 function goToDetails() {
@@ -136,11 +135,13 @@ function goToDetails() {
 }
 
 function toggleFavorite() {
-  toast.info('Оголошення додано в "Обране" (симуляція)');
+  // 5. Локалізація повідомлення toast
+  toast.info(t('carCard.favoriteToast'));
 }
 </script>
 
 <style scoped>
+/* СТИЛІ НЕ ЗМІНЕНО */
 .car-card {
   background-color: rgba(30, 30, 30, 0.7);
   border-radius: 12px;
@@ -149,48 +150,36 @@ function toggleFavorite() {
   box-shadow: 0 0 40px rgba(8,7,16,0.6);
   overflow: hidden;
   transition: all 0.3s ease;
-  
-  /* * ГОЛОВНА ЗМІНА: 
-   * По замовчуванню (мобілка) - вертикально
-   */
   display: flex;
   flex-direction: column;
 }
-
-/* * На екранах > 768px - горизонтально
- */
 @media (min-width: 768px) {
   .car-card {
     flex-direction: row;
-    height: 220px; /* Фіксована висота для горизонтальної картки */
+    height: 220px;
   }
 }
-
 .car-card:hover {
   border-color: rgba(255, 215, 0, 0.5);
 }
-
-/* --- 1. ЛІВА ЧАСТИНА (КАРУСЕЛЬ) --- */
 .card-image-wrapper {
   position: relative;
-  width: 100%; /* На мобілці - вся ширина */
+  width: 100%;
   height: 200px;
 }
 @media (min-width: 768px) {
   .card-image-wrapper {
-    width: 300px; /* На десктопі - фіксована ширина */
-    height: 100%; /* На всю висоту картки */
+    width: 300px;
+    height: 100%;
     flex-shrink: 0;
   }
 }
-
 .card-image-wrapper img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   cursor: pointer;
 }
-
 .price-tag {
   position: absolute;
   bottom: 10px;
@@ -203,7 +192,6 @@ function toggleFavorite() {
   font-size: 16px;
   z-index: 2;
 }
-
 .carousel-btn {
   position: absolute;
   top: 50%;
@@ -217,17 +205,12 @@ function toggleFavorite() {
   font-size: 20px;
   cursor: pointer;
   z-index: 2;
-  
-  /* --- ОНОВЛЕНІ СТИЛІ СТРІЛОК --- */
-  opacity: 0; /* 1. Приховані за замовчуванням */
-  transition: opacity 0.3s ease, background 0.2s; /* 2. Анімація появи */
+  opacity: 0;
+  transition: opacity 0.3s ease, background 0.2s;
 }
-
-/* 3. Показуємо при наведенні на фото */
 .card-image-wrapper:hover .carousel-btn {
   opacity: 1;
 }
-
 .carousel-btn:hover {
   background: rgba(0, 0, 0, 0.8);
 }
@@ -237,16 +220,13 @@ function toggleFavorite() {
 .carousel-btn.next {
   right: 10px;
 }
-
-/* --- 2. ПРАВА ЧАСТИНА (КОНТЕНТ) --- */
 .card-content {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  flex: 1; /* Займає весь доступний простір */
+  flex: 1;
   position: relative;
 }
-
 .card-title {
   font-size: 22px;
   font-weight: 600;
@@ -262,7 +242,6 @@ function toggleFavorite() {
   color: #ccc;
   margin: 0 0 20px 0;
 }
-
 .specs-horizontal {
   display: flex;
   flex-direction: column; 
@@ -276,8 +255,6 @@ function toggleFavorite() {
     flex-wrap: wrap; 
   }
 }
-
-/* --- ОНОВЛЕНІ СТИЛІ ДЛЯ ХАРАКТЕРИСТИК --- */
 .spec-item {
   display: flex;
   align-items: center; 
@@ -295,7 +272,6 @@ function toggleFavorite() {
   stroke: #ffd700; 
   flex-shrink: 0;
 }
-
 .favorite-btn {
   position: absolute;
   top: 20px;

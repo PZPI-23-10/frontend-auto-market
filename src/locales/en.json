@@ -1,0 +1,332 @@
+{
+  "nav": {
+    "whoWeAre": "Who We Are",
+    "aboutUs": "About Us",
+    "contactUs": "Contact Us",
+    "reviews": "Reviews",
+    "news": "News",
+    "shop": "Shop",
+    "allCars": "All Cars",
+    "electric": "Electric",
+    "hybrid": "Hybrid",
+    "sport": "Sport Cars",
+    "language": "Language",
+    "login": "Login",
+    "myProfile": "My Profile",
+    "favorites": "Favorites",
+    "logout": "Logout",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "uploader": {
+    "label": "Click or drag photos (up to {count})",
+    "maxFilesWarning": "You can upload a maximum of {count} photos.",
+    "imageOnlyWarning": "Only images can be selected.",
+    "previewAlt": "preview",
+    "modalAlt": "Fullscreen image"
+  },
+  "carCard": {
+    "imageAlt": "Car image",
+    "priceNA": "N/A",
+    "mileage": "{km} ths. km",
+    "specMileage": "Mileage",
+    "specFuel": "Fuel type",
+    "specTransmission": "Transmission",
+    "toggleFavorite": "Add to favorites",
+    "favoriteToast": "Listing added to favorites (simulation)"
+  },
+  "common": {
+    "back": "Back"
+  },
+  "fields": {
+    "brand": "Brand",
+    "model": "Model",
+    "year": "Year",
+    "mileage": "Mileage",
+    "mileageLabel": "Mileage (ths. km)",
+    "fuel": "Fuel Type",
+    "transmission": "Transmission",
+    "price": "Price",
+    "location": "City"
+  },
+  "fuelTypes": {
+    "petrol": "Petrol",
+    "diesel": "Diesel",
+    "electric": "Electric",
+    "hybrid": "Hybrid",
+    "gas_petrol": "Gas/Petrol"
+  },
+  "transmissionTypes": {
+    "manual": "Manual",
+    "automatic": "Automatic",
+    "robot": "Robot"
+  },
+  "createListing": {
+    "title": "Create New Listing",
+    "sectionBasic": "Basic Information",
+    "sectionPrice": "Price & Location",
+    "sectionDesc": "Description",
+    "sectionPhotos": "Photos",
+    "selectDefault": "Select type",
+    "descLabel": "Tell us more about the car",
+    "submit": "Publish Listing",
+    "submitting": "Publishing...",
+    "draftRestored": "Your previous draft has been restored!",
+    "publishSuccess": "Listing published successfully!",
+    "validation": {
+      "required": "Please fill in the \"{field}\" field",
+      "invalid": "Please enter a valid \"{field}\"",
+      "noPhotos": "Please add at least one photo."
+    }
+  },
+  "home": {
+    "hero": {
+      "subtitle": "NEW IN STOCK",
+      "title": "Upgrade Your Driving Experience",
+      "discover": "Discover More",
+      "meet": "Meet Horizon GT"
+    },
+    "form": {
+      "title": "Find Your Ride",
+      "brandLabel": "BRAND",
+      "brandPlaceholder": "Brand*",
+      "modelLabel": "MODEL",
+      "modelPlaceholder": "Model*",
+      "typeLabel": "FUEL TYPE",
+      "typePlaceholder": "Fuel Type*",
+      "submit": "Get Started"
+    },
+    "sellButton": "Sell Car",
+    "sellWarning": "Please log in to sell a car."
+  },
+  "listingDetail": {
+    "loading": "Loading data...",
+    "notFound": "Error. Listing not found.",
+    "mainPhotoAlt": "Main car photo",
+    "thumbAlt": "Thumbnail",
+    "descriptionTitle": "Seller's Description",
+    "noDescription": "The seller did not add a description.",
+    "sellerTitle": "Seller",
+    "sellerAvatarAlt": "Seller's avatar",
+    "email": "Email",
+    "phone": "Phone",
+    "sendMessage": "Send Message",
+    "specsTitle": "Specifications",
+    "modalAlt": "Fullscreen image",
+    "loadSuccess": "Data loaded",
+    "loadError": "Listing not found"
+  },
+  "listings": {
+    "title": "Car Catalog",
+    "filter": {
+      "title": "Filters",
+      "brandPlaceholder": "E.g., BMW",
+      "modelPlaceholder": "E.g., A6",
+      "priceLabel": "Price (USD)",
+      "priceFrom": "From",
+      "priceTo": "To",
+      "yearLabel": "Year",
+      "anyFuel": "Any",
+      "anyTransmission": "Any",
+      "submit": "Apply",
+      "submitting": "(Simulation) Applying filters..."
+    },
+    "noResults": "Nothing Found",
+    "noResultsHint": "Try changing your filter parameters"
+  },
+  "login": {
+    "title": "Login Here",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Password",
+    "forgotPassword": "Forgot password?",
+    "submit": "Log In",
+    "or": "OR",
+    "register": "Register",
+    "success": "Login successful!",
+    "googleSuccess": "Google Sign-In successful!",
+    "validation": {
+      "emailPasswordRequired": "Please enter email and password"
+    },
+    "errors": {
+      "prefix": "Error: {error}",
+      "noToken": "Server did not return 'accessToken' or 'userId'",
+      "invalidCredentials": "Invalid email or password",
+      "serverConnection": "Failed to connect to the server",
+      "googleGeneric": "Google Sign-In error",
+      "googleServer": "Server error during Google Sign-In",
+      "googleConfig": "Google Sign-In configuration error",
+      "googleInit": "Failed to initialize Google Sign-In"
+    }
+  },
+  "profile": {
+    "mainTitle": "Settings",
+    "nav": {
+      "profile": "Main Profile",
+      "password": "Change Password",
+      "orders": "My Listings"
+    },
+    "profileTab": {
+      "title": "Main Profile",
+      "fullNamePlaceholder": "First Last",
+      "avatarAlt": "Profile Avatar",
+      "verify": {
+        "statusWarning": "Your email is not verified.",
+        "statusSuccess": "Email verified.",
+        "infoText": "We sent a 6-digit code to your email (<b>{email}</b>) during registration. Please enter it below.",
+        "codeLabel": "Enter code from email:",
+        "codePlaceholder": "6 digits",
+        "verifyButton": "Verify",
+        "verifying": "Verifying...",
+        "resendButton": "Didn't get a code? Resend",
+        "resending": "Sending...",
+        "toast": {
+          "sendSuccess": "Verification code email sent.",
+          "sendFail": "Failed to send code.",
+          "codeRequired": "Please enter the 6-digit code.",
+          "verifySuccess": "Email successfully verified!",
+          "verifyFailDefault": "Failed to verify email.",
+          "invalidCode": "Invalid or expired code."
+        }
+      },
+      "form": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone Number",
+        "phonePlaceholder": "99 123 4567",
+        "country": "Country",
+        "countrySelect": "Select a country",
+        "birthday": "Birthday",
+        "address": "Address",
+        "bio": "About me",
+        "save": "Save Changes"
+      },
+      "toast": {
+        "nameRequired": "First name and last name are required.",
+        "phoneRequired": "Phone number is required.",
+        "invalidDate": "Invalid date format.",
+        "saveSuccess": "Profile updated!",
+        "avatarInfo": "Refresh the page to see the new avatar.",
+        "saveFailDefault": "Error saving.",
+        "saveFailPrefix": "Failed to save: {error}",
+        "imageFileRequired": "Please select an image file."
+      }
+    },
+    "passwordTab": {
+      "title": "Change Password",
+      "current": "Current Password",
+      "forgot": "Forgot password?",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "save": "Update Password",
+      "toast": {
+        "checkPasswords": "Please check the passwords.",
+        "lengthError": "Password must be between {min} and {max} characters.",
+        "saveSuccess": "Password changed successfully!",
+        "saveFailDefault": "Error changing password.",
+        "oldPasswordError": "Incorrect current password.",
+        "mismatchError": "New passwords do not match.",
+        "saveFailPrefix": "Failed to change password: {error}",
+        "redirecting": "Redirecting to password recovery...",
+        "noEmailWarning": "Could not determine your email. Please enter it manually."
+      }
+    },
+    "ordersTab": {
+      "title": "My Listings",
+      "create": "Create Listing",
+      "placeholder": "A list of your cars for sale or orders will be here."
+    },
+    "errors": {
+      "prefix": "Error: {error}",
+      "notLoggedIn": "You are not logged in. Redirecting to login.",
+      "loadProfileDefault": "Failed to load profile.",
+      "serverError": "Server error.",
+      "sessionExpired": "Session expired.",
+      "noResponse": "No response from server.",
+      "authError": "Authorization error."
+    }
+  },
+  "countries": {
+    "ua": "Ukraine",
+    "pl": "Poland",
+    "de": "Germany",
+    "us": "USA",
+    "gb": "United Kingdom"
+  },
+  "register": {
+    "title": "Create Account",
+    "progressbar": {
+      "account": "Account Setup",
+      "personal": "Personal Data",
+      "address": "Address"
+    },
+    "step1": {
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password"
+    },
+    "step2": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "dob": "Date of Birth",
+      "country": "Country",
+      "phone": "Phone Number",
+      "phonePlaceholder": "99 123 4567"
+    },
+    "step3": {
+      "address": "Address (optional)",
+      "addressPlaceholder": "Address"
+    },
+    "buttons": {
+      "previous": "Previous",
+      "next": "Next",
+      "complete": "Complete Registration"
+    },
+    "validation": {
+      "allFields": "Please fill in email and both password fields.",
+      "invalidEmail": "Please enter a valid email.",
+      "passwordLength": "Password must be between {min} and {max} characters.",
+      "passwordMismatch": "Passwords do not match.",
+      "step2Required": "Please fill in first name, last name, date of birth, and phone.",
+      "dateRequired": "Please specify your date of birth."
+    },
+    "errors": {
+      "emailExists": "A user with this email already exists.",
+      "emailCheckFailed": "Failed to check email. Please try again later.",
+      "serverError": "Internal server error. Please try again later.",
+      "noConnection": "Failed to connect to the server. Check your connection.",
+      "invalidDate": "Invalid date of birth format.",
+      "noToken": "Server did not return an access token after registration.",
+      "generic": "Failed to register. Please try again later.",
+      "validationFailed": "Data validation error.",
+      "badData": "Invalid data.",
+      "requestFailed": "Request error: {error}"
+    },
+    "success": "Registration successful! Please confirm your email."
+  },
+  "verifyEmail": {
+    "title": "Email Verification",
+    "infoText": "Please enter the 6-digit code sent to your email address.",
+    "codeLabel": "Verification Code",
+    "codePlaceholder": "Enter code",
+    "verifyButton": "Verify",
+    "verifyingButton": "Verifying...",
+    "resendButton": "Resend Code",
+    "toast": {
+      "codeRequired": "Please enter the 6-digit code.",
+      "noToken": "Error: Authorization token not found. Please log in again.",
+      "success": "Email verified successfully!",
+      "errorDefault": "Failed to verify email.",
+      "badRequest": "Invalid request.",
+      "invalidCode": "Invalid or expired verification code.",
+      "unauthorized": "Authorization error. Please log in again.",
+      "notFound": "User not found.",
+      "serverError": "Server error.",
+      "noResponse": "No response from server.",
+      "errorPrefix": "Error: {error}",
+      "resendNotImplemented": "Resend code function is not yet implemented."
+    }
+  }
+}

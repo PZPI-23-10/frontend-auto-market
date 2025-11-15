@@ -52,7 +52,7 @@ import { useToast } from 'vue-toastification';
 import axios from 'axios';
 
 // --- Константи та ініціалізація ---
-const API_FORGOT_PASSWORD_URL = 'https://backend-auto-market.onrender.com/api/Account/PasswordReset'; 
+const API_FORGOT_PASSWORD_URL = 'https://backend-auto-market.onrender.com/api/Auth/reset-password'; 
 const toast = useToast();
 const router = useRouter();
 const route = useRoute(); // Ініціалізуємо route
@@ -119,8 +119,7 @@ async function requestPasswordReset() {
        // Обробка помилок від бекенду
        if (error.response.status === 404) { // NotFound
            errorMessage = 'Якщо акаунт з таким email існує, лист підтвердження надіслано.';
-           toast.info(errorMessage); // Використовуємо info для безпеки
-           // Не зупиняємо, дозволяємо "успішне" завершення для користувача
+           toast.info(errorMessage); 
        } else if (error.response.status === 400 && typeof error.response.data === 'string') { // BadRequest
            errorMessage = error.response.data; 
            toast.error(`Помилка: ${errorMessage}`);
