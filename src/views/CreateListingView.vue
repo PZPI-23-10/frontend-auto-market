@@ -1,213 +1,248 @@
 <template>
   <div class="create-listing-view">
     <div class="form-container">
-      <h1>Створити нове оголошення</h1>
+      <h1>{{ t('createListing.title') }}</h1>
       
+            <div class="progressbar-wrapper">
+        <ul class="progressbar">
+          <li v-for="(step, index) in steps" :key="index" :class="{ active: currentStep >= (index + 1) }">
+            <span>{{ t(step.titleKey) }}</span>
+          </li>
+        </ul>
+      </div>
+
       <form @submit.prevent="handleSubmit" novalidate>
-
-        <section class="form-card">
-          <h2>2. Основна інформація <small>* Поля обов'язкові для заповнення</small></h2>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="vehicleType">Тип транспорту *</label>
-              <select id="vehicleType" v-model="listing.vehicleType" required>
-                <option value="" disabled>Оберіть</option>
-                <option v-for="vt in vehicleTypes" :key="vt" :value="vt">{{ vt }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="brand">Марка авто *</label>
-              <input type="text" id="brand" v-model="listing.brand" required placeholder="Наприклад, Audi">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="model">Модель авто *</label>
-              <input type="text" id="model" v-model="listing.model" required placeholder="Наприклад, A6">
-            </div>
-            <div class="form-group">
-              <label for="year">Рік випуску *</label>
-              <select id="year" v-model="listing.year" required>
-                <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="mileage">Пробіг (тис. км) *</label>
-              <input type="number" id="mileage" v-model.number="listing.mileage" required placeholder="тільки цифри">
-            </div>
-            <div class="form-group">
-              <label for="bodyType">Тип кузова *</label>
-              <select id="bodyType" v-model="listing.bodyType" required>
-                <option value="" disabled>Оберіть</option>
-                <option v-for="bt in bodyTypes" :key="bt" :value="bt">{{ bt }}</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="region">Регіон *</label>
-              <select id="region" v-model="listing.region" required>
-                <option value="" disabled>Оберіть</option>
-                <option v-for="r in regions" :key="r" :value="r">{{ r }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="city">Місто *</label>
-              <input type="text" id="city" v-model="listing.city" required placeholder="Наприклад, Київ">
-            </div>
-          </div>
-        </section>
-
-        <section class="form-card">
-          <h2>Характеристики авто</h2>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="fuel">Тип палива *</label>
-              <select id="fuel" v-model="listing.fuel" required>
-                <option value="" disabled>Оберіть тип</option>
-                <option v-for="fuelType in fuelTypes" :key="fuelType" :value="fuelType">{{ fuelType }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="transmission">Коробка передач *</label>
-              <select id="transmission" v-model="listing.transmission" required>
-                <option value="" disabled>Оберіть тип</option>
-                <option v-for="t in transmissionTypes" :key="t" :value="t">{{ t }}</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="driveTrain">Привід *</label>
-              <select id="driveTrain" v-model="listing.driveTrain" required>
-                <option value="" disabled>Оберіть</option>
-                <option v-for="dt in driveTrainTypes" :key="dt" :value="dt">{{ dt }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="engineSize">Об'єм двигуна (л) *</label>
-              <input type="number" id="engineSize" v-model.number="listing.engineSize" required placeholder="Напр., 2.0 або 0 (для електро)">
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="color">Колір *</label>
-              <select id="color" v-model="listing.color" required>
-                <option value="" disabled>Оберіть</option>
-                <option v-for="c in colors" :key="c" :value="c">{{ c }}</option>
-              </select>
-            </div>
-            <div class="form-group checkbox-group">
-              <input type="checkbox" id="metallic" v-model="listing.metallic">
-              <label for="metallic">Металік</label>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="paintwork">Лакофарбове покриття *</label>
-              <select id="paintwork" v-model="listing.paintwork" required>
-                 <option value="" disabled>Оберіть</option>
-                 <option v-for="p in paintworkStates" :key="p" :value="p">{{ p }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="technicalCondition">Технічний стан *</label>
-              <select id="technicalCondition" v-model="listing.technicalCondition" required>
-                 <option value="" disabled>Оберіть</option>
-                 <option v-for="t in technicalStates" :key="t" :value="t">{{ t }}</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-group checkbox-group single-checkbox">
-              <input type="checkbox" id="inAccident" v-model="listing.inAccident">
-              <label for="inAccident">Участь в ДТП</label>
-          </div>
-        </section>
-
-        <section class="form-card">
-          <h2>Комфорт та опції</h2>
-          <div class="comfort-grid">
-            
-            <div class="form-group checkbox-group">
-              <input type="checkbox" id="comfort_ac" v-model="listing.comfort.airConditioning">
-              <label for="comfort_ac">Кондиціонер</label>
-            </div>
-            <div class="form-group checkbox-group">
-              <input type="checkbox" id="comfort_climate" v-model="listing.comfort.climateControl">
-              <label for="comfort_climate">Клімат-контроль</label>
-            </div>
-            <div class="form-group checkbox-group">
-              <input type="checkbox" id="comfort_seats" v-model="listing.comfort.heatedSeats">
-              <label for="comfort_seats">Підігрів сидінь</label>
-            </div>
-            <div class="form-group checkbox-group">
-              <input type="checkbox" id="comfort_camera" v-model="listing.comfort.rearCamera">
-              <label for="comfort_camera">Камера заднього виду</label>
-            </div>
-            <div class="form-group checkbox-group">
-              <input type="checkbox" id="comfort_sensors" v-model="listing.comfort.parkingSensors">
-              <label for="comfort_sensors">Парктроніки</label>
-            </div>
-            <div class="form-group checkbox-group">
-              <input type="checkbox" id="comfort_sunroof" v-model="listing.comfort.sunroof">
-              <label for="comfort_sunroof">Люк / Панорама</label>
-            </div>
-            
-          </div>
-        </section>
-
-        <section class="form-card">
-          <h2>Ціна</h2>
-          <div class="form-group price-group">
-            <label for="price">Ціна *</label>
-            <div class="input-group">
-              <input type="number" id="price" v-model.number="listing.price" required placeholder="0">
-              <select id="currency" v-model="listing.currency">
-                <option value="USD">USD</option>
-                <option value="UAH">UAH</option>
-              </select>
-            </div>
-          </div>
-        </section>
         
-        <section class="form-card">
-          <h2>Опис</h2>
-          <div class="form-group">
-            <label for="description">Розкажіть про авто детальніше</label>
-            <textarea id="description" v-model="listing.description" rows="6"></textarea>
-          </div>
-        </section>
+        <div class="step-content">
+          <Transition name="fade-slide" mode="out-in">
+            
+            <section class="form-card" v-if="currentStep === 1">
+              <h2>{{ t('createListing.step1.title') }} <small>* {{ t('createListing.required') }}</small></h2>
+              
+                            <div class="form-row">
+                <div class="form-group">
+                  <label for="vehicleType">{{ t('createListing.step1.vehicleType') }} *</label>
+                  <select id="vehicleType" v-model="listing.vehicleType" required>
+                    <option value="" disabled>{{ t('createListing.select') }}</option>
+                    <option v-for="vt in vehicleTypes" :key="vt" :value="t(vt)">{{ t(vt) }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="brand">{{ t('createListing.step1.brand') }} *</label>
+                  <input type="text" id="brand" v-model.trim="listing.brand" required :placeholder="t('createListing.step1.brandPlaceholder')">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="model">{{ t('createListing.step1.model') }} *</label>
+                  <input type="text" id="model" v-model.trim="listing.model" required :placeholder="t('createListing.step1.modelPlaceholder')">
+                </div>
+                <div class="form-group">
+                  <label for="year">{{ t('createListing.step1.year') }} *</label>
+                  <select id="year" v-model="listing.year" required>
+                    <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="mileage">{{ t('createListing.step1.mileage') }} *</label>
+                  <input type="number" id="mileage" v-model.number="listing.mileage" required :placeholder="t('createListing.step1.mileagePlaceholder')">
+                </div>
+                <div class="form-group">
+                  <label for="bodyType">{{ t('createListing.step1.bodyType') }} *</label>
+                  <select id="bodyType" v-model="listing.bodyType" required>
+                    <option value="" disabled>{{ t('createListing.select') }}</option>
+                    <option v-for="bt in bodyTypes" :key="bt" :value="t(bt)">{{ t(bt) }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="region">{{ t('createListing.step1.region') }} *</label>
+                  <select id="region" v-model="listing.region" required>
+                    <option value="" disabled>{{ t('createListing.select') }}</option>
+                    <option v-for="r in regions" :key="r" :value="t(r)">{{ t(r) }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="city">{{ t('createListing.step1.city') }} *</label>
+                  <input type="text" id="city" v-model.trim="listing.city" required :placeholder="t('createListing.step1.cityPlaceholder')">
+                </div>
+              </div>
+            </section>
+            
+            <section class="form-card" v-else-if="currentStep === 2">
+              <h2>{{ t('createListing.step2.title') }} <small>* {{ t('createListing.required') }}</small></h2>
+              
+                            <div class="form-row">
+                <div class="form-group">
+                  <label for="fuel">{{ t('createListing.step2.fuel') }} *</label>
+                  <select id="fuel" v-model="listing.fuel" required>
+                    <option value="" disabled>{{ t('createListing.select') }}</option>
+                    <option v-for="fuelType in fuelTypes" :key="fuelType" :value="t(fuelType)">{{ t(fuelType) }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="transmission">{{ t('createListing.step2.transmission') }} *</label>
+                  <select id="transmission" v-model="listing.transmission" required>
+                    <option value="" disabled>{{ t('createListing.select') }}</option>
+                    <option v-for="t in transmissionTypes" :key="t" :value="t(t)">{{ t(t) }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="driveTrain">{{ t('createListing.step2.driveTrain') }} *</label>
+                  <select id="driveTrain" v-model="listing.driveTrain" required>
+                    <option value="" disabled>{{ t('createListing.select') }}</option>
+                    <option v-for="dt in driveTrainTypes" :key="dt" :value="t(dt)">{{ t(dt) }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="engineSize">{{ t('createListing.step2.engineSize') }} *</label>
+                  <input type="number" id="engineSize" v-model.number="listing.engineSize" required :placeholder="t('createListing.step2.engineSizePlaceholder')">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="color">{{ t('createListing.step2.color') }} *</label>
+                  <select id="color" v-model="listing.color" required>
+                    <option value="" disabled>{{ t('createListing.select') }}</option>
+                    <option v-for="c in colors" :key="c" :value="t(c)">{{ t(c) }}</option>
+                  </select>
+                </div>
+                <div class="form-group checkbox-group">
+                  <input type="checkbox" id="metallic" v-model="listing.metallic">
+                  <label for="metallic">{{ t('createListing.step2.metallic') }}</label>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="paintwork">{{ t('createListing.step2.paintwork') }} *</label>
+                  <select id="paintwork" v-model="listing.paintwork" required>
+                    <option value="" disabled>{{ t('createListing.select') }}</option>
+                    <option v-for="p in paintworkStates" :key="p" :value="t(p)">{{ t(p) }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="technicalCondition">{{ t('createListing.step2.technicalCondition') }} *</label>
+                  <select id="technicalCondition" v-model="listing.technicalCondition" required>
+                    <option value="" disabled>{{ t('createListing.select') }}</option>
+                    <option v-for="t in technicalStates" :key="t" :value="t(t)">{{ t(t) }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group checkbox-group single-checkbox">
+                  <input type="checkbox" id="inAccident" v-model="listing.inAccident">
+                  <label for="inAccident">{{ t('createListing.step2.inAccident') }}</label>
+              </div>
+            </section>
+            
+            <section class="form-card" v-else-if="currentStep === 3">
+              <h2>{{ t('createListing.step3.title') }}</h2>
+              
+              <div class="comfort-grid">
+                <div class="form-group checkbox-group">
+                  <input type="checkbox" id="comfort_ac" v-model="listing.comfort.airConditioning">
+                  <label for="comfort_ac">{{ t('createListing.step3.ac') }}</label>
+                </div>
+                <div class="form-group checkbox-group">
+                  <input type="checkbox" id="comfort_climate" v-model="listing.comfort.climateControl">
+                  <label for="comfort_climate">{{ t('createListing.step3.climate') }}</label>
+                </div>
+                <div class="form-group checkbox-group">
+                  <input type="checkbox" id="comfort_seats" v-model="listing.comfort.heatedSeats">
+                  <label for="comfort_seats">{{ t('createListing.step3.heatedSeats') }}</label>
+                </div>
+                <div class="form-group checkbox-group">
+                  <input type="checkbox" id="comfort_camera" v-model="listing.comfort.rearCamera">
+                  <label for="comfort_camera">{{ t('createListing.step3.rearCamera') }}</label>
+                </div>
+                <div class="form-group checkbox-group">
+                  <input type="checkbox" id="comfort_sensors" v-model="listing.comfort.parkingSensors">
+                  <label for="comfort_sensors">{{ t('createListing.step3.parkingSensors') }}</label>
+                </div>
+                <div class="form-group checkbox-group">
+                  <input type="checkbox" id="comfort_sunroof" v-model="listing.comfort.sunroof">
+                  <label for="comfort_sunroof">{{ t('createListing.step3.sunroof') }}</label>
+                </div>
+              </div>
+            </section>
+            
+            <section class="form-card" v-else-if="currentStep === 4">
+              <h2>{{ t('createListing.step4.title') }} <small>* {{ t('createListing.required') }}</small></h2>
+              
+              <div class="form-group price-group">
+                <label for="price">{{ t('createListing.step4.price') }} *</label>
+                <div class="input-group">
+                  <input type="number" id="price" v-model.number="listing.price" required placeholder="0">
+                  <select id="currency" v-model="listing.currency">
+                    <option value="USD">USD</option>
+                    <option value="UAH">UAH</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+            
+            <section class="form-card" v-else-if="currentStep === 5">
+              <h2>{{ t('createListing.step5.title') }}</h2>
+              
+              <div class="form-group">
+                <label for="description">{{ t('createListing.step5.label') }}</label>
+                <textarea id="description" v-model="listing.description" rows="6"></textarea>
+              </div>
+            </section>
+            
+                        <section class="form-card" v-else-if="currentStep === 6">
+              <h2>{{ t('createListing.step6.title') }} <small>* {{ t('createListing.required') }}</small></h2>
+              
+              <PhotoUploader 
+                :maxFiles="10" 
+                @files-updated="updateFiles" 
+              />
+            </section>
 
-        <section class="form-card">
-          <h2>Фотографії</h2>
-          <PhotoUploader 
-            :maxFiles="10" 
-            @files-updated="updateFiles" 
-          />
-        </section>
+          </Transition>
+        </div>
 
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" @click="goBack" :disabled="isSubmitting">
-            Назад
+                <div class="form-actions">
+          <button 
+            type="button" 
+            class="btn-secondary" 
+            @click="prevStep" 
+            :disabled="isSubmitting"
+            v-if="currentStep > 1"
+          >
+            {{ t('createListing.buttons.back') }}
           </button>
-          <button type="submit" class="btn-submit" :disabled="isSubmitting">
-            {{ isSubmitting ? 'Публікуємо...' : 'Опублікувати оголошення' }}
+          
+          <button 
+            type="button" 
+            class="btn-submit" 
+            @click="nextStep" 
+            :disabled="isSubmitting"
+            v-if="currentStep < steps.length"
+          >
+            {{ t('createListing.buttons.next') }}
+          </button>
+
+          <button 
+            type="submit" 
+            class="btn-submit" 
+            :disabled="isSubmitting"
+            v-if="currentStep === steps.length"
+          >
+            {{ isSubmitting ? t('createListing.buttons.submitting') : t('createListing.buttons.submit') }}
           </button>
         </div>
+
       </form>
     </div>
     
     <div v-if="isSubmitting" class="loading-overlay">
       <div class="spinner"></div>
-      <h2>Публікація...</h2>
+      <h2>{{ t('createListing.buttons.submitting') }}</h2>
     </div>
 
   </div>
@@ -217,34 +252,51 @@
 import { ref, computed, watch, onMounted } from 'vue'; 
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
+import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
 import PhotoUploader from '@/components/PhotoUploader.vue'; 
-
-// --- СЛОВНИК ДЛЯ ВАЛІДАЦІЇ (ОНОВЛЕНО) ---
-const fieldNames = {
-  vehicleType: 'Тип транспорту',
-  brand: 'Бренд',
-  model: 'Модель',
-  bodyType: 'Тип кузова',
-  region: 'Регіон',
-  city: 'Місто',
-  fuel: 'Тип палива',
-  transmission: 'Коробка передач',
-  driveTrain: 'Привід',
-  engineSize: "Об'єм двигуна",
-  color: 'Колір',
-  technicalCondition: 'Технічний стан',
-  paintwork: 'Лакофарбове покриття',
-  mileage: 'Пробіг',
-  price: 'Ціна'
-};
 
 // --- Ініціалізація ---
 const router = useRouter();
 const toast = useToast();
+const { t } = useI18n(); // 2. ОТРИМАННЯ t
 const isSubmitting = ref(false);
 const DRAFT_STORAGE_KEY = 'newListingDraft';
 
-// --- ДАНІ ФОРМИ (ОНОВЛЕНО) ---
+// =================================
+// 3. НОВИЙ СТАН ДЛЯ КРОКІВ
+// =================================
+const currentStep = ref(1);
+const steps = ref([
+  { titleKey: 'createListing.steps.basic' },
+  { titleKey: 'createListing.steps.specs' },
+  { titleKey: 'createListing.steps.comfort' },
+  { titleKey: 'createListing.steps.price' },
+  { titleKey: 'createListing.steps.description' },
+  { titleKey: 'createListing.steps.photos' }
+]);
+
+// --- СЛОВНИК ДЛЯ ВАЛІДАЦІЇ ---
+// (Ми будемо використовувати ключі i18n замість жорсткого кодування)
+const fieldNameKeys = {
+  vehicleType: 'createListing.step1.vehicleType',
+  brand: 'createListing.step1.brand',
+  model: 'createListing.step1.model',
+  bodyType: 'createListing.step1.bodyType',
+  region: 'createListing.step1.region',
+  city: 'createListing.step1.city',
+  mileage: 'createListing.step1.mileage',
+  fuel: 'createListing.step2.fuel',
+  transmission: 'createListing.step2.transmission',
+  driveTrain: 'createListing.step2.driveTrain',
+  engineSize: 'createListing.step2.engineSize',
+  color: 'createListing.step2.color',
+  technicalCondition: 'createListing.step2.technicalCondition',
+  paintwork: 'createListing.step2.paintwork',
+  price: 'createListing.step4.price',
+  photos: 'createListing.step6.title'
+};
+
+// --- ДАНІ ФОРМИ (без змін) ---
 const listing = ref({
   vehicleType: '',
   brand: '',
@@ -254,23 +306,18 @@ const listing = ref({
   bodyType: '',
   region: '',
   city: '',
-  
   fuel: '',
   transmission: '',
-  driveTrain: '',     // <--- ДОДАНО
-  engineSize: '',     // <--- ДОДАНО
+  driveTrain: '',
+  engineSize: '',
   color: '',
   metallic: false,
   inAccident: false,
   paintwork: '',
   technicalCondition: '',
-
   price: '',
   currency: 'USD', 
-  
   description: '',
-
-  // <--- ДОДАНО
   comfort: {
     airConditioning: false,
     climateControl: false,
@@ -282,9 +329,18 @@ const listing = ref({
 });
 const listingPhotos = ref([]);
 
-// --- ОПЦІЇ ДЛЯ SELECT'ІВ (ОНОВЛЕНО) ---
-const fuelTypes = ref(['Бензин', 'Дизель', 'Електро', 'Гібрид', 'Газ/Бензин']);
-const transmissionTypes = ref(['Механіка', 'Автомат', 'Робот']);
+// --- ОПЦІЇ ДЛЯ SELECT'ІВ (Використовуємо ключі i18n) ---
+const fuelTypes = ref(['options.fuel.petrol', 'options.fuel.diesel', 'options.fuel.electric', 'options.fuel.hybrid', 'options.fuel.lpg']);
+const transmissionTypes = ref(['options.transmission.manual', 'options.transmission.automatic', 'options.transmission.robot']);
+const vehicleTypes = ref(['options.vehicleType.car', 'options.vehicleType.truck', 'options.vehicleType.moto']);
+const bodyTypes = ref(['options.bodyType.sedan', 'options.bodyType.hatchback', 'options.bodyType.wagon', 'options.bodyType.coupe', 'options.bodyType.cabriolet', 'options.bodyType.suv', 'options.bodyType.offroad', 'options.bodyType.pickup', 'options.bodyType.minivan']);
+const regions = ref(['options.region.kyiv', 'options.region.lviv', 'options.region.odesa', 'options.region.kharkiv', 'options.region.dnipro', 'options.region.other']);
+const colors = ref(['options.color.black', 'options.color.white', 'options.color.blue', 'options.color.red', 'options.color.gray', 'options.color.green', 'options.color.other']);
+const technicalStates = ref(['options.techState.full', 'options.techState.needsRepair', 'options.techState.notMoving', 'options.techState.afterAccident']);
+const paintworkStates = ref(['options.paint.asNew', 'options.paint.minorScratches', 'options.paint.used', 'options.paint.needsRepair']);
+const driveTrainTypes = ref(['options.driveTrain.fwd', 'options.driveTrain.rwd', 'options.driveTrain.awd']);
+
+// --- РОКИ (без змін) ---
 const years = computed(() => {
   const currentYear = new Date().getFullYear();
   const startYear = 1970;
@@ -294,14 +350,6 @@ const years = computed(() => {
   }
   return yearList;
 });
-
-const vehicleTypes = ref(['Легковий', 'Вантажний', 'Мото']);
-const bodyTypes = ref(['Седан', 'Хетчбек', 'Універсал', 'Купе', 'Кабріолет', 'Кросовер', 'Позашляховик', 'Пікап', 'Мінівен']);
-const regions = ref(['Київська обл.', 'Львівська обл.', 'Одеська обл.', 'Харківська обл.', 'Дніпропетровська обл.', 'Інший']);
-const colors = ref(['Чорний', 'Білий', 'Синій', 'Червоний', 'Сірий', 'Зелений', 'Інший']);
-const technicalStates = ref(['Повністю справне', 'На ходу, потребує ремонту', 'Не на ходу', 'Після ДТП']);
-const paintworkStates = ref(['Як нове', 'Є незначні подряпини', 'Є сліди використання', 'Потребує ремонту']);
-const driveTrainTypes = ref(['Передній', 'Задній', 'Повний']); // <--- ДОДАНО
 
 // --- Автозбереження/Автозавантаження (без змін) ---
 watch(listing, (newData) => {
@@ -313,7 +361,6 @@ onMounted(() => {
   const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
   if (savedDraft) {
     try {
-      // Обережно завантажуємо, щоб не перезаписати 'comfort'
       const parsedDraft = JSON.parse(savedDraft);
       Object.assign(listing.value, parsedDraft);
     } catch (e) {
@@ -324,8 +371,9 @@ onMounted(() => {
 });
 
 // ---
-// ЛОГІКА ДЛЯ КОМПОНЕНТА
+// 4. ОНОВЛЕНА ЛОГІКА НАВІГАЦІЇ ТА ВАЛІДАЦІЇ
 // ---
+
 function updateFiles(files) {
   listingPhotos.value = files;
 }
@@ -334,42 +382,95 @@ function goBack() {
   router.back();
 }
 
+/**
+ * Функція валідації, що викликається перед переходом
+ */
+function validateCurrentStep() {
+  const step = currentStep.value;
+  
+  // Функція-хелпер для перевірки полів
+  const checkFields = (fields) => {
+    for (const field of fields) {
+      if (!listing.value[field]) {
+        const fieldName = t(fieldNameKeys[field]); // Перекладаємо назву поля
+        toast.warning(t('createListing.toast.fillField', { field: fieldName }));
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Функція-хелпер для числових полів
+  const checkNumberField = (field, min = 0, allowZero = false) => {
+    const value = listing.value[field];
+    const fieldName = t(fieldNameKeys[field]);
+    if (value === '' || value === null || (!allowZero && value <= min)) {
+      toast.warning(t('createListing.toast.correctField', { field: fieldName }));
+      return false;
+    }
+    return true;
+  };
+
+  switch (step) {
+    case 1: // Крок 1: Основна інформація
+      const step1Fields = ['vehicleType', 'brand', 'model', 'bodyType', 'region', 'city'];
+      if (!checkFields(step1Fields)) return false;
+      if (!checkNumberField('mileage', 0, true)) return false; // Дозволяємо 0 пробігу
+      return true;
+
+    case 2: // Крок 2: Характеристики
+      const step2Fields = ['fuel', 'transmission', 'driveTrain', 'color', 'technicalCondition', 'paintwork'];
+      if (!checkFields(step2Fields)) return false;
+      if (!checkNumberField('engineSize', 0, true)) return false; // 0 для електро
+      return true;
+
+    case 3: // Крок 3: Комфорт (опціонально)
+      return true;
+
+    case 4: // Крок 4: Ціна
+      if (!checkNumberField('price')) return false;
+      return true;
+
+    case 5: // Крок 5: Опис (опціонально)
+      return true;
+      
+    case 6: // Крок 6: Фото (перевіряється при handleSubmit)
+      if (listingPhotos.value.length === 0) {
+        toast.warning(t('createListing.toast.addPhoto'));
+        return false;
+      }
+      return true;
+  }
+  return false; // За замовчуванням
+}
 
 /**
- * (MOCK) Функція відправки форми (ОНОВЛЕНО ВАЛІДАЦІЮ)
+ * Кнопка "Назад"
+ */
+function prevStep() {
+  if (currentStep.value > 1) {
+    currentStep.value--;
+  }
+}
+
+/**
+ * Кнопка "Далі"
+ */
+function nextStep() {
+  if (validateCurrentStep()) {
+    currentStep.value++;
+    window.scrollTo(0, 0); // Прокрутка вгору при зміні кроку
+  }
+}
+
+/**
+ * (MOCK) Функція відправки форми
  */
 function handleSubmit() {
   if (isSubmitting.value) return;
-  
-  // 1. ВАЛІДАЦІЯ
-  const requiredFields = [
-    'vehicleType', 'brand', 'model', 'bodyType', 'region', 'city',
-    'fuel', 'transmission', 'driveTrain', 'color', 
-    'technicalCondition', 'paintwork'
-  ];
-  
-  for (const field of requiredFields) {
-    if (!listing.value[field]) {
-      toast.warning(`Будь ласка, заповніть поле "${fieldNames[field]}"`);
-      return; 
-    }
-  }
-  
-  // Перевіряємо числові поля
-  if (listing.value.mileage === '' || listing.value.mileage < 0) {
-    toast.warning(`Будь ласка, введіть коректний "${fieldNames.mileage}"`);
-    return;
-  }
-  if (listing.value.engineSize === '' || listing.value.engineSize < 0) {
-    toast.warning(`Будь ласка, введіть коректний "${fieldNames.engineSize}"`);
-    return;
-  }
-  if (!listing.value.price || listing.value.price <= 0) {
-    toast.warning(`Будь ласка, введіть коректну "${fieldNames.price}"`);
-    return;
-  }
-  if (listingPhotos.value.length === 0) {
-    toast.warning('Будь ласка, додайте хоча б одне фото.');
+
+  // Фінальна валідація (крок 6)
+  if (!validateCurrentStep()) {
     return;
   }
   
@@ -379,13 +480,14 @@ function handleSubmit() {
   console.log('Дані:', listing.value);
   console.log('Файли:', listingPhotos.value);
   
+  // MOCK API CALL
   setTimeout(() => {
     isSubmitting.value = false;
-    toast.success('Оголошення успішно опубліковано!');
+    toast.success(t('createListing.toast.submitSuccess'));
     
     localStorage.removeItem(DRAFT_STORAGE_KEY);
     
-    router.push('/my-listings'); // TODO: Змінити на /profile
+    router.push('/profile'); // Перехід у профіль
     
   }, 2000);
 }
@@ -428,7 +530,7 @@ function handleSubmit() {
   border: 2px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 40px rgba(8,7,16,0.6);
   padding: 30px;
-  margin-bottom: 25px;
+  /* margin-bottom: 25px; (Видалено, відступ тепер у .step-content) */
 }
 .form-card h2 {
   margin-top: 0;
@@ -523,22 +625,18 @@ function handleSubmit() {
   flex-shrink: 0;
 }
 
-/* ---
- * ОНОВЛЕНІ СТИЛІ ДЛЯ ЧЕКБОКСІВ
- --- */
+/* (Чекбокси та сітка - без змін) */
 .checkbox-group {
   display: flex;
   align-items: center;
-  /* (Скидаємо відступ, якщо він не в .form-row) */
   padding-top: 0; 
 }
 .form-row .checkbox-group {
-  padding-top: 30px; /* Вирівнюємо по вертикалі з <select> */
+  padding-top: 30px; 
 }
 .checkbox-group.single-checkbox {
-  padding-top: 0; /* Для "Участь в ДТП" */
+  padding-top: 0; 
 }
-
 .checkbox-group input[type="checkbox"] {
   width: 18px;
   height: 18px;
@@ -549,7 +647,6 @@ function handleSubmit() {
   border: 1px solid #555;
   border-radius: 3px;
   appearance: none;
-  -webkit-appearance: none;
   position: relative;
   transition: background-color 0.2s, border-color 0.2s;
 }
@@ -573,32 +670,114 @@ function handleSubmit() {
   text-align: left;
   cursor: pointer;
 }
-
-/* --- НОВА СІТКА ДЛЯ КОМФОРТУ --- */
 .comfort-grid {
   display: grid;
-  grid-template-columns: 1fr; /* 1 колонка на мобілках */
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 @media (min-width: 576px) {
   .comfort-grid {
-    grid-template-columns: 1fr 1fr; /* 2 колонки */
+    grid-template-columns: 1fr 1fr;
   }
 }
 @media (min-width: 768px) {
   .comfort-grid {
-    grid-template-columns: 1fr 1fr 1fr; /* 3 колонки */
+    grid-template-columns: 1fr 1fr 1fr; 
   }
 }
-/* У сітці 'comfort-grid' нам не потрібні відступи зверху */
 .comfort-grid .checkbox-group {
   padding-top: 0;
+}
+
+/* ================================= */
+/* 5. НОВІ СТИЛІ ДЛЯ ВІЗАРДА */
+/* ================================= */
+.progressbar-wrapper {
+  width: 100%;
+  margin-bottom: 30px;
+}
+.progressbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.progressbar li {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  color: #aaa;
+  font-size: 12px;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+.progressbar li::before {
+  content: '';
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: #555;
+  border: 2px solid #555;
+  border-radius: 50%;
+  margin: 0 auto 8px auto;
+  transition: all 0.3s ease;
+}
+.progressbar li::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background: #555;
+  z-index: -1;
+  transition: all 0.3s ease;
+}
+.progressbar li:first-child::after {
+  content: none;
+}
+.progressbar li.active {
+  color: #fff;
+}
+.progressbar li.active::before {
+  background: #ffd700;
+  border-color: #ffd700;
+}
+.progressbar li.active::after {
+  background: #ffd700;
+}
+.progressbar li span {
+  display: none; /* Приховуємо текст на маленьких екранах */
+}
+@media (min-width: 768px) {
+  .progressbar li span {
+    display: block; /* Показуємо текст на десктопі */
+  }
+}
+
+.step-content {
+  margin-bottom: 25px; /* Переносимо відступ з .form-card сюди */
+}
+
+/* Анімація переходу між кроками */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.3s ease-out;
+}
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
 }
 
 /* (Кнопки та Оверлей - без змін) */
 .form-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between; /* Змінено для кнопок "Назад" і "Далі" */
   gap: 15px;
 }
 .btn-submit {
@@ -613,7 +792,7 @@ function handleSubmit() {
   color: #fff;
   font-size: 16px;
   text-transform: uppercase;
-  flex: 2;
+  flex: 2; /* "Далі" та "Опублікувати" будуть ширшими */
 }
 .btn-submit:hover {
   background-color: #aa0000;
@@ -634,7 +813,7 @@ function handleSubmit() {
   color: #fff;
   font-size: 16px;
   text-transform: uppercase;
-  flex: 1;
+  flex: 1; /* Кнопка "Назад" буде вужчою */
 }
 .btn-secondary:hover {
   background-color: rgba(255,255,255,0.4);
