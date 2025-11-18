@@ -103,6 +103,8 @@
   "listings": {
     "title": "Car Catalog",
     "filter": {
+      "reset": "✕ Clear selection",
+      "any": "Any",
       "title": "Filters",
       "brandPlaceholder": "E.g., BMW",
       "modelPlaceholder": "E.g., A6",
@@ -465,12 +467,13 @@
       "krym,_avtonomna_respublika": "Crimea"
     },
     "color": {
-      "black": "Black",
-      "white": "White",
-      "blue": "Blue",
-      "red": "Red",
-      "gray": "Gray",
-      "green": "Green",
+      "#000000": "Black",
+      "#ffffff": "White",
+      "#0000ff": "Blue",
+      "#ff0000": "Red",
+      "#808080": "Gray",
+      "#008000": "Green",
+      "#cccccc": "Silver",
       "other": "Other"
     },
     "techState": {

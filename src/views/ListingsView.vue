@@ -10,54 +10,115 @@
             <h2>{{ t('listings.filter.title') }}</h2>
             
             <form @submit.prevent="handleFilter">
+              
               <div class="form-group">
-                <label for="brand">{{ t('fields.brand') }}</label>
-                <input type="text" id="brand" v-model="filters.brand" :placeholder="t('listings.filter.brandPlaceholder')">
+                <label>{{ t('createListing.step1.vehicleType') }}</label>
+                <SearchableSelect 
+                  v-model="filters.vehicleTypeId" 
+                  :options="lists.vehicleTypes"
+                  :placeholder="t('listings.filter.any') || 'Всі типи'" 
+                  translation-scope="options.vehicleType"
+                />
               </div>
 
               <div class="form-group">
-                <label for="model">{{ t('fields.model') }}</label>
-                <input type="text" id="model" v-model="filters.model" :placeholder="t('listings.filter.modelPlaceholder')">
+                <label>{{ t('fields.brand') }}</label>
+                <SearchableSelect 
+                  v-model="filters.brandId" 
+                  :options="lists.brands"
+                  :placeholder="t('listings.filter.brandPlaceholder')"
+                  :disabled="!filters.vehicleTypeId"
+                />
               </div>
-              
+
               <div class="form-group">
+                <label>{{ t('fields.model') }}</label>
+                <SearchableSelect 
+                  v-model="filters.modelId" 
+                  :options="lists.models"
+                  :placeholder="t('listings.filter.modelPlaceholder')"
+                  :disabled="!filters.brandId"
+                />
+              </div>
+
+<div class="form-group">
                 <label>{{ t('listings.filter.priceLabel') }}</label>
                 <div class="form-row">
-                  <input type="number" v-model.number="filters.priceMin" :placeholder="t('listings.filter.priceFrom')">
-                  <input type="number" v-model.number="filters.priceMax" :placeholder="t('listings.filter.priceTo')">
+                  <input 
+                    type="number" 
+                    min="0"
+                    v-model.number="filters.priceMin" 
+                    :placeholder="t('listings.filter.priceFrom')"
+                    @keydown="preventInvalidInput"
+                  >
+                  <input 
+                    type="number" 
+                    min="0"
+                    v-model.number="filters.priceMax" 
+                    :placeholder="t('listings.filter.priceTo')"
+                    @keydown="preventInvalidInput"
+                  >
                 </div>
               </div>
 
               <div class="form-group">
                 <label>{{ t('listings.filter.yearLabel') }}</label>
                 <div class="form-row">
-                  <input type="number" v-model.number="filters.yearMin" :placeholder="t('listings.filter.priceFrom')">
-                  <input type="number" v-model.number="filters.yearMax" :placeholder="t('listings.filter.priceTo')">
+                  <input 
+                    type="number" 
+                    min="1900" 
+                    v-model.number="filters.yearMin" 
+                    :placeholder="t('listings.filter.priceFrom')"
+                    @keydown="preventInvalidInput"
+                  >
+                  <input 
+                    type="number" 
+                    min="1900"
+                    v-model.number="filters.yearMax" 
+                    :placeholder="t('listings.filter.priceTo')"
+                    @keydown="preventInvalidInput"
+                  >
                 </div>
               </div>
 
               <div class="form-group">
                 <label>{{ t('fields.mileageLabel') }}</label>
                 <div class="form-row">
-                  <input type="number" v-model.number="filters.mileageMin" :placeholder="t('listings.filter.priceFrom')">
-                  <input type="number" v-model.number="filters.mileageMax" :placeholder="t('listings.filter.priceTo')">
+                  <input 
+                    type="number" 
+                    min="0"
+                    v-model.number="filters.mileageMin" 
+                    :placeholder="t('listings.filter.priceFrom')"
+                    @keydown="preventInvalidInput"
+                  >
+                  <input 
+                    type="number" 
+                    min="0"
+                    v-model.number="filters.mileageMax" 
+                    :placeholder="t('listings.filter.priceTo')"
+                    @keydown="preventInvalidInput"
+                  >
                 </div>
               </div>
 
               <div class="form-group">
-                <label for="fuel">{{ t('fields.fuel') }}</label>
-                <select id="fuel" v-model="filters.fuel">
-                  <option value="">{{ t('listings.filter.anyFuel') }}</option>
-                  <option v-for="fuel in fuelTypes" :key="fuel" :value="fuel">{{ t('fuelTypes.' + fuel) }}</option>
-                </select>
+                <label>{{ t('fields.fuel') }}</label>
+                <SearchableSelect 
+                  v-model="filters.fuelTypeId" 
+                  :options="lists.fuelTypes"
+                  :placeholder="t('listings.filter.anyFuel')" 
+                  translation-scope="options.fuel"
+                />
               </div>
 
               <div class="form-group">
-                <label for="transmission">{{ t('fields.transmission') }}</label>
-                <select id="transmission" v-model="filters.transmission">
-                  <option value="">{{ t('listings.filter.anyTransmission') }}</option>
-                  <option v-for="transType in transmissionTypes" :key="transType" :value="transType">{{ t('transmissionTypes.' + transType) }}</option>
-                </select>
+                <label>{{ t('fields.transmission') }}</label>
+                <SearchableSelect 
+                  v-model="filters.gearTypeId" 
+                  :options="lists.gearTypes"
+                  :placeholder="t('listings.filter.anyTransmission')" 
+                  translation-scope="options.transmission"
+                />
               </div>
               
               <button type="submit" class="btn-submit">
@@ -88,56 +149,133 @@
             <p>{{ t('listings.noResultsHint') }}</p>
           </div>
           
-          </main>
+        </main>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import CarCard from '@/components/CarCard.vue';
+import SearchableSelect from '@/components/SearchableSelect.vue';
 
 const toast = useToast();
 const { t } = useI18n();
 
-// Базовий URL
-const API_LISTING_URL = 'https://backend-auto-market.onrender.com/api/Listing';
+// URL API
+const API_BASE = 'https://backend-auto-market.onrender.com/api';
+const API_LISTING_URL = `${API_BASE}/Listing`;
 
 const isLoading = ref(false);
 const allListings = ref([]); 
 const filteredListings = ref([]); 
 
-// Фільтри
+// Списки для Dropdown-ів
+const lists = ref({
+  vehicleTypes: [],
+  brands: [],
+  models: [],
+  fuelTypes: [],
+  gearTypes: []
+});
+
+// Фільтри (тепер працюють на ID, як у CreateListing)
 const filters = ref({
-  brand: '',
-  model: '',
+  vehicleTypeId: null, // Додано для логіки
+  brandId: null,
+  modelId: null,
   priceMin: null,
   priceMax: null,
   yearMin: null,  
   yearMax: null,  
   mileageMin: null,
   mileageMax: null, 
-  fuel: '',
-  transmission: ''
+  fuelTypeId: null, // ID замість string
+  gearTypeId: null  // ID замість string
 });
 
-const fuelTypes = ref(['petrol', 'diesel', 'electric', 'hybrid', 'gas_petrol']);
-const transmissionTypes = ref(['automatic', 'manual', 'robot']);
+// --- 1. ЗАВАНТАЖЕННЯ БАЗОВИХ СПИСКІВ (Типи, Паливо, Коробки) ---
+onMounted(async () => {
+  try {
+    const [typesRes, fuelsRes, gearsRes] = await Promise.all([
+      axios.get(`${API_BASE}/VehicleType`),
+      axios.get(`${API_BASE}/FuelType`),
+      axios.get(`${API_BASE}/GearType`)
+    ]);
+    
+    lists.value.vehicleTypes = typesRes.data;
+    lists.value.fuelTypes = fuelsRes.data;
+    lists.value.gearTypes = gearsRes.data;
+    
+    // Завантажуємо машини одразу
+    fetchListings();
+  } catch (e) {
+    console.error("Error loading initial lists:", e);
+  }
+});
 
-// --- 2. МАПЕР ---
+// --- 2. ЛОГІКА ЗАЛЕЖНИХ СПИСКІВ (Cascade Logic) ---
+
+// Коли змінюється ТИП -> вантажимо БРЕНДИ
+watch(() => filters.value.vehicleTypeId, async (newId) => {
+  filters.value.brandId = null; // скидаємо бренд
+  filters.value.modelId = null; // скидаємо модель
+  lists.value.brands = [];
+  lists.value.models = [];
+  
+  if (!newId) return;
+
+  try {
+    const res = await axios.get(`${API_BASE}/VehicleBrand/for-type/${newId}`);
+    lists.value.brands = res.data;
+  } catch (e) { console.error(e); }
+});
+
+// Коли змінюється БРЕНД -> вантажимо МОДЕЛІ
+watch(() => filters.value.brandId, async (newBrandId) => {
+  filters.value.modelId = null; // скидаємо модель
+  lists.value.models = [];
+  
+  if (!newBrandId) return;
+
+  try {
+    const currentVehicleTypeId = filters.value.vehicleTypeId;
+    const res = await axios.get(`${API_BASE}/VehicleModel`, {
+      params: {
+        brandId: newBrandId,
+        vehicleTypeId: currentVehicleTypeId
+      }
+    });
+    lists.value.models = res.data;
+  } catch (e) { 
+    console.error("Error loading models:", e); 
+  }
+});
+
+
+// --- 3. ОТРИМАННЯ ТА МАППІНГ ОГОЛОШЕНЬ ---
+
 function mapApiToCarCard(apiItem) {
   return {
     id: apiItem.id,
+    // ID для клієнтської фільтрації
+    vehicleTypeId: apiItem.vehicleType?.id,
+    brandId: apiItem.brand?.id,
+    modelId: apiItem.model?.id,
+    fuelTypeId: apiItem.fuelType?.id,
+    gearTypeId: apiItem.gearType?.id,
+
+    // Дані для відображення
     brand: apiItem.brand?.name || 'Unknown',
     model: apiItem.model?.name || 'Unknown',
     year: apiItem.year,
     mileage: apiItem.mileage,
     price: apiItem.price,
-    currency: 'USD',
+    currency: apiItem.currency || 'USD',
     fuel: (apiItem.fuelType?.name || '').toLowerCase(), 
     transmission: (apiItem.gearType?.name || '').toLowerCase(),
     bodyType: (apiItem.bodyType?.name || '').toLowerCase(),
@@ -150,86 +288,78 @@ function mapApiToCarCard(apiItem) {
   };
 }
 
-// --- 3. ЗАВАНТАЖЕННЯ (API) ---
+const preventInvalidInput = (event) => {
+  if (['-', '+', 'e', 'E'].includes(event.key)) {
+    event.preventDefault();
+  }
+};
+
 async function fetchListings() {
   isLoading.value = true;
   
   const params = {};
+  
+  // Додаємо ID до параметрів запиту
+  if (filters.value.vehicleTypeId) params.VehicleTypeId = filters.value.vehicleTypeId;
+  if (filters.value.brandId) params.BrandId = filters.value.brandId;
+  if (filters.value.modelId) params.ModelId = filters.value.modelId;
+  if (filters.value.fuelTypeId) params.FuelTypeId = filters.value.fuelTypeId;
+  if (filters.value.gearTypeId) params.GearTypeId = filters.value.gearTypeId;
+
   if (filters.value.priceMin) params.PriceFrom = filters.value.priceMin;
   if (filters.value.priceMax) params.PriceTo = filters.value.priceMax;
-  
   if (filters.value.yearMin) params.YearFrom = filters.value.yearMin;
   if (filters.value.yearMax) params.YearTo = filters.value.yearMax;
-  
   if (filters.value.mileageMin) params.MileageFrom = filters.value.mileageMin;
   if (filters.value.mileageMax) params.MileageTo = filters.value.mileageMax;
-  
 
   try {
     const response = await axios.get(API_LISTING_URL, { params });
     
-    if (Array.isArray(response.data) && response.data.length > 0) {
+    if (Array.isArray(response.data)) {
       allListings.value = response.data.map(mapApiToCarCard);
-      toast.success(t('listingDetail.loadSuccess'));
-    } else {
-      console.warn('API returned empty list. Using mock data.');
-      allListings.value = MOCK_CARS;
-    }
-
+      
+      if(response.data.length > 0) {
+           toast.success(t('listingDetail.loadSuccess'));
+      }
+    } 
   } catch (error) {
-    console.warn('API Error. Using mock data.');
-    allListings.value = MOCK_CARS;
+    console.warn('API Error or Empty', error);
+    allListings.value = [];
   } finally {
-    // 2. Запускаємо повну клієнтську фільтрацію
     applyClientSideFilters();
     isLoading.value = false;
   }
 }
 
-// --- 4. КЛІЄНТСЬКА ФІЛЬТРАЦІЯ (ПОВНА) ---
-// Ця функція фільтрує те, що ми отримали (чи з сервера, чи з моків)
+// --- 4. КЛІЄНТСЬКА ФІЛЬТРАЦІЯ ---
 function applyClientSideFilters() {
   let result = [...allListings.value];
   
-  if (filters.value.brand) {
-    result = result.filter(car => 
-      car.brand && car.brand.toLowerCase().includes(filters.value.brand.toLowerCase())
-    );
+  // Фільтруємо по ID
+  if (filters.value.vehicleTypeId) {
+    result = result.filter(car => car.vehicleTypeId === filters.value.vehicleTypeId);
   }
-  if (filters.value.model) {
-    result = result.filter(car => 
-      car.model && car.model.toLowerCase().includes(filters.value.model.toLowerCase())
-    );
+  if (filters.value.brandId) {
+    result = result.filter(car => car.brandId === filters.value.brandId);
   }
-
-  if (filters.value.priceMin) {
-    result = result.filter(car => car.price >= filters.value.priceMin);
+  if (filters.value.modelId) {
+    result = result.filter(car => car.modelId === filters.value.modelId);
   }
-  if (filters.value.priceMax) {
-    result = result.filter(car => car.price <= filters.value.priceMax);
+  if (filters.value.fuelTypeId) {
+    result = result.filter(car => car.fuelTypeId === filters.value.fuelTypeId);
   }
-
-  if (filters.value.yearMin) {
-    result = result.filter(car => car.year >= filters.value.yearMin);
-  }
-  if (filters.value.yearMax) {
-    result = result.filter(car => car.year <= filters.value.yearMax);
+  if (filters.value.gearTypeId) {
+    result = result.filter(car => car.gearTypeId === filters.value.gearTypeId);
   }
 
-  if (filters.value.mileageMin) {
-    result = result.filter(car => car.mileage >= filters.value.mileageMin);
-  }
-  if (filters.value.mileageMax) {
-    result = result.filter(car => car.mileage <= filters.value.mileageMax);
-  }
-
-  if (filters.value.fuel) {
-     result = result.filter(car => car.fuel === filters.value.fuel);
-  }
-
-  if (filters.value.transmission) {
-     result = result.filter(car => car.transmission === filters.value.transmission);
-  }
+  // Числові фільтри
+  if (filters.value.priceMin) result = result.filter(car => car.price >= filters.value.priceMin);
+  if (filters.value.priceMax) result = result.filter(car => car.price <= filters.value.priceMax);
+  if (filters.value.yearMin) result = result.filter(car => car.year >= filters.value.yearMin);
+  if (filters.value.yearMax) result = result.filter(car => car.year <= filters.value.yearMax);
+  if (filters.value.mileageMin) result = result.filter(car => car.mileage >= filters.value.mileageMin);
+  if (filters.value.mileageMax) result = result.filter(car => car.mileage <= filters.value.mileageMax);
 
   filteredListings.value = result;
 }
@@ -237,14 +367,10 @@ function applyClientSideFilters() {
 function handleFilter() {
   fetchListings(); 
 }
-
-onMounted(() => {
-  fetchListings();
-});
 </script>
 
 <style scoped>
-/* (Всі ваші стилі з попередньої версії залишаються без змін) */
+/* Основні стилі сторінки */
 .listings-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
@@ -283,6 +409,8 @@ onMounted(() => {
     grid-template-columns: 1fr 3fr; 
   }
 }
+
+/* Стилі картки фільтрів (як у CreateListing) */
 .filter-card {
   background-color: rgba(30, 30, 30, 0.7);
   border-radius: 12px;
@@ -296,25 +424,20 @@ onMounted(() => {
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   padding-bottom: 10px; font-weight: 500;
 }
+
+/* Стилі інпутів (ідентичні CreateListing) */
 .form-group { margin-bottom: 20px; }
 .form-group label {
-  display: block; font-size: 14px; 
-  font-weight: 500; margin-bottom: 8px;
-  color: #fff; text-align: left;
+  display: block; 
+  font-size: 14px; 
+  font-weight: 500; 
+  margin-bottom: 8px;
+  color: #fff; 
+  text-align: left;
+  text-transform: none !important; 
+  letter-spacing: normal;
 }
-.form-group input {
-  display: block; width: 100%; height: 45px;
-  padding: 0 12px; border-radius: 3px;
-  background-color: rgba(255,255,255,0.1); 
-  border: 1px solid #555;
-  font-size: 14px; font-weight: 300;
-  color: #fff; box-sizing: border-box;
-}
-.form-group input:focus {
-  border-color: #ffd700;
-  box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
-  outline: none;
-}
+.form-group input,
 .form-group select {
   display: block; width: 100%; height: 45px;
   padding: 0 12px; border-radius: 3px;
@@ -322,6 +445,11 @@ onMounted(() => {
   border: 1px solid #555;
   font-size: 14px; font-weight: 300;
   color: #fff; box-sizing: border-box;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+/* Кастомна стрілка для Select */
+.form-group select {
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
@@ -329,17 +457,29 @@ onMounted(() => {
   background-size: 16px 16px;
   padding-right: 40px; 
   cursor: pointer;
+  text-transform: capitalize !important;
 }
 .form-group select option {
   background: #333;
   color: #fff;
+  text-transform: capitalize;
 }
+/* Стан disabled */
+.form-group select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: rgba(255,255,255,0.05);
+}
+
+.form-group input:focus,
 .form-group select:focus {
   border-color: #ffd700;
   box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
   outline: none;
 }
+
 .form-row { display: flex; gap: 10px; }
+
 .btn-submit {
   font-family: 'Open Sans', sans-serif;
   width: 100%; padding: 12px 0;
@@ -347,8 +487,10 @@ onMounted(() => {
   font-weight: 600; cursor: pointer;
   transition: 0.3s; background-color: #cc0000;
   color: #fff; font-size: 16px;
+  text-transform: uppercase;
 }
 .btn-submit:hover { background-color: #aa0000; }
+
 .results-list {
   display: flex;
   flex-direction: column;
@@ -366,8 +508,7 @@ onMounted(() => {
   padding: 40px;
 }
 .spinner {
-  width: 60px;
-  height: 60px;
+  width: 60px; height: 60px;
   border: 5px solid #555;
   border-top-color: #ffd700;
   border-radius: 50%;
@@ -375,8 +516,6 @@ onMounted(() => {
   margin: 0 auto 15px auto;
 }
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 </style>
