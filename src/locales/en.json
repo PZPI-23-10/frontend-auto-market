@@ -204,7 +204,7 @@
         "save": "Save Changes"
       },
       "toast": {
-        "nameRequired": "First name and last name are required.",
+        "nameRequired": "First name are required.",
         "phoneRequired": "Phone number is required.",
         "invalidDate": "Invalid date format.",
         "saveSuccess": "Profile updated!",
