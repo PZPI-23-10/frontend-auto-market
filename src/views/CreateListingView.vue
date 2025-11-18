@@ -3,6 +3,9 @@
     <div class="form-container">
       <div class="header-row">
         <h1>{{ t('createListing.title') }}</h1>
+        <button type="button" class="btn-text" @click="handleDraft" :disabled="isSubmitting">
+          <span v-if="!isSubmitting">💾 {{ t('createListing.buttons.saveDraft') }}</span>
+        </button>
       </div>
       
       <div class="progressbar-wrapper">
@@ -305,15 +308,17 @@ import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import PhotoUploader from '@/components/PhotoUploader.vue'; 
 import { useAuth } from '@/store/auth'; 
-const DRAFT_STORAGE_KEY = 'newListingDraft';
+
 const router = useRouter();
 const toast = useToast();
 const { t, te } = useI18n();
-const { token } = useAuth();
+const { token, user } = useAuth(); // Дістаємо user для номера телефону
 const isSubmitting = ref(false);
+const DRAFT_STORAGE_KEY = 'newListingDraft';
 
 const API_HOST = 'https://backend-auto-market.onrender.com/api';
 
+// --- СПИСКИ ДАНИХ ---
 const lists = ref({
   vehicleTypes: [],
   brands: [],
@@ -326,6 +331,7 @@ const lists = ref({
   gearTypes: [],
 });
 
+// --- ДАНІ ОГОЛОШЕННЯ ---
 const listing = ref({
   vehicleTypeId: null,
   brandId: null,
@@ -390,23 +396,28 @@ const years = computed(() => {
   return yearList;
 });
 
+// --- ФУНКЦІЯ ДЛЯ ПЕРЕКЛАДУ (з покращеним форматуванням ключів) ---
 function getLabel(category, serverName) {
   if (!serverName) return '';
+  // Формуємо ключ: "Bila Tserkva" -> "bila_tserkva"
   const keyRaw = serverName.toLowerCase()
-    .replace(/\s+/g, '_')     // пробіли на _
-    .replace(/\//g, '_')      // слеші на _
-    .replace(/,/g, '')        // коми видаляємо
-    .replace(/\./g, '');      // крапки видаляємо
+    .replace(/\s+/g, '_')     
+    .replace(/\//g, '_')      
+    .replace(/,/g, '')        
+    .replace(/\./g, '');      
     
   const fullKey = `options.${category}.${keyRaw}`;
 
+  // Перевіряємо, чи існує переклад
   if (te(fullKey)) {
-    return t(fullKey); // Якщо є - повертаємо переклад (напр. "Київ")
+    return t(fullKey); 
   }
   
+  // Якщо перекладу немає - повертаємо оригінальну назву з бази
   return serverName; 
 }
 
+// --- ЗАВАНТАЖЕННЯ БАЗОВИХ СПИСКІВ ---
 onMounted(async () => {
   try {
     const [types, reg, cond, fuels, gears] = await Promise.all([
@@ -427,7 +438,9 @@ onMounted(async () => {
   }
 });
 
-// Watchers (без змін)
+// --- WATCHERS ---
+
+// 1. Тип -> Бренди
 watch(() => listing.value.vehicleTypeId, async (newId) => {
   listing.value.brandId = null;
   listing.value.modelId = null;
@@ -439,16 +452,29 @@ watch(() => listing.value.vehicleTypeId, async (newId) => {
   } catch (e) { console.error(e); }
 });
 
-watch(() => listing.value.brandId, async (newId) => {
+// 2. Бренд -> Моделі (ОНОВЛЕНО: ВИКОРИСТОВУЄМО НОВИЙ API З ФІЛЬТРАЦІЄЮ)
+watch(() => listing.value.brandId, async (newBrandId) => {
   listing.value.modelId = null;
   lists.value.models = [];
-  if (!newId) return;
+  
+  if (!newBrandId) return;
+
   try {
-    const res = await axios.get(`${API_HOST}/VehicleModel`);
+    // Передаємо і brandId, і vehicleTypeId для точної фільтрації
+    const currentVehicleTypeId = listing.value.vehicleTypeId;
+    const res = await axios.get(`${API_HOST}/VehicleModel`, {
+      params: {
+        brandId: newBrandId,
+        vehicleTypeId: currentVehicleTypeId
+      }
+    });
     lists.value.models = res.data;
-  } catch (e) { console.error(e); }
+  } catch (e) { 
+    console.error("Помилка завантаження моделей:", e); 
+  }
 });
 
+// 3. Модель -> Типи кузова
 watch(() => listing.value.modelId, async (newId) => {
   listing.value.bodyTypeId = null;
   lists.value.bodyTypes = [];
@@ -459,6 +485,7 @@ watch(() => listing.value.modelId, async (newId) => {
   } catch (e) { console.error(e); }
 });
 
+// 4. Регіон -> Міста
 watch(() => listing.value.regionId, async (newId) => {
   listing.value.cityId = null;
   lists.value.cities = [];
@@ -469,6 +496,8 @@ watch(() => listing.value.regionId, async (newId) => {
   } catch (e) { console.error(e); }
 });
 
+
+// --- НАВІГАЦІЯ І ВІДПРАВКА ---
 function updateFiles(files) {
   listingPhotos.value = files;
 }
@@ -479,7 +508,7 @@ function prevStep() {
 
 function nextStep() {
   if (currentStep.value === 1) {
-    if (!listing.value.vehicleTypeId || !listing.value.brandId || !listing.value.modelId || !listing.value.regionId || !listing.value.cityId) {
+    if (!listing.value.vehicleTypeId || !listing.value.brandId || !listing.value.modelId || !listing.value.regionId || !listing.value.cityId || !listing.value.bodyTypeId) {
        toast.warning(t('createListing.toast.fillField', { field: 'Required fields' }));
        return;
     }
@@ -498,12 +527,17 @@ function nextStep() {
 
 function getFormData() {
   const formData = new FormData();
-  // Безпечне додавання: якщо null або undefined, відправляємо пустий рядок або ігноруємо
+  
+  // 1. Ідентифікатори (Foreign Keys)
   if (listing.value.modelId) formData.append('ModelId', listing.value.modelId);
   if (listing.value.bodyTypeId) formData.append('BodyTypeId', listing.value.bodyTypeId);
   if (listing.value.conditionId) formData.append('ConditionId', listing.value.conditionId);
   if (listing.value.cityId) formData.append('CityId', listing.value.cityId);
+  // Обов'язково додаємо ці поля, щоб уникнути помилки FK = 0
+  if (listing.value.fuelTypeId) formData.append('FuelTypeId', listing.value.fuelTypeId);
+  if (listing.value.gearTypeId) formData.append('GearTypeId', listing.value.gearTypeId);
   
+  // 2. Інші дані
   formData.append('Year', listing.value.year);
   formData.append('Mileage', listing.value.mileage || 0);
   formData.append('Price', listing.value.price || 0);
@@ -511,6 +545,11 @@ function getFormData() {
   formData.append('ColorHex', listing.value.colorHex || '#000000'); 
   formData.append('HasAccident', listing.value.inAccident);
 
+  // Додаємо номер телефону (беремо з профілю або заглушку)
+  const userPhone = user?.value?.phoneNumber || '0000000000';
+  formData.append('Number', userPhone);
+
+  // 3. Фото
   if (listingPhotos.value.length) {
     listingPhotos.value.forEach((file) => {
         formData.append('Photos', file);
@@ -519,21 +558,20 @@ function getFormData() {
   return formData;
 }
 
-// --- ЗБЕРЕЖЕННЯ ЧЕРНЕТКИ (DRAFT) ---
+// --- ЗБЕРЕЖЕННЯ ЧЕРНЕТКИ ---
 async function handleDraft() {
   if (isSubmitting.value) return;
   isSubmitting.value = true;
   
   try {
     const formData = getFormData();
-    // Відправляємо на endpoint чернетки
     await axios.post(`${API_HOST}/Listing/draft`, formData, {
       headers: {
         'Authorization': `Bearer ${token.value}`,
         'Content-Type': 'multipart/form-data'
       }
     });
-    toast.success(t('createListing.toast.draftSaved')); // Потрібно додати цей ключ в JSON
+    toast.success(t('createListing.toast.draftSaved'));
   } catch (error) {
     console.error("Помилка чернетки:", error);
     toast.error("Не вдалося зберегти чернетку");
@@ -544,7 +582,7 @@ async function handleDraft() {
 
 // --- ПУБЛІКАЦІЯ ---
 async function handleSubmit() {
- if (isSubmitting.value) return;
+  if (isSubmitting.value) return;
   
   if (listingPhotos.value.length === 0) {
       toast.warning(t('createListing.toast.addPhoto'));
@@ -553,70 +591,28 @@ async function handleSubmit() {
 
   isSubmitting.value = true;
 
-  const formData = new FormData();
-
-  // --- 1. ИДЕНТИФИКАТОРЫ (Защита от "null" строк) ---
-  // Если ID нет, мы просто НЕ добавляем поле в FormData, 
-  // чтобы C# получил null/default, а не ошибку парсинга строки "null"
-  if (listing.value.modelId) formData.append('ModelId', listing.value.modelId);
-  if (listing.value.bodyTypeId) formData.append('BodyTypeId', listing.value.bodyTypeId);
-  if (listing.value.conditionId) formData.append('ConditionId', listing.value.conditionId);
-  if (listing.value.cityId) formData.append('CityId', listing.value.cityId);
-  if (listing.value.brandId) formData.append('BrandId', listing.value.brandId); // На всякий случай
-   formData.append('FuelTypeId', String(listing.value.fuelTypeId));
-   formData.append('GearTypeId', String(listing.value.gearTypeId));
-  // --- 2. ОБЯЗАТЕЛЬНЫЕ ПОЛЯ ---
-  formData.append('Year', listing.value.year);
-  formData.append('Mileage', listing.value.mileage || 0);
-  formData.append('Price', listing.value.price || 0);
-  formData.append('Description', listing.value.description || '');
-  formData.append('ColorHex', listing.value.colorHex || '#000000'); 
-  formData.append('HasAccident', listing.value.inAccident);
-
- 
-  const { user } = useAuth(); // Получаем юзера, если нужно
-  formData.append('Number', user?.value?.phoneNumber || '0000000000'); 
-
-  // --- 3. ФОТОГРАФИИ ---
-  listingPhotos.value.forEach((file) => {
-      formData.append('Photos', file);
-  });
-
-  // ЛОГ ДЛЯ ПРОВЕРКИ
-  console.log("--- ОТПРАВКА ---");
-  for (var pair of formData.entries()) {
-      console.log(pair[0]+ ', ' + pair[1]); 
-  }
-
   try {
-    const response = await axios.post(`${API_HOST}/Listing`, formData, {
+    const formData = getFormData();
+    await axios.post(`${API_HOST}/Listing`, formData, {
       headers: {
         'Authorization': `Bearer ${token.value}`,
         'Content-Type': 'multipart/form-data'
       }
     });
     
-    console.log("УСПЕХ:", response.data);
     toast.success(t('createListing.toast.submitSuccess'));
     localStorage.removeItem(DRAFT_STORAGE_KEY);
     router.push('/profile');
     
   } catch (error) {
-    console.error("ПОМИЛКА:", error);
-    
+    console.error("Помилка створення:", error);
     let msg = "Помилка при створенні оголошення";
-    
-    if (error.response && error.response.data) {
-        console.log("SERVER ERROR DATA:", error.response.data); // Смотреть сюда в консоли!
-        
-        if (error.response.data.errors) {
-           
-            msg = Object.values(error.response.data.errors).flat().join('\n');
-        } else if (typeof error.response.data === 'string') {
-            msg = error.response.data;
-        } else if (error.response.data.title) {
-            msg = error.response.data.title;
-        }
+    if (error.response?.data?.title) {
+        msg = error.response.data.title;
+    } else if (typeof error.response?.data === 'string') {
+        msg = error.response.data;
+    } else if (error.response?.data?.errors) {
+         msg = Object.values(error.response.data.errors).flat().join('\n');
     }
     toast.error(msg);
   } finally {
@@ -626,6 +622,7 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
+/* Стилі без змін */
 .create-listing-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;

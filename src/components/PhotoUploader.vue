@@ -1,64 +1,64 @@
 <template>
-   <div class="photo-uploader">
-      <div class="upload-area">
-         <label 
-            for="file-input" 
-            class="upload-label"
-            :class="{ 'is-dragging': isDragging }"
-            @dragover.prevent="onDragOver"
-            @dragleave.prevent="onDragLeave"
-            @drop.prevent="onDrop"
-         >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            
-                    <span>{{ $t('uploader.label', { count: maxFiles }) }}</span>
-         </label>
-         <input 
-            id="file-input"
-            type="file" 
-            multiple 
-            accept="image/*" 
-            @change="handleFileChange"
-            ref="fileInput"
-         />
-      </div>
-      
-      <div v-if="imagePreviews.length > 0" class="previews-grid">
-         <div 
-            v-for="(preview, index) in imagePreviews" 
-            :key="index" 
-            class="preview-item"
-         >
-                    <img :src="preview" :alt="$t('uploader.previewAlt')" @click="openModal(preview)" />
+  <div class="photo-uploader">
+    <div class="upload-area">
+      <label 
+        for="file-input" 
+        class="upload-label"
+        :class="{ 'is-dragging': isDragging }"
+        @dragover.prevent="onDragOver"
+        @dragleave.prevent="onDragLeave"
+        @drop.prevent="onDrop"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        
+        <span>{{ $t('uploader.label', { count: maxFiles }) }}</span>
+      </label>
+      <input 
+        id="file-input"
+        type="file" 
+        multiple 
+        accept="image/*" 
+        @change="handleFileChange"
+        ref="fileInput"
+      />
+    </div>
+    
+    <div v-if="imagePreviews.length > 0" class="previews-grid">
+      <div 
+        v-for="(preview, index) in imagePreviews" 
+        :key="index" 
+        class="preview-item"
+      >
+        <img :src="preview" :alt="$t('uploader.previewAlt')" @click="openModal(preview)" />
         <button type="button" class="delete-btn" @click="removeImage(index)">
-               &times;
-            </button>
-         </div>
+          &times;
+        </button>
       </div>
+    </div>
 
-      <div v-if="isModalOpen" class="image-modal-overlay" @click="closeModal">
-         <div class="image-modal-content" @click.stop>
+    <div v-if="isModalOpen" class="image-modal-overlay" @click="closeModal">
+      <div class="image-modal-content" @click.stop>
         <button class="modal-close-btn" @click="closeModal">&times;</button>
         
         <img :src="currentImage" :alt="$t('uploader.modalAlt')" class="modal-image" />
-         </div>
       </div>
-   </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useToast } from 'vue-toastification';
-import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
+import { useI18n } from 'vue-i18n';
 
 const toast = useToast();
-const { t } = useI18n(); // 2. ОТРИМУЄМО ФУНКЦІЮ 't'
+const { t } = useI18n();
 
 const props = defineProps({
-   maxFiles: {
-      type: Number,
-      default: 5
-   }
+  maxFiles: {
+    type: Number,
+    default: 5
+  }
 });
 const emit = defineEmits(['files-updated']);
 
@@ -70,57 +70,63 @@ const isDragging = ref(false);
 const isModalOpen = ref(false);
 const currentImage = ref('');
 
+// НАЛАШТУВАННЯ РОЗМІРУ (наприклад, 10 МБ)
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 function openModal(imageSrc) {
-   currentImage.value = imageSrc;
-   isModalOpen.value = true;
-   document.body.style.overflow = 'hidden';
+  currentImage.value = imageSrc;
+  isModalOpen.value = true;
+  document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
-   isModalOpen.value = false;
-   currentImage.value = '';
-   document.body.style.overflow = '';
+  isModalOpen.value = false;
+  currentImage.value = '';
+  document.body.style.overflow = '';
 }
 
 function onDragOver() {
-   isDragging.value = true;
+  isDragging.value = true;
 }
 function onDragLeave() {
-   isDragging.value = false;
+  isDragging.value = false;
 }
 function onDrop(event) {
-   isDragging.value = false;
-   const files = Array.from(event.dataTransfer.files);
-   processFiles(files);
+  isDragging.value = false;
+  const files = Array.from(event.dataTransfer.files);
+  processFiles(files);
 }
 
 function handleFileChange(event) {
-   const files = Array.from(event.target.files);
-   processFiles(files);
-   
-   if (fileInput.value) {
-      fileInput.value.value = null;
-   }
+  const files = Array.from(event.target.files);
+  processFiles(files);
+  
+  if (fileInput.value) {
+    fileInput.value.value = null;
+  }
 }
 
 function processFiles(files) {
   if (!files) return;
 
   for (const file of files) {
+    // 1. Ліміт кількості
     if (selectedFiles.value.length >= props.maxFiles) {
       toast.warning(t('uploader.maxFilesWarning', { count: props.maxFiles }));
       break;
     }
     
+    // 2. Перевірка типу (тільки картинки)
     if (!file.type.startsWith('image/')) {
       toast.warning(t('uploader.imageOnlyWarning'));
       continue;
     }
 
-    const maxSizeInBytes = 5 * 1024 * 1024; 
-    if (file.size > maxSizeInBytes) {
-       toast.warning(`Файл "${file.name}" занадто великий (макс 5 МБ). Спробуйте стиснути його.`);
-       continue;
+    // 3. ‼️ НОВА ПЕРЕВІРКА РОЗМІРУ ‼️
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+       toast.warning(t('uploader.fileSizeWarning', { name: file.name, size: MAX_FILE_SIZE_MB }));
+       continue; // Пропускаємо цей файл, не додаємо його
     }
     
     selectedFiles.value.push(file);
@@ -134,164 +140,157 @@ function processFiles(files) {
   
   emit('files-updated', selectedFiles.value);
 }
+
 function removeImage(index) {
-   selectedFiles.value.splice(index, 1);
-   imagePreviews.value.splice(index, 1);
-   emit('files-updated', selectedFiles.value);
+  selectedFiles.value.splice(index, 1);
+  imagePreviews.value.splice(index, 1);
+  emit('files-updated', selectedFiles.value);
 }
 </script>
 
 <style scoped>
-
 .upload-label {
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   justify-content: center;
-   width: 100%;
-   min-height: 150px;
-   border-radius: 6px;
-   background-color: rgba(255,255,255,0.1); 
-   border: 2px dashed #555;
-   color: #fff;
-   cursor: pointer;
-   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 150px;
+  border-radius: 6px;
+  background-color: rgba(255,255,255,0.1); 
+  border: 2px dashed #555;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 .upload-label.is-dragging {
-   border-color: #ffd700;
-   background-color: rgba(255, 215, 0, 0.1);
+  border-color: #ffd700;
+  background-color: rgba(255, 215, 0, 0.1);
 }
 .upload-label:hover {
-   border-color: #ffd700;
-   background-color: rgba(255,255,255,0.15);
+  border-color: #ffd700;
+  background-color: rgba(255,255,255,0.15);
 }
 .upload-label svg {
-   width: 40px;
-   height: 40px;
-   margin-bottom: 10px;
-   stroke: #ffd700;
-   pointer-events: none; 
+  width: 40px;
+  height: 40px;
+  margin-bottom: 10px;
+  stroke: #ffd700;
+  pointer-events: none; 
 }
 .upload-label span {
-   font-weight: 500;
-   text-align: center;
-   pointer-events: none; 
-   max-width: 100%; 
-   box-sizing: border-box;
+  font-weight: 500;
+  text-align: center;
+  pointer-events: none; 
+  max-width: 100%; 
+  box-sizing: border-box;
 }
 #file-input {
-   display: none;
+  display: none;
 }
 .previews-grid {
-   display: grid;
-   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-   gap: 15px;
-   margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
 }
 .preview-item {
-   position: relative;
-   border-radius: 6px;
-   overflow: hidden;
-   border: 1px solid #555;
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #555;
 }
 .preview-item img {
-   width: 100%;
-   height: 100px;
-   object-fit: cover;
-   display: block;
-   cursor: zoom-in;
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+  cursor: zoom-in;
 }
-
-/* ‼️‼️ ================================== ‼️‼️ */
-/* ‼️          ВИПРАВЛЕНИЙ БЛОК           ‼️ */
-/* ‼️‼️ ================================== ‼️‼️ */
 .delete-btn {
-   position: absolute;
-   top: 5px;
-   right: 5px;
-   width: 24px;
-   height: 24px;
-   border-radius: 50%; 
-   background: rgba(0, 0, 0, 0.7);
-   color: white;
-   border: none;
-   font-size: 16px;
-   font-weight: bold;
-   cursor: pointer;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   padding: 0;
-   line-height: 1;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%; 
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
 }
 .delete-btn:hover {
-   background: #cc0000;
+  background: #cc0000;
 }
 
-/* ---
-  * СТИЛІ МОДАЛЬНОГО ВІКНА (без змін)
-  --- */
 .image-modal-overlay {
-   position: fixed;
-   top: 0;
-   left: 0;
-   width: 100%;
-   height: 100%;
-   background: rgba(0, 0, 0, 0.85);
-   backdrop-filter: blur(5px);
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   z-index: 10000;
-   overflow-y: auto;
-   padding: 40px 0; 
-   box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  overflow-y: auto;
+  padding: 40px 0; 
+  box-sizing: border-box;
 }
 
 .image-modal-content {
-   position: relative;
-   max-width: 90%;
-   max-height: 90vh;
-   display: flex;
-   justify-content: center;
-   align-items: center;
-   background-color: rgba(30, 30, 30, 0.7);
-   border-radius: 12px;
-   border: 2px solid rgba(255, 255, 255, 0.1);
-   box-shadow: 0 0 40px rgba(8,7,16,0.6);
-   padding: 20px;
-   box-sizing: border-box;
-   margin: auto 0; 
+  position: relative;
+  max-width: 90%;
+  max-height: 90vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(30, 30, 30, 0.7);
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 40px rgba(8,7,16,0.6);
+  padding: 20px;
+  box-sizing: border-box;
+  margin: auto 0; 
 }
 
 .modal-image {
-   max-width: 100%;
-   max-height: 100%;
-   object-fit: contain;
-   display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .modal-close-btn {
-   position: absolute;
-   top: 5px;
-   right: 5px;
-   background: #070101;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: #070101;
   color: white;
-   border: none;
-   border-radius: 50%;
-   width: 40px;
-   height: 40px;
-   font-size: 28px;
-   line-height: 1;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 28px;
+  line-height: 1;
   cursor: pointer;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   transition: background-color 0.3s;
-   z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+  z-index: 10001;
 }
 
 .modal-close-btn:hover {
-   background: #5f0707;
+  background: #5f0707;
 }
 </style>
