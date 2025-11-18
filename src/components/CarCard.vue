@@ -1,8 +1,13 @@
 <template>
   <div class="car-card" @mouseenter="pauseAutoplay" @mouseleave="startAutoplay">
     
-    <div class="card-image-wrapper">
+    <div class="card-image-wrapper" @wheel.prevent="handleWheel">
       
+      <div 
+        class="blur-background"
+        :style="{ backgroundImage: `url(${currentImageUrl || placeholderImage})` }"
+      ></div>
+
       <img 
         :src="currentImageUrl" 
         :alt="t('carCard.imageAlt')"
@@ -49,7 +54,7 @@
           <span>{{ t('fuelTypes.' + listing.fuel) }}</span>
         </div>
         <div class="spec-item">
-          <svg :title="t('carCard.specTransmission')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
+          <svg :title="t('carCard.specTransmission')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
           <span>{{ t('transmissionTypes.' + listing.transmission) }}</span>
         </div>
         
@@ -83,7 +88,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
@@ -101,8 +106,6 @@ const toast = useToast();
 const { t, locale } = useI18n();
 
 const currentImageIndex = ref(0);
-const autoplayInterval = ref(null);
-const autoplayTime = 3000;
 
 const hasImages = computed(() => 
   props.listing.images && props.listing.images.length > 0
@@ -126,24 +129,15 @@ function prevImage() {
     (currentImageIndex.value - 1 + props.listing.images.length) % props.listing.images.length;
 }
 
-function startAutoplay() {
-  if (hasImages.value && !autoplayInterval.value) { 
-    autoplayInterval.value = setInterval(nextImage, autoplayTime);
+function handleWheel(event) {
+  if (!hasImages.value) return;
+  
+  if (event.deltaY > 0) {
+    nextImage();
+  } else {
+    prevImage();
   }
 }
-
-function pauseAutoplay() {
-  clearInterval(autoplayInterval.value);
-  autoplayInterval.value = null;
-}
-
-onMounted(() => {
-  startAutoplay();
-});
-
-onUnmounted(() => {
-  pauseAutoplay();
-});
 
 const formattedPrice = computed(() => {
   if (!props.listing || typeof props.listing.price !== 'number') return t('carCard.priceNA');
@@ -157,9 +151,13 @@ function goToDetails() {
 function toggleFavorite() {
   toast.info(t('carCard.favoriteToast'));
 }
+
+function pauseAutoplay() {}
+function startAutoplay() {}
 </script>
 
 <style scoped>
+/* (Стилі .car-card, .card-image-wrapper, .price-tag, .carousel-btn - без змін) */
 .car-card {
   background-color: rgba(30, 30, 30, 0.7);
   border-radius: 12px;
@@ -180,10 +178,16 @@ function toggleFavorite() {
 .car-card:hover {
   border-color: rgba(255, 215, 0, 0.5);
 }
+
 .card-image-wrapper {
   position: relative;
   width: 100%;
   height: 200px;
+  overflow: hidden; 
+  background: #000; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 @media (min-width: 768px) {
   .card-image-wrapper {
@@ -192,12 +196,31 @@ function toggleFavorite() {
     flex-shrink: 0;
   }
 }
-.card-image-wrapper img {
+
+/* --- ВИПРАВЛЕННЯ КАРТИНОК: РОЗМИТИЙ ФОН --- */
+.blur-background {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  background-size: cover;
+  background-position: center;
+  filter: blur(15px) brightness(0.6); 
+  z-index: 1; 
+  transform: scale(1.1); 
+}
+.card-image-wrapper img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain; 
+  position: relative; 
+  z-index: 2;
   cursor: pointer;
 }
+
 .price-tag {
   position: absolute;
   bottom: 10px;
@@ -208,8 +231,9 @@ function toggleFavorite() {
   border-radius: 6px;
   font-weight: 600;
   font-size: 16px;
-  z-index: 2;
+  z-index: 3;
 }
+
 .carousel-btn {
   position: absolute;
   top: 50%;
@@ -222,7 +246,7 @@ function toggleFavorite() {
   height: 36px;
   font-size: 20px;
   cursor: pointer;
-  z-index: 2;
+  z-index: 3;
   opacity: 0;
   transition: opacity 0.3s ease, background 0.2s;
 }
@@ -238,6 +262,8 @@ function toggleFavorite() {
 .carousel-btn.next {
   right: 10px;
 }
+
+/* (Стилі .card-content, .card-title - без змін) */
 .card-content {
   padding: 20px;
   display: flex;
