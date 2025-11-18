@@ -254,6 +254,8 @@ const passwordForm = ref({
 
 const fileInput = ref(null); 
 const selectedFile = ref(null); 
+const initialAvatarUrl = ref(null); 
+
 const verificationCodeSent = ref(false); 
 const verificationCode = ref('');      
 const isLoadingEmail = ref(false);     
@@ -279,7 +281,6 @@ onMounted(async () => {
     });   
     
     const data = response.data;
-   
     console.log("Profile data received:", data); 
 
     // (Логіка заповнення user.value залишається без змін)
@@ -288,9 +289,10 @@ onMounted(async () => {
     user.value.email = data.email || '';
     user.value.address = data.address || '';
     user.value.bio = data.aboutYourself || ''; 
-    user.value.avatarUrl =  data.avatar?.url || null; 
+    user.value.avatarUrl = data.urlPhoto || null; 
     user.value.country = data.country || 'UA';
     user.value.isVerified = data.isVerified || false; 
+    initialAvatarUrl.value = data.urlPhoto || null; 
 
     if (data.dateOfBirth) {
       try {
@@ -321,7 +323,7 @@ onMounted(async () => {
 
   } catch (error) {
      console.error('Помилка завантаження профілю (Axios):', error);
- 
+     // 6. Локалізація блоку помилок
      let errorMessage = t('profile.errors.loadProfileDefault');
      if (error.response) {
        errorMessage = error.response.data?.message || error.response.data || t('profile.errors.serverError');
@@ -399,8 +401,8 @@ async function verifyCode() {
 }
 
 async function saveProfile() {
-  if (!user.value.firstName ) {
-    toast.warning(t('profile.profileTab.toast.nameRequired')); 
+  if (!user.value.firstName || !user.value.lastName) {
+    toast.warning(t('profile.profileTab.toast.nameRequired')); // 15. Локалізація
     return;
   }
   if (!user.value.phoneNumber) {
@@ -491,6 +493,7 @@ function onFileSelected(event) {
   if (!file.type.startsWith('image/')) {
       toast.error(t('profile.profileTab.toast.imageFileRequired')); // 21. Локалізація
       selectedFile.value = null; 
+      user.value.avatarUrl = initialAvatarUrl.value || null; 
       currentInput.value = ''; 
       return;
   }
@@ -517,12 +520,15 @@ async function changePassword() {
      return;
    }
 
- const CHANGE_PASSWORD_URL = `${API_BASE_URL}/change-password`; 
+ const CHANGE_PASSWORD_URL = `${API_BASE_URL}/ChangePassword`; 
  const payload = {
    Password: passwordForm.value.currentPassword,        
    NewPassword: passwordForm.value.newPassword,          
    PasswordConfirmation: passwordForm.value.confirmPassword 
  };
+
+ console.log(`Sending password change to ${CHANGE_PASSWORD_URL}`, payload);
+
  try {
    await axios.post(CHANGE_PASSWORD_URL, payload, {
        headers: { 
