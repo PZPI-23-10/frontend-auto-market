@@ -19,6 +19,11 @@
             
             <div class="photo-gallery">
               <div class="main-image">
+                <div 
+                  class="blur-background"
+                  :style="{ backgroundImage: `url(${selectedImageUrl || placeholderImage})` }"
+                ></div>
+
                 <img 
                   :src="selectedImageUrl" 
                   :alt="t('listingDetail.mainPhotoAlt')"
@@ -26,7 +31,8 @@
                   @click="openModal(selectedImageUrl)"
                 >
               </div>
-              <div class="thumbnails">
+
+              <div class="thumbnails" v-if="galleryImages.length > 1">
                 <div 
                   v-for="(img, index) in galleryImages" 
                   :key="index"
@@ -84,28 +90,28 @@
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 11h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1Z"/><path d="M18 11V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"/><path d="M6 11h4"/><path d="M6 15h2"/></svg>
                       {{ t('fields.fuel') }}
                     </span>
-                    <strong>{{ t('fuelTypes.' + listing.fuel) }}</strong>
+                    <strong>{{ t('options.fuel.' + listing.fuel) }}</strong>
                   </li>
                   <li>
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
                       {{ t('fields.transmission') }}
                     </span>
-                    <strong>{{ t('transmissionTypes.' + listing.transmission) }}</strong>
+                    <strong>{{ t('options.transmission.' + listing.transmission) }}</strong>
                   </li>
                   <li>
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 18.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-4.37c0-.3-.1-.59-.28-.84l-1.44-2A.5.5 0 0 1 4.5 10.5h15a.5.5 0 0 1 .22.49l-1.44 2c-.18.25-.28.54-.28.84Z"/><path d="M4 14.13V10.5a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 20 10.5v3.63"/><circle cx="6.5" cy="18.5" r="0.5"/><circle cx="17.5" cy="18.5" r="0.5"/></svg>
                       {{ t('fields.bodyType') }}
                     </span>
-                    <strong>{{ t('bodyTypes.' + listing.bodyType) }}</strong>
+                    <strong>{{ t('options.bodyType.' + listing.bodyType) }}</strong>
                   </li>
                   <li>
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 15v-4.32a2 2 0 0 1 1.18-1.83l6-3.46a2 2 0 0 1 1.64 0l6 3.46A2 2 0 0 1 21 10.68V15"/><path d="M5 18v-5h14v5"/></svg>
                       {{ t('fields.driveTrain') }}
                     </span>
-                    <strong>{{ t('driveTrainTypes.' + listing.driveTrain) }}</strong>
+                    <strong>{{ t('options.driveTrain.' + listing.driveTrain) }}</strong>
                   </li>
                   <li>
                     <span>
@@ -119,7 +125,7 @@
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 6-6"/><path d="M12 14c-1.88 1.88-5.12 1.88-7 0 1.88-1.88 1.88-5.12 0-7 1.88 1.88 5.12 1.88 7 0 1.88 1.88 1.88 5.12 0 7Z"/><path d="m14 12-6 6"/><path d="M14 12c1.88-1.88 5.12-1.88 7 0-1.88 1.88-1.88 5.12 0 7-1.88-1.88-5.12-1.88-7 0-1.88-1.88-1.88-5.12 0-7Z"/></svg>
                       {{ t('fields.color') }}
                     </span>
-                    <strong>{{ t('colors.' + listing.color) }}</strong>
+                    <strong>{{ t('options.color.' + listing.color) }}</strong>
                   </li>
                   <li>
                     <span>
@@ -133,14 +139,14 @@
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.2 0 .5 0 .7 0 1.4-1.2 2.1-2.8 2.1-4.4 0-3-2.5-5.4-5.5-5.4-1.6 0-3.1.7-4.1 1.9"/><path d="M22 12c0-1.6-.7-3.1-1.9-4.1-1.1-1-2.6-1.6-4.1-1.6-3 0-5.4 2.4-5.4 5.4 0 1.6.7 3.1 1.9 4.1.1 0 .3.1.5.1 5.5 0 10-4.5 10-10Z"/></svg>
                       {{ t('fields.paintwork') }}
                     </span>
-                    <strong>{{ t('paintworkStates.' + listing.paintwork) }}</strong>
+                    <strong>{{ t('options.paint.' + listing.paintwork) }}</strong>
                   </li>
                   <li>
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                       {{ t('fields.technicalCondition') }}
                     </span>
-                    <strong>{{ t('technicalStates.' + listing.technicalCondition) }}</strong>
+                    <strong>{{ t('options.techState.' + listing.technicalCondition) }}</strong>
                   </li>
                   <li>
                     <span>
@@ -153,54 +159,53 @@
               </div>
 
               <div class="filter-card comfort-card">
-                <h2>{{ t('comfort.title') }}</h2>
+                <h2>{{ t('createListing.steps.comfort') }}</h2>
                 <ul class="specs-list comfort-list">
-                  
                   <li :class="{ 'is-missing': !listing.comfort.airConditioning }">
                     <span>
-                      <svg v-if="listing.comfort.airConditioning" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      {{ t('comfort.airConditioning') }}
+                      <svg v-if="listing.comfort.airConditioning" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      {{ t('createListing.step3.ac') }}
                     </span>
                   </li>
                   <li :class="{ 'is-missing': !listing.comfort.climateControl }">
                     <span>
-                      <svg v-if="listing.comfort.climateControl" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      {{ t('comfort.climateControl') }}
+                      <svg v-if="listing.comfort.climateControl" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      {{ t('createListing.step3.climate') }}
                     </span>
                   </li>
                   <li :class="{ 'is-missing': !listing.comfort.heatedSeats }">
                     <span>
-                      <svg v-if="listing.comfort.heatedSeats" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      {{ t('comfort.heatedSeats') }}
+                      <svg v-if="listing.comfort.heatedSeats" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      {{ t('createListing.step3.heatedSeats') }}
                     </span>
                   </li>
                   <li :class="{ 'is-missing': !listing.comfort.rearCamera }">
                     <span>
-                      <svg v-if="listing.comfort.rearCamera" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      {{ t('comfort.rearCamera') }}
+                      <svg v-if="listing.comfort.rearCamera" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      {{ t('createListing.step3.rearCamera') }}
                     </span>
                   </li>
                   <li :class="{ 'is-missing': !listing.comfort.parkingSensors }">
                     <span>
-                      <svg v-if="listing.comfort.parkingSensors" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      {{ t('comfort.parkingSensors') }}
+                      <svg v-if="listing.comfort.parkingSensors" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      {{ t('createListing.step3.parkingSensors') }}
                     </span>
                   </li>
                   <li :class="{ 'is-missing': !listing.comfort.sunroof }">
                     <span>
-                      <svg v-if="listing.comfort.sunroof" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      {{ t('comfort.sunroof') }}
+                      <svg v-if="listing.comfort.sunroof" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      {{ t('createListing.step3.sunroof') }}
                     </span>
                   </li>
                 </ul>
                 <p v-if="!hasComfortOptions" class="no-comfort">
-                  {{ t('comfort.noOptions') }}
+                   -- Опції не вказані --
                 </p>
               </div>
             </div>
@@ -267,6 +272,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router'; 
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
+import axios from 'axios';
 import defaultAvatar from '@/assets/default-avatar.png'; 
 import placeholderImage from '@/assets/no-photo.png'; 
 
@@ -274,17 +280,151 @@ const route = useRoute();
 const toast = useToast();
 const { t, locale } = useI18n();
 
+const API_BASE = 'https://backend-auto-market.onrender.com/api';
+
 const isLoading = ref(true);
 const listing = ref(null); 
 
 const seller = ref({
-  name: 'Олександр Іваненко',
-  email: 'user@example.com',
-  phone: '+380 99 123 4567',
+  name: 'Завантаження...',
+  email: '',
+  phone: '',
   avatarUrl: null
 });
 
-// --- Логіка Галереї (без змін) ---
+function toCamelCase(str) {
+  if (!str) return '';
+  return str.toLowerCase().replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+}
+
+function mapApiToDetail(apiItem) {
+  // Логіка кольорів: якщо прийшов HEX, шукаємо його, якщо текст - lowercase
+  let colorKey = apiItem.colorHex || 'other';
+  // Якщо це не HEX (не починається з #), то це назва (Black -> black)
+  if (!colorKey.startsWith('#')) {
+      colorKey = colorKey.toLowerCase();
+  }
+
+  // Логіка приводу: якщо пусто, повертаємо null, щоб не було "options.driveTrain."
+  const driveTrainKey = apiItem.driveType?.name 
+    ? apiItem.driveType.name.toLowerCase() 
+    : 'unknown'; 
+
+  // Логіка стану фарби: API може дати "AsNew", а в JSON "asNew"
+  // Спробуємо привести до camelCase, якщо це одне слово - просто lowercase
+  let paintKey = apiItem.paintwork || 'used';
+  paintKey = paintKey.charAt(0).toLowerCase() + paintKey.slice(1); // AsNew -> asNew
+
+  return {
+    id: apiItem.id,
+    userId: apiItem.userId, // !!! Зберігаємо ID власника для запиту
+    brand: apiItem.brand?.name || 'Unknown',
+    model: apiItem.model?.name || 'Unknown',
+    year: apiItem.year,
+    mileage: apiItem.mileage,
+    price: apiItem.price,
+    currency: apiItem.currency || 'USD',
+    location: apiItem.city?.name || apiItem.region?.name || 'Україна',
+    
+    // Технічні характеристики
+    fuel: (apiItem.fuelType?.name || '').toLowerCase(),
+    transmission: (apiItem.gearType?.name || '').toLowerCase(),
+    bodyType: (apiItem.bodyType?.name || '').toLowerCase(),
+    driveTrain: driveTrainKey,
+    engineSize: apiItem.engineSize || 0,
+    color: colorKey,
+    
+    // Стан
+    metallic: apiItem.isMetallic || false,
+    inAccident: apiItem.hasAccident || false, 
+    paintwork: paintKey, 
+    technicalCondition: (apiItem.condition?.name || 'undamaged').toLowerCase().replace(/\s+/g, '_'),
+
+    // Медіа
+    images: (apiItem.photoUrls && apiItem.photoUrls.length > 0) ? apiItem.photoUrls : [placeholderImage],
+    description: apiItem.description || '',
+
+    // Комфорт
+    comfort: {
+      airConditioning: apiItem.comfort?.airConditioning || false,
+      climateControl: apiItem.comfort?.climateControl || false,
+      heatedSeats: apiItem.comfort?.heatedSeats || false,
+      rearCamera: apiItem.comfort?.rearCamera || false,
+      parkingSensors: apiItem.comfort?.parkingSensors || false,
+      sunroof: apiItem.comfort?.sunroof || false
+    }
+  };
+}
+
+onMounted(async () => {
+  isLoading.value = true;
+  const carId = route.params.id;
+
+  try {
+    // 1. Отримуємо ОГОЛОШЕННЯ
+    const response = await axios.get(`${API_BASE}/Listing/${carId}`);
+    
+    if (response.data) {
+      listing.value = mapApiToDetail(response.data);
+      
+      // Заповнюємо телефон з оголошення як резервний варіант
+      if (response.data.number) {
+          seller.value.phone = response.data.number;
+      }
+
+      // 2. Отримуємо ПРОДАВЦЯ
+      // Якщо в оголошенні є userId, робимо запит на профіль
+      if (listing.value.userId) {
+        try {
+          // ВИПРАВЛЕННЯ ТУТ:
+          // Замість .../Profile/3 робимо .../Profile?userId=3
+          const profileRes = await axios.get(`${API_BASE}/Profile`, { 
+            params: { 
+              userId: listing.value.userId // Переконайтеся, що параметр називається саме userId (або id)
+            } 
+          });
+          
+          if (profileRes.data) {
+             const p = profileRes.data;
+             
+             // Формуємо гарне ім'я
+             seller.value.name = p.firstName 
+                 ? `${p.firstName} ${p.lastName || ''}` 
+                 : (p.userName || 'Продавець');
+                 
+             seller.value.email = p.email || 'Приховано';
+             
+             // Якщо у профілі є телефон - він пріоритетний
+             if (p.phoneNumber) {
+                 seller.value.phone = p.phoneNumber;
+             }
+             
+             seller.value.avatarUrl = p.avatarUrl || null;
+          }
+        } catch (profileError) {
+          console.warn("Не вдалося отримати профіль продавця (використовуємо дефолт):", profileError);
+        }
+      }
+
+      toast.success(t('listingDetail.loadSuccess'));
+    } 
+  } catch (error) {
+    console.error("API Error:", error);
+    toast.error(t('listingDetail.loadError'));
+    listing.value = null;
+  } finally {
+    isLoading.value = false;
+  }
+});
+
+const formattedPrice = computed(() => {
+  if (!listing.value) return '';
+  return `${listing.value.price.toLocaleString(locale.value)} ${listing.value.currency}`;
+});
+const hasComfortOptions = computed(() => {
+  if (!listing.value || !listing.value.comfort) return false;
+  return Object.values(listing.value.comfort).some(value => value === true);
+});
 const selectedImageIndex = ref(0);
 const galleryImages = computed(() => {
   if (listing.value && listing.value.images && listing.value.images.length > 0) {
@@ -292,14 +432,8 @@ const galleryImages = computed(() => {
   }
   return [placeholderImage];
 });
-const selectedImageUrl = computed(() => {
-  return galleryImages.value[selectedImageIndex.value];
-});
-function selectImage(index) {
-  selectedImageIndex.value = index;
-}
-
-// --- Логіка Модального вікна (без змін) ---
+const selectedImageUrl = computed(() => galleryImages.value[selectedImageIndex.value]);
+function selectImage(index) { selectedImageIndex.value = index; }
 const isModalOpen = ref(false);
 const currentImageInModal = ref(''); 
 function openModal(imageSrc) {
@@ -312,491 +446,403 @@ function closeModal() {
   currentImageInModal.value = '';
   document.body.style.overflow = '';
 }
-
-// ---
-// (МОК) "База даних" (ОНОВЛЕНО З УСІМА ПОЛЯМИ)
-// ---
-const mockCars = [
-    { 
-      id: 1, brand: 'Audi', model: 'A6', year: 2020, mileage: 50, fuel: 'diesel', price: 35000, currency: 'USD', location: 'Київ', 
-      transmission: 'automatic', bodyType: 'sedan', color: 'black', driveTrain: 'full', engineSize: 2.0, 
-      metallic: true, inAccident: false, paintwork: 'like_new', technicalCondition: 'full',
-      images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800', 'https://images.unsplash.com/photo-1612999332206-819194885c3b?q=80&w=800'], 
-      description: 'Чудовий стан, повна комплектація, один власник.',
-      comfort: { airConditioning: true, climateControl: true, heatedSeats: true, rearCamera: true, parkingSensors: true, sunroof: true }
-    },
-    { 
-      id: 2, brand: 'Tesla', model: 'Model 3', year: 2022, mileage: 15, fuel: 'electric', price: 40000, currency: 'USD', location: 'Львів', 
-      transmission: 'automatic', bodyType: 'sedan', color: 'white', driveTrain: 'full', engineSize: 0, 
-      metallic: false, inAccident: false, paintwork: 'like_new', technicalCondition: 'full',
-      images: ['https://images.unsplash.com/photo-1554844078-f24c7694d509?q=80&w=800'], 
-      description: 'Майже нова, батарея 98%. Автопілот.',
-      comfort: { airConditioning: true, climateControl: true, heatedSeats: true, rearCamera: true, parkingSensors: true, sunroof: false }
-    },
-    { 
-      id: 3, brand: 'BMW', model: 'X5', year: 2019, mileage: 80, fuel: 'petrol', price: 45000, currency: 'USD', location: 'Одеса', 
-      transmission: 'automatic', bodyType: 'suv', color: 'blue', driveTrain: 'full', engineSize: 3.0, 
-      metallic: true, inAccident: true, paintwork: 'traces', technicalCondition: 'repair_needed',
-      images: ['https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=800'], 
-      description: 'M-пакет, панорама. Після незначного ДТП (було замінено крило).',
-      comfort: { airConditioning: true, climateControl: true, heatedSeats: true, rearCamera: false, parkingSensors: true, sunroof: true }
-    },
-    { 
-      id: 4, brand: 'Volkswagen', model: 'Passat', year: 2018, mileage: 120, fuel: 'diesel', price: 22000, currency: 'USD', location: 'Харків', 
-      transmission: 'manual', bodyType: 'universal', color: 'grey', driveTrain: 'front', engineSize: 2.0, 
-      metallic: false, inAccident: false, paintwork: 'scratches', technicalCondition: 'full',
-      images: [], 
-      description: 'Робоча машина, є нюанси по кузову.',
-      comfort: { airConditioning: true, climateControl: false, heatedSeats: false, rearCamera: false, parkingSensors: false, sunroof: false }
-    },
-];
-
-// (МОК) Завантаження даних (без змін)
-onMounted(() => {
-  isLoading.value = true;
-  const carId = parseInt(route.params.id); 
-  console.log(`(Симуляція) Запит на бекенд: /api/listing/${carId}`);
-  setTimeout(() => { 
-    const foundCar = mockCars.find(car => car.id === carId); 
-    if (foundCar) {
-      listing.value = foundCar;
-      toast.success(t('listingDetail.loadSuccess'));
-    } else {
-      toast.error(t('listingDetail.loadError'));
-    }
-    isLoading.value = false;
-  }, 1000); 
-});
-
-const formattedPrice = computed(() => {
-  if (!listing.value) return '';
-  return `${listing.value.price.toLocaleString(locale.value)} ${listing.value.currency}`;
-});
-
-// Нова 'computed' для перевірки, чи є хоч одна опція комфорту
-const hasComfortOptions = computed(() => {
-  if (!listing.value || !listing.value.comfort) return false;
-  // Перевіряємо, чи хоча б одне значення в 'comfort' === true
-  return Object.values(listing.value.comfort).some(value => value === true);
-});
-
 </script>
-
 <style scoped>
-/* (Фон, контейнер, картки, спіннер - без змін) */
+/* --- ГЛОБАЛЬНИЙ КОНТЕЙНЕР СТОРІНКИ --- */
 .detail-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
+  background-attachment: fixed; /* Паралакс ефект */
   min-height: 100vh;
   position: relative;
   padding: 100px 20px 40px 20px;
   font-family: 'Open Sans', sans-serif;
   color: #fff;
 }
+
+/* Темне затемнення фону */
 .detail-view::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.75); /* Трохи темніше для кращого контрасту */
   z-index: 0;
 }
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
   z-index: 1;
 }
-.form-card,
-.filter-card,
+
+/* --- ЗАГАЛЬНІ СТИЛІ КАРТОК --- */
+.form-card, 
+.filter-card, 
 .loading-card {
-  background-color: rgba(30, 30, 30, 0.7);
+  background-color: rgba(30, 30, 30, 0.7); /* Напівпрозорий фон */
   border-radius: 12px;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 40px rgba(8,7,16,0.6);
+  backdrop-filter: blur(12px); /* Ефект матового скла */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   padding: 30px;
-}
-.loading-card {
-  text-align: center;
-  padding: 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.loading-card h2 {
-  margin-top: 20px;
-}
-.form-card h2 {
-  margin-top: 0;
   margin-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding-bottom: 10px;
-  font-weight: 500;
 }
 
-/* * ОНОВЛЕНИЙ МАКЕТ СТОРІНКИ 
- * (Галерея + (Характеристики | Опис)) + (Сайдбар)
-*/
+.form-card h2, 
+.filter-card h2,
+.comfort-card h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 10px;
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+}
+
+/* --- МАКЕТ СТОРІНКИ (GRID) --- */
 .page-layout {
   display: grid;
-  grid-template-columns: 1fr; /* 1 колонка на мобілках */
+  grid-template-columns: 1fr; /* Мобільна версія: 1 колонка */
   gap: 25px;
 }
+
 @media (min-width: 992px) {
   .page-layout {
-    /* На десктопі: 3 частини для контенту, 1 для сайдбару */
-    grid-template-columns: 3fr 1fr;
+    grid-template-columns: 3fr 1fr; /* Десктоп: Контент (широко) | Сайдбар (вузько) */
     align-items: start;
   }
 }
 
-.main-content {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-.description-text {
-  font-size: 16px;
-  line-height: 1.7;
-  color: #eee;
-  white-space: pre-wrap; 
-}
-
-/* * НОВИЙ МАКЕТ (Характеристики + Опис)
- */
-.specs-desc-layout {
-  display: grid;
-  grid-template-columns: 1fr; /* 1 колонка на мобілках */
-  gap: 25px;
-  align-items: start;
-}
-@media (min-width: 768px) { 
-  /* На планшетах і десктопах - 2 колонки */
-  .specs-desc-layout {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.specs-column {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-.desc-column {
-  /* "Прилипає" під галереєю */
-  position: sticky;
-  top: 100px;
-  align-self: start;
-}
-
-/* (Сайдбар, ціна - без змін) */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  position: sticky;
-  top: 100px;
-  align-self: start;
-}
-.price {
-  font-size: 36px;
-  font-weight: 700;
-  color: #ffd700;
-  margin: 0;
-}
-.location {
-  font-size: 16px;
-  color: #ccc;
-  margin: 5px 0 20px 0;
-}
-
-/* (Галерея - без змін) */
+/* --- ГАЛЕРЕЯ (MAIN IMAGE + BLUR) --- */
 .main-image {
+  position: relative;
   width: 100%;
-  height: auto;
-  max-height: 500px;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #000;
+  height: 500px; /* Фіксована висота на десктопі */
+  border-radius: 12px;
+  overflow: hidden; /* Обрізаємо розмиття, що виходить за межі */
+  background: #0e0e0e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #333;
 }
+
+.blur-background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(30px) brightness(0.7); /* Сильне розмиття + затемнення */
+  transform: scale(1.2); /* Збільшуємо, щоб прибрати білі краї блюру */
+  z-index: 0;
+}
+
 .main-image img {
+  position: relative;
+  z-index: 1; /* Фото поверх розмиття */
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  min-height: 300px;
+  object-fit: contain; /* Вписуємо фото повністю */
   cursor: zoom-in;
+  transition: transform 0.3s ease;
 }
+
+.main-image:hover img {
+  transform: scale(1.02); /* Легкий зум при наведенні */
+}
+
+/* Мініатюри */
 .thumbnails {
   display: flex;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: 15px;
 }
+
 .thumb-item {
   width: 100px;
   height: 70px;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
-  border: 3px solid #555;
+  border: 2px solid transparent;
   cursor: pointer;
-  transition: border-color 0.3s;
+  transition: all 0.2s ease;
+  opacity: 0.7;
 }
+
 .thumb-item:hover {
+  opacity: 1;
   border-color: #ffd700;
 }
+
 .thumb-item.active {
-  border-color: #cc0000;
+  opacity: 1;
+  border-color: #cc0000; /* Активний колір */
+  box-shadow: 0 0 10px rgba(204, 0, 0, 0.5);
 }
+
 .thumb-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.spinner {
-  width: 60px;
-  height: 60px;
-  border: 5px solid #555;
-  border-top-color: #ffd700;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+
+@media (max-width: 768px) {
+  .main-image {
+    height: 300px; /* Менша висота для мобільних */
+  }
+  .thumb-item {
+    width: 80px;
+    height: 60px;
   }
 }
- 
-/* (Картка Продавця - без змін) */
-.seller-card {
-  padding-top: 20px;
-  padding-bottom: 20px;
+
+/* --- ХАРАКТЕРИСТИКИ + ОПИС (GRID) --- */
+.specs-desc-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 25px;
+  align-items: start;
+  margin-top: 25px;
 }
-.seller-card h4 {
-  font-size: 16px;
+
+@media (min-width: 768px) {
+  .specs-desc-layout {
+    grid-template-columns: 1fr 1fr; /* Дві колонки: Характеристики | Комфорт+Опис */
+  }
+}
+
+/* Список характеристик */
+.specs-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.specs-list li {
+  display: grid;
+  grid-template-columns: auto 1fr; /* Іконка+Назва | Значення */
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+}
+
+.specs-list li:last-child {
+  border-bottom: none;
+}
+
+.specs-list li span {
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Відступ іконки від тексту */
+}
+
+.specs-list li strong {
+  color: #fff;
   font-weight: 600;
-  margin: 0 0 15px 0;
-  color: #ccc;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 10px;
+  text-align: right; /* Значення праворуч */
 }
+
+.specs-list li svg {
+  width: 18px;
+  height: 18px;
+  stroke: #ffd700; /* Золоті іконки */
+  stroke-width: 2;
+}
+
+/* --- СПИСОК КОМФОРТУ --- */
+.comfort-list li {
+  display: flex; /* Тут краще Flex */
+  justify-content: flex-start;
+  padding: 8px 0;
+  border-bottom: none;
+}
+
+.comfort-list li .comfort-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.comfort-list li .comfort-icon.check { stroke: #4cd137; } /* Зелений */
+.comfort-list li .comfort-icon.cross { stroke: #e84118; } /* Червоний */
+
+.comfort-list li.is-missing {
+  opacity: 0.4; /* Тьмяний для відсутніх опцій */
+  text-decoration: line-through; /* Закреслення (опціонально) */
+}
+
+.no-comfort {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* --- ОПИС --- */
+.description-text {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #e0e0e0;
+  white-space: pre-wrap; /* Зберігає абзаци */
+}
+
+/* --- САЙДБАР (ЦІНА ТА ПРОДАВЕЦЬ) --- */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 20px; /* Прилипання при скролі */
+}
+
+.price {
+  font-size: 32px;
+  font-weight: 800;
+  color: #ffd700;
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(255, 215, 0, 0.2);
+}
+
+.location {
+  font-size: 15px;
+  color: #ccc;
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Картка продавця */
+.seller-card h4 {
+  font-size: 14px;
+  text-transform: uppercase;
+  color: #888;
+  letter-spacing: 1px;
+  border-bottom: 1px solid #444;
+}
+
 .seller-info {
   display: flex;
   align-items: center;
   gap: 15px;
   margin-bottom: 20px;
 }
+
 .seller-avatar {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #555;
+  border: 2px solid #ffd700;
 }
-.seller-details {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
+
 .seller-details strong {
-  font-size: 16px;
-  font-weight: 600;
+  display: block;
+  font-size: 18px;
   color: #fff;
+  margin-bottom: 4px;
 }
-.seller-contacts {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 14px;
-}
+
 .contact-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 5px 0;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.1);
+  font-size: 14px;
 }
-.contact-item span {
-  color: #ccc;
-}
+
+.contact-item span { color: #aaa; }
 .contact-item a {
   color: #ffd700;
   text-decoration: none;
   font-weight: 600;
 }
-.contact-item a:hover {
-  text-decoration: underline;
-}
+
 .message-btn {
-  font-family: 'Open Sans', sans-serif;
   width: 100%;
-  padding: 12px 0;
+  padding: 14px 0;
   border-radius: 6px;
   border: none;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   margin-top: 20px;
-  transition: 0.3s;
-  background-color: rgba(255,255,255,0.27);
+  background-color: #cc0000;
   color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: background 0.3s;
 }
+
 .message-btn:hover {
-  background-color: rgba(255,255,255,0.4);
+  background-color: #ff0000;
+  box-shadow: 0 4px 15px rgba(204, 0, 0, 0.4);
 }
 
-/* ---
- * ОНОВЛЕННЯ 1: СТИЛІ "ХАРАКТЕРИСТИКИ" (для вирівнювання)
- --- */
-.specs-card h2 {
-  margin-top: 0;
-  font-weight: 500;
-}
-.specs-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.specs-list li {
-  /* ВИКОРИСТОВУЄМО GRID ДЛЯ ВИРІВНЮВАННЯ */
-  display: grid; 
-  grid-template-columns: auto 1fr; /* (Іконка+Назва) | (Значення) */
-  justify-content: flex-start; /* Вирівнювання по лівому краю */
-  
-  align-items: center;
-  font-size: 14px;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  gap: 10px;
-}
-.specs-list li:last-child {
-  border-bottom: none;
-}
-.specs-list li span {
-  color: #ccc;
+/* --- ЗАВАНТАЖЕННЯ --- */
+.loading-card {
+  min-height: 300px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  word-break: break-word;
+  justify-content: center;
 }
-.specs-list li strong {
-  color: #fff;
-  font-weight: 600;
-  text-align: right;
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #ffd700;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
 }
-.specs-list li svg {
-  width: 18px;
-  height: 18px;
-  stroke: #ffd700;
-  flex-shrink: 0;
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* ---
- * ОНОВЛЕННЯ 2: СТИЛІ "КОМФОРТ" (Галки/Хрестики)
- --- */
-.comfort-card h2 {
-  margin-top: 0;
-  font-weight: 500;
-}
-/* Використовуємо той самий .specs-list, але трохи міняємо */
-.comfort-list li {
-  display: flex; /* Повертаємо Flex */
-  grid-template-columns: 1fr; /* Скидаємо Grid */
-  justify-content: flex-start;
-  border-bottom: none;
-  padding: 6px 0;
-  transition: opacity 0.3s;
-}
-/* Робимо відсутні опції тьмяними */
-.comfort-list li.is-missing {
-  opacity: 0.5;
-  color: #aaa;
-}
-.comfort-list li.is-missing span {
-  color: #aaa;
-}
-/* Іконки (спільне) */
-.comfort-list li .comfort-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-}
-/* Іконка "Галочка" (зелена) */
-.comfort-list li .comfort-icon.check {
-  stroke: #28a745;
-  stroke-width: 3;
-}
-/* Іконка "Хрестик" (червона) */
-.comfort-list li .comfort-icon.cross {
-  stroke: #cc0000;
-  stroke-width: 3;
-}
-.no-comfort {
-  font-size: 14px;
-  color: #ccc;
-  text-align: center;
-  padding: 10px 0;
-}
-
-
-/* (Модальне вікно - без змін) */
+/* --- МОДАЛЬНЕ ВІКНО --- */
 .image-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(5px);
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  overflow-y: auto;
-  padding: 40px 0; 
-  box-sizing: border-box;
+  animation: fadeIn 0.3s;
 }
+
 .image-modal-content {
   position: relative;
-  max-width: 90%;
-  max-height: 90vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(30, 30, 30, 0.7);
-  border-radius: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 40px rgba(8,7,16,0.6);
-  padding: 20px;
-  box-sizing: border-box;
-  margin: auto 0; 
+  max-width: 95%;
+  max-height: 95vh;
 }
+
 .modal-image {
   max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  display: block;
+  max-height: 90vh;
+  border-radius: 4px;
+  box-shadow: 0 0 50px rgba(0,0,0,0.8);
 }
+
 .modal-close-btn {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  background: #cc0000;
-  color: white;
+  top: -40px;
+  right: 0;
+  background: transparent;
+  color: #fff;
   border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 28px;
-  line-height: 1;
+  font-size: 40px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.3s;
-  z-index: 10001;
 }
-.modal-close-btn:hover {
-  background: #aa0000;
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 </style>
