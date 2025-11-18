@@ -185,18 +185,19 @@
           </section>
         </div>
 
-        <div v-if="activeTab === 'orders'" class="tab-pane">
+<div v-if="activeTab === 'orders'" class="tab-pane">
           
           <div class="tab-header">
-            <h2>{{ t('profile.ordersTab.title') }}</h2> <button @click="goToCreateListing" class="btn-primary add-listing-btn">
+            <h2>{{ t('profile.ordersTab.title') }}</h2>
+            <button @click="goToCreateListing" class="btn-primary add-listing-btn">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              Створити оголошення
+              {{ t('profile.ordersTab.create') }}
             </button>
           </div>
           
           <div v-if="isLoadingListings" class="loading-state">
             <div class="spinner"></div>
-            <p>Завантажуємо ваші авто...</p>
+            <p>{{ t('listingDetail.loading') }}</p>
           </div>
 
           <div v-else-if="userListings.length > 0" class="listings-list">
@@ -207,11 +208,11 @@
               <div class="listing-actions">
                 <button class="btn-action btn-edit" @click="editListing(car.id)">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                  Редагувати
+                  {{ t('profile.ordersTab.edit') }}
                 </button>
                 <button class="btn-action btn-delete" @click="deleteListing(car.id)">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  Видалити
+                  {{ t('profile.ordersTab.delete') }}
                 </button>
               </div>
             </div>
@@ -219,7 +220,7 @@
           </div>
 
           <div v-else class="no-results">
-            <p>У вас ще немає активних оголошень.</p>
+            <p>{{ t('profile.ordersTab.empty') }}</p>
           </div>
 
         </div>
@@ -253,7 +254,6 @@ const userListings = ref([]);
 
 const { userId, token, clearAuthData } = useAuth();
 
-// 3. ОНОВЛЕНО: Використання ключів для локалізації
 const countries = ref([
   { code: 'UA', nameKey: 'countries.ua', phoneCode: '380' },
   { code: 'PL', nameKey: 'countries.pl', phoneCode: '48' },
@@ -316,13 +316,11 @@ async function fetchUserListings() {
     const response = await axios.get(`${API_LISTING_BASE_URL}/user`, {
       headers: { 'Authorization': `Bearer ${token.value}` }
     });
-    
-    console.log('Отримані авто користувача:', response.data);
-    
     userListings.value = response.data.map(mapApiListingToCarCard);
-    
   } catch (error) {
     console.error('Помилка завантаження оголошень:', error);
+    // ПЕРЕКЛАД: "Не вдалося завантажити..."
+    toast.error(t('profile.ordersTab.loadFail'));
   } finally {
     isLoadingListings.value = false;
   }
@@ -339,20 +337,20 @@ function editListing(id) {
 }
 
 async function deleteListing(id) {
-  if (!confirm('Ви впевнені, що хочете видалити це оголошення?')) return;
+  if (!confirm(t('profile.ordersTab.deleteConfirm'))) return;
 
   try {
     await axios.delete(`${API_LISTING_BASE_URL}/${id}`, {
       headers: { 'Authorization': `Bearer ${token.value}` }
     });
     
-    toast.success('Оголошення видалено!');
+    toast.success(t('profile.ordersTab.deleteSuccess'));
     
     userListings.value = userListings.value.filter(item => item.id !== id);
     
   } catch (error) {
     console.error('Помилка видалення:', error);
-    toast.error('Не вдалося видалити оголошення.');
+    toast.error(t('profile.ordersTab.deleteFail'));
   }
 }
 

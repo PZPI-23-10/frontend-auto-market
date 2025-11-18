@@ -386,6 +386,18 @@
       "submitSuccess": "Listing published successfully!"
     }
   },
+"ordersTab": {
+      "title": "My Listings",
+      "create": "Create Listing",
+      "placeholder": "Here will be a list of your cars for sale or orders.",
+      "empty": "You don't have any active listings yet.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure you want to delete this listing?",
+      "deleteSuccess": "Listing deleted!",
+      "deleteFail": "Failed to delete listing.",
+      "loadFail": "Failed to load your listings."
+    },
   "options": {
     "fuel": {
       "petrol": "Petrol",
