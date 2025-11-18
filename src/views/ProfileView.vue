@@ -188,15 +188,30 @@
         <div v-if="activeTab === 'orders'" class="tab-pane">
           
           <div class="tab-header">
-            <h2>{{ t('profile.ordersTab.title') }}</h2>
-            <button @click="goToCreateListing" class="btn-primary add-listing-btn">
+            <h2>{{ t('profile.ordersTab.title') }}</h2> <button @click="goToCreateListing" class="btn-primary add-listing-btn">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              {{ t('profile.ordersTab.create') }}
+              Створити оголошення
             </button>
           </div>
           
-          <p>{{ t('profile.ordersTab.placeholder') }}</p>
+          <div v-if="isLoadingListings" class="loading-state">
+            <div class="spinner"></div>
+            <p>Завантажуємо ваші авто...</p>
           </div>
+
+          <div v-else-if="userListings.length > 0" class="listings-list">
+            <CarCard 
+              v-for="car in userListings" 
+              :key="car.id" 
+              :listing="car"
+            />
+          </div>
+
+          <div v-else class="no-results">
+            <p>У вас ще немає активних оголошень.</p>
+          </div>
+
+        </div>
 
       </main>
     </div>
@@ -204,13 +219,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch} from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
 import defaultAvatar from '@/assets/default-avatar.png'; 
 import axios from 'axios';
+import CarCard from '@/components/CarCard.vue';
+
 
 const toast = useToast();
 const { t } = useI18n(); // 2. ОТРИМАННЯ t
@@ -218,7 +235,10 @@ const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Auth';
 const API_PROFILE_BASE_URL = 'https://backend-auto-market.onrender.com/api/Profile'
 const VERIFY_EMAIL_URL = `${API_BASE_URL}/verify-email`;
 const SEND_VERIFICATION_URL = `${API_BASE_URL}/send-verification-email`;
+const API_LISTING_BASE_URL = 'https://backend-auto-market.onrender.com/api/Listing'; 
 const router = useRouter(); 
+const isLoadingListings = ref(false); 
+const userListings = ref([]);
 
 const { userId, token, clearAuthData } = useAuth();
 
@@ -258,6 +278,50 @@ const verificationCodeSent = ref(false);
 const verificationCode = ref('');      
 const isLoadingEmail = ref(false);     
 const isLoadingVerify = ref(false);    
+
+function mapApiListingToCarCard(apiItem) {
+  return {
+    id: apiItem.id,
+    brand: apiItem.brand?.name || 'Не вказано',
+    model: apiItem.model?.name || 'Не вказано',
+    year: apiItem.year,
+    mileage: apiItem.mileage,
+    price: apiItem.price,
+    currency: 'USD', 
+    fuel: apiItem.fuelType?.name || '',
+    transmission: apiItem.gearType?.name || '',
+    bodyType: apiItem.bodyType?.name || '',
+    location: apiItem.city?.name || apiItem.region?.name || 'Україна',
+    images: apiItem.photoUrls || [], 
+    mainImage: (apiItem.photoUrls && apiItem.photoUrls.length > 0) ? apiItem.photoUrls[0] : null,
+    color: apiItem.colorHex,
+    inAccident: apiItem.hasAccident
+  };
+}
+
+async function fetchUserListings() {
+  isLoadingListings.value = true;
+  try {
+    const response = await axios.get(`${API_LISTING_BASE_URL}/user`, {
+      headers: { 'Authorization': `Bearer ${token.value}` }
+    });
+    
+    console.log('Отримані авто користувача:', response.data);
+    
+    userListings.value = response.data.map(mapApiListingToCarCard);
+    
+  } catch (error) {
+    console.error('Помилка завантаження оголошень:', error);
+  } finally {
+    isLoadingListings.value = false;
+  }
+}
+
+watch(activeTab, (newTab) => {
+  if (newTab === 'orders') {
+    fetchUserListings(); // Завантажуємо тільки коли відкрили вкладку
+  }
+});
 
 const fullName = computed(() => {
   if (!user.value.firstName && !user.value.lastName) {
@@ -793,19 +857,23 @@ function goToCreateListing() {
   display: flex;
   gap: 10px;
 }
+
 .phone-group .input-group select {
   width: 150px;
   flex-shrink: 0;
 }
+
 .phone-group .input-group input {
   width: 100%;
 }
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
 }
+
 button {
   font-family: 'Open Sans', sans-serif;
   padding: 12px 20px; 
@@ -815,24 +883,30 @@ button {
   cursor: pointer;
   transition: 0.3s;
 }
+
 .btn-primary {
   background-color: #cc0000;
   color: #fff;
 }
+
 .btn-primary:hover {
   background-color: #aa0000;
 }
+
 .btn-secondary {
   background-color: rgba(255, 255, 255, 0.2);
   color: #fff;
 }
+
 .btn-secondary:hover:not(:disabled) {
   background-color: rgba(255, 255, 255, 0.4);
 }
+
 .btn-secondary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
 .forgot-password-link {
   display: block;
   text-align: right;
@@ -841,13 +915,16 @@ button {
   text-decoration: none;
   margin-top: 8px;
 }
+
 .forgot-password-link:hover {
   text-decoration: underline;
 }
+
 .password-section {
   margin-top: 0;
   padding-top: 0;
 }
+
 .email-verification-section {
   background-color: rgba(0, 0, 0, 0.2); 
   padding: 15px 20px;
@@ -855,6 +932,7 @@ button {
   margin-bottom: 30px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 .verification-status {
   display: flex;
   align-items: center;
@@ -863,16 +941,20 @@ button {
   font-weight: 500;
   margin: 0 0 15px 0; 
 }
+
 .verification-status.warning {
   color: #ffd700; 
 }
+
 .verification-status.success {
   color: #28a745; 
   margin-bottom: 30px; 
 }
+
 .verification-status svg {
   flex-shrink: 0;
 }
+
 .info-text {
   font-size: 14px;
   color: #ccc;
@@ -880,6 +962,7 @@ button {
   margin-bottom: 20px;
   line-height: 1.5;
 }
+
 .verification-code-input label {
   font-size: 13px;
   color: #ccc;
@@ -887,11 +970,13 @@ button {
   display: block;
   text-align: left;
 }
+
 .verification-code-input .input-group {
   display: flex;
   gap: 10px;
   align-items: center; 
 }
+
 .verification-code-input input {
   flex-grow: 1; 
   margin: 0; 
@@ -900,12 +985,14 @@ button {
   font-size: 16px;
   padding: 0 5px; 
 }
+
 .verification-code-input .btn-primary {
   flex-shrink: 0; 
   margin-top: 0; 
   padding: 10px 15px; 
   font-size: 14px;
 }
+
 .btn-link {
     background: none;
     border: none;
@@ -916,18 +1003,22 @@ button {
     font-size: 13px;
     font-family: 'Open Sans', sans-serif;
 }
+
 .btn-link:hover:not(:disabled) {
   color: #fff;
 }
+
 .btn-link:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     text-decoration: none;
 }
+
 .resend-link {
   margin-top: 10px;
   display: inline-block;
 }
+
 .tab-header {
   display: flex;
   justify-content: space-between;
@@ -936,11 +1027,14 @@ button {
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   padding-bottom: 10px;
 }
+
 .tab-header h2 {
   margin-bottom: 0;
   border-bottom: none;
   padding-bottom: 0;
 }
+
+/* --- СТИЛІ ДЛЯ ЗАМОВЛЕНЬ --- */
 .add-listing-btn {
   display: flex;
   align-items: center;
@@ -952,5 +1046,66 @@ button {
 .add-listing-btn svg {
   width: 16px;
   height: 16px;
+}
+
+.listings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px;
+  color: #ccc;
+  background-color: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 40px;
+}
+.loading-state p {
+  margin-top: 15px;
+  color: #ccc;
+}
+
+/* Хедер вкладки з кнопкою */
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 15px;
+}
+.tab-header h2 {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.add-listing-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  padding: 8px 16px;
+  margin: 0;
+}
+
+/* Спіннер */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #555;
+  border-top-color: #ffd700;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>
