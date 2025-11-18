@@ -32,11 +32,17 @@
     "specMileage": "Mileage",
     "specFuel": "Fuel type",
     "specTransmission": "Transmission",
+    "specBodyType": "Body Type",
+    "specColor": "Color",
+    "specDriveTrain": "Drive Train",
+    "specEngineSize": "Engine Size",
+    "engineSize": "{size} L",
     "toggleFavorite": "Add to favorites",
     "favoriteToast": "Listing added to favorites (simulation)"
   },
   "common": {
-    "back": "Back"
+    "yes": "Yes",
+    "no": "No"
   },
   "fields": {
     "brand": "Brand",
@@ -47,37 +53,15 @@
     "fuel": "Fuel Type",
     "transmission": "Transmission",
     "price": "Price",
-    "location": "City"
-  },
-  "fuelTypes": {
-    "petrol": "Petrol",
-    "diesel": "Diesel",
-    "electric": "Electric",
-    "hybrid": "Hybrid",
-    "gas_petrol": "Gas/Petrol"
-  },
-  "transmissionTypes": {
-    "manual": "Manual",
-    "automatic": "Automatic",
-    "robot": "Robot"
-  },
-  "createListing": {
-    "title": "Create New Listing",
-    "sectionBasic": "Basic Information",
-    "sectionPrice": "Price & Location",
-    "sectionDesc": "Description",
-    "sectionPhotos": "Photos",
-    "selectDefault": "Select type",
-    "descLabel": "Tell us more about the car",
-    "submit": "Publish Listing",
-    "submitting": "Publishing...",
-    "draftRestored": "Your previous draft has been restored!",
-    "publishSuccess": "Listing published successfully!",
-    "validation": {
-      "required": "Please fill in the \"{field}\" field",
-      "invalid": "Please enter a valid \"{field}\"",
-      "noPhotos": "Please add at least one photo."
-    }
+    "location": "City",
+    "bodyType": "Body Type",
+    "driveTrain": "Drive Train",
+    "engineSize": "Engine Size",
+    "color": "Color",
+    "paintwork": "Paintwork",
+    "technicalCondition": "Technical Condition",
+    "inAccident": "In accident",
+    "metallic": "Metallic"
   },
   "home": {
     "hero": {
@@ -327,6 +311,143 @@
       "noResponse": "No response from server.",
       "errorPrefix": "Error: {error}",
       "resendNotImplemented": "Resend code function is not yet implemented."
+    }
+  },
+  "createListing": {
+    "title": "Create New Listing",
+    "required": "* Required fields",
+    "select": "Select...",
+    "steps": {
+      "basic": "Info",
+      "specs": "Specs",
+      "comfort": "Comfort",
+      "price": "Price",
+      "description": "Description",
+      "photos": "Photos"
+    },
+    "step1": {
+      "title": "Basic Information",
+      "vehicleType": "Vehicle Type",
+      "brand": "Brand",
+      "brandPlaceholder": "E.g., Audi",
+      "model": "Model",
+      "modelPlaceholder": "E.g., A6",
+      "year": "Year of Manufacture",
+      "mileage": "Mileage (ths. km)",
+      "mileagePlaceholder": "numbers only",
+      "bodyType": "Body Type",
+      "region": "Region",
+      "city": "City",
+      "cityPlaceholder": "E.g., Kyiv"
+    },
+    "step2": {
+      "title": "Vehicle Specifications",
+      "fuel": "Fuel Type",
+      "transmission": "Transmission",
+      "driveTrain": "Drive Train",
+      "engineSize": "Engine Size (L)",
+      "engineSizePlaceholder": "E.g., 2.0 or 0 (for electric)",
+      "color": "Color",
+      "metallic": "Metallic",
+      "paintwork": "Paintwork Condition",
+      "technicalCondition": "Technical Condition",
+      "inAccident": "Involved in accident"
+    },
+    "step3": {
+      "title": "Comfort & Options",
+      "ac": "Air Conditioning",
+      "climate": "Climate Control",
+      "heatedSeats": "Heated Seats",
+      "rearCamera": "Rear-view Camera",
+      "parkingSensors": "Parking Sensors",
+      "sunroof": "Sunroof / Panorama"
+    },
+    "step4": {
+      "title": "Price",
+      "price": "Price"
+    },
+    "step5": {
+      "title": "Description",
+      "label": "Tell us more about the car"
+    },
+    "step6": {
+      "title": "Photos"
+    },
+    "buttons": {
+      "back": "Back",
+      "next": "Next",
+      "submit": "Publish Listing",
+      "submitting": "Publishing..."
+    },
+    "toast": {
+      "fillField": "Please fill in the \"{field}\" field",
+      "correctField": "Please enter a valid \"{field}\"",
+      "addPhoto": "Please add at least one photo.",
+      "submitSuccess": "Listing published successfully!"
+    }
+  },
+  "options": {
+    "fuel": {
+      "petrol": "Petrol",
+      "diesel": "Diesel",
+      "electric": "Electric",
+      "hybrid": "Hybrid",
+      "lpg": "Gas/Petrol"
+    },
+    "transmission": {
+      "manual": "Manual",
+      "automatic": "Automatic",
+      "robot": "Robot"
+    },
+    "vehicleType": {
+      "car": "Passenger Car",
+      "truck": "Truck",
+      "moto": "Motorcycle"
+    },
+    "bodyType": {
+      "sedan": "Sedan",
+      "hatchback": "Hatchback",
+      "wagon": "Wagon",
+      "coupe": "Coupe",
+      "cabriolet": "Cabriolet",
+      "suv": "SUV",
+      "offroad": "Off-road",
+      "pickup": "Pickup",
+      "minivan": "Minivan"
+    },
+    "region": {
+      "kyiv": "Kyiv Region",
+      "lviv": "Lviv Region",
+      "odesa": "Odesa Region",
+      "kharkiv": "Kharkiv Region",
+      "dnipro": "Dnipro Region",
+      "other": "Other"
+    },
+    "color": {
+      "black": "Black",
+      "white": "White",
+      "blue": "Blue",
+      "red": "Red",
+      "gray": "Gray",
+      "green": "Green",
+      "other": "Other"
+    },
+    "techState": {
+      "full": "Full working order",
+      "needsRepair": "On the go, needs repair",
+      "notMoving": "Not running",
+      "afterAccident": "After accident"
+    },
+    "paint": {
+      "asNew": "As new",
+      "minorScratches": "Minor scratches",
+      "used": "Traces of use",
+      "needsRepair": "Needs repair"
+    },
+    "driveTrain": {
+      "fwd": "Front-wheel Drive",
+      "rwd": "Rear-wheel Drive",
+      "awd": "All-wheel Drive"
     }
   }
 }
