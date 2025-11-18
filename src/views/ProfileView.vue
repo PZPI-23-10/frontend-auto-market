@@ -200,11 +200,22 @@
           </div>
 
           <div v-else-if="userListings.length > 0" class="listings-list">
-            <CarCard 
-              v-for="car in userListings" 
-              :key="car.id" 
-              :listing="car"
-            />
+            
+            <div v-for="car in userListings" :key="car.id" class="listing-item-wrapper">
+              <CarCard :listing="car" />
+              
+              <div class="listing-actions">
+                <button class="btn-action btn-edit" @click="editListing(car.id)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  Редагувати
+                </button>
+                <button class="btn-action btn-delete" @click="deleteListing(car.id)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  Видалити
+                </button>
+              </div>
+            </div>
+
           </div>
 
           <div v-else class="no-results">
@@ -323,9 +334,31 @@ watch(activeTab, (newTab) => {
   }
 });
 
+function editListing(id) {
+  router.push({ name: 'create-listing', query: { id: id } });
+}
+
+async function deleteListing(id) {
+  if (!confirm('Ви впевнені, що хочете видалити це оголошення?')) return;
+
+  try {
+    await axios.delete(`${API_LISTING_BASE_URL}/${id}`, {
+      headers: { 'Authorization': `Bearer ${token.value}` }
+    });
+    
+    toast.success('Оголошення видалено!');
+    
+    userListings.value = userListings.value.filter(item => item.id !== id);
+    
+  } catch (error) {
+    console.error('Помилка видалення:', error);
+    toast.error('Не вдалося видалити оголошення.');
+  }
+}
+
 const fullName = computed(() => {
   if (!user.value.firstName && !user.value.lastName) {
-    return t('profile.profileTab.fullNamePlaceholder'); // 4. Локалізований резервний текст
+    return t('profile.profileTab.fullNamePlaceholder');
   }
   return `${user.value.firstName} ${user.value.lastName}`.trim(); 
 });
@@ -1093,6 +1126,57 @@ button {
   font-size: 14px;
   padding: 8px 16px;
   margin: 0;
+}
+
+.listing-item-wrapper {
+  /* Трохи затемнюємо фон під карткою */
+  background-color: rgba(255, 255, 255, 0.05); 
+  border-radius: 12px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.listing-actions {
+  display: flex;
+  justify-content: flex-end; /* Кнопки справа */
+  gap: 15px;
+  margin-top: 15px;
+  padding-top: 15px;
+  /* Лінія розділення між карткою і кнопками */
+  border-top: 1px solid rgba(255, 255, 255, 0.1); 
+}
+
+/* Загальний стиль кнопок */
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border: none;
+  color: #fff;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
+}
+
+.btn-edit {
+  background-color: #cc0000; 
+}
+.btn-edit:hover {
+  background-color: #aa0000;
+}
+
+.btn-delete {
+  background-color: transparent;
+  border: 1px solid #cc0000;
+  color: #cc0000;
+}
+.btn-delete:hover {
+  background-color: #cc0000;
+  color: #fff;
 }
 
 /* Спіннер */
