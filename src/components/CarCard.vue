@@ -283,7 +283,7 @@ function toggleFavorite() {
   stroke: #ccc;
   flex-shrink: 0;
 }
-
+/* (Стилі .specs-horizontal, .spec-item, .favorite-btn - без змін) */
 /* (Стилі .specs-horizontal, .spec-item, .favorite-btn - без змін) */
 .specs-horizontal {
   display: flex;
