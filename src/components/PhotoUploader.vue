@@ -104,32 +104,36 @@ function handleFileChange(event) {
 }
 
 function processFiles(files) {
-   if (!files) return;
+  if (!files) return;
 
-   for (const file of files) {
-      if (selectedFiles.value.length >= props.maxFiles) {
-      // 3. ЗАМІНА TOAST (з плейсхолдером)
-         toast.warning(t('uploader.maxFilesWarning', { count: props.maxFiles }));
-         break;
-      }
-      if (!file.type.startsWith('image/')) {
-      // 4. ЗАМІНА TOAST (звичайний)
-         toast.warning(t('uploader.imageOnlyWarning'));
-         continue;
-      }
-      
-      selectedFiles.value.push(file);
+  for (const file of files) {
+    if (selectedFiles.value.length >= props.maxFiles) {
+      toast.warning(t('uploader.maxFilesWarning', { count: props.maxFiles }));
+      break;
+    }
+    
+    if (!file.type.startsWith('image/')) {
+      toast.warning(t('uploader.imageOnlyWarning'));
+      continue;
+    }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-         imagePreviews.value.push(e.target.result);
-      };
-      reader.readAsDataURL(file);
-   }
-   
-   emit('files-updated', selectedFiles.value);
+    const maxSizeInBytes = 5 * 1024 * 1024; 
+    if (file.size > maxSizeInBytes) {
+       toast.warning(`Файл "${file.name}" занадто великий (макс 5 МБ). Спробуйте стиснути його.`);
+       continue;
+    }
+    
+    selectedFiles.value.push(file);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imagePreviews.value.push(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+  
+  emit('files-updated', selectedFiles.value);
 }
-
 function removeImage(index) {
    selectedFiles.value.splice(index, 1);
    imagePreviews.value.splice(index, 1);
