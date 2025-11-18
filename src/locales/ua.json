@@ -18,6 +18,7 @@
     "profile": "Профіль",
     "settings": "Налаштування"
   },
+
   "uploader": {
     "label": "Натисніть або перетягніть фото (до {count} шт.)",
     "maxFilesWarning": "Можна завантажити максимум {count} фото.",
@@ -25,7 +26,8 @@
     "previewAlt": "прев'ю",
     "modalAlt": "Повноекранне зображення"
   },
-  "carCard": {
+
+"carCard": {
     "imageAlt": "Фото авто",
     "priceNA": "N/A",
     "mileage": "{km} тис. км",
@@ -34,16 +36,65 @@
     "specTransmission": "Коробка передач",
     "specBodyType": "Тип кузова",
     "specColor": "Колір",
-    "specDriveTrain": "Привід",
-    "specEngineSize": "Об'єм двигуна",
-    "engineSize": "{size} л.",
+    "specDriveTrain": "Привід", 
+    "specEngineSize": "Об'єм двигуна", 
+    "engineSize": "{size} л.", 
     "toggleFavorite": "Додати в обране",
     "favoriteToast": "Оголошення додано в 'Обране' (симуляція)"
+  },
+
+"driveTrainTypes": {
+    "front": "Передній",
+    "rear": "Задній",
+    "full": "Повний"
+  },
+  "bodyTypes": {
+    "sedan": "Седан",
+    "hatchback": "Хетчбек",
+    "universal": "Універсал",
+    "coupe": "Купе",
+    "cabriolet": "Кабріолет",
+    "suv": "Позашляховик",
+    "crossover": "Кросовер",
+    "pickup": "Пікап",
+    "minivan": "Мінівен"
+  },
+  "colors": {
+    "black": "Чорний",
+    "white": "Білий",
+    "blue": "Синій",
+    "red": "Червоний",
+    "grey": "Сірий",
+    "green": "Зелений",
+    "other": "Інший"
+  },
+  "technicalStates": {
+    "full": "Повністю справне",
+    "repair_needed": "На ходу, потребує ремонту",
+    "not_running": "Не на ходу",
+    "after_accident": "Після ДТП"
+  },
+  "paintworkStates": {
+    "like_new": "Як нове",
+    "traces": "Є сліди використання",
+    "scratches": "Є незначні подряпини",
+    "needs_repair": "Потребує ремонту"
+  },
+  "comfort": {
+    "title": "Комфорт та опції",
+    "airConditioning": "Кондиціонер",
+    "climateControl": "Клімат-контроль",
+    "heatedSeats": "Підігрів сидінь",
+    "rearCamera": "Камера заднього виду",
+    "parkingSensors": "Парктроніки",
+    "sunroof": "Люк / Панорама",
+    "noOptions": "Додаткові опції не вказані."
   },
   "common": {
     "yes": "Так",
     "no": "Ні"
   },
+
   "fields": {
     "brand": "Бренд",
     "model": "Модель",
@@ -62,6 +113,39 @@
     "technicalCondition": "Технічний стан",
     "inAccident": "Участь в ДТП",
     "metallic": "Металік"
+  },
+
+  "fuelTypes": {
+    "petrol": "Бензин",
+    "diesel": "Дизель",
+    "electric": "Електро",
+    "hybrid": "Гібрид",
+    "gas_petrol": "Газ/Бензин"
+  },
+
+  "transmissionTypes": {
+    "manual": "Механіка",
+    "automatic": "Автомат",
+    "robot": "Робот"
+  },
+
+  "createListing": {
+    "title": "Створити нове оголошення",
+    "sectionBasic": "Основна інформація",
+    "sectionPrice": "Ціна та Розташування",
+    "sectionDesc": "Опис",
+    "sectionPhotos": "Фотографії",
+    "selectDefault": "Оберіть тип",
+    "descLabel": "Розкажіть про авто детальніше",
+    "submit": "Опублікувати оголошення",
+    "submitting": "Публікуємо...",
+    "draftRestored": "Вашу попередню чернетку відновлено!",
+    "publishSuccess": "Оголошення успішно опубліковано!",
+    "validation": {
+      "required": "Будь ласка, заповніть поле \"{field}\"",
+      "invalid": "Будь ласка, введіть коректний \"{field}\"",
+      "noPhotos": "Будь ласка, додайте хоча б одне фото."
+    }
   },
   "home": {
     "hero": {
@@ -311,143 +395,6 @@
       "noResponse": "Немає відповіді від сервера.",
       "errorPrefix": "Помилка: {error}",
       "resendNotImplemented": "Функція повторної відправки коду ще не реалізована."
-    }
-  },
-  "createListing": {
-    "title": "Створити нове оголошення",
-    "required": "* Поля обов'язкові для заповнення",
-    "select": "Оберіть...",
-    "steps": {
-      "basic": "Інфо",
-      "specs": "Характеристики",
-      "comfort": "Комфорт",
-      "price": "Ціна",
-      "description": "Опис",
-      "photos": "Фото"
-    },
-    "step1": {
-      "title": "Основна інформація",
-      "vehicleType": "Тип транспорту",
-      "brand": "Марка авто",
-      "brandPlaceholder": "Наприклад, Audi",
-      "model": "Модель авто",
-      "modelPlaceholder": "Наприклад, A6",
-      "year": "Рік випуску",
-      "mileage": "Пробіг (тис. км)",
-      "mileagePlaceholder": "тільки цифри",
-      "bodyType": "Тип кузова",
-      "region": "Регіон",
-      "city": "Місто",
-      "cityPlaceholder": "Наприклад, Київ"
-    },
-    "step2": {
-      "title": "Характеристики авто",
-      "fuel": "Тип палива",
-      "transmission": "Коробка передач",
-      "driveTrain": "Привід",
-      "engineSize": "Об'єм двигуна (л)",
-      "engineSizePlaceholder": "Напр., 2.0 або 0 (для електро)",
-      "color": "Колір",
-      "metallic": "Металік",
-      "paintwork": "Лакофарбове покриття",
-      "technicalCondition": "Технічний стан",
-      "inAccident": "Участь в ДТП"
-    },
-    "step3": {
-      "title": "Комфорт та опції",
-      "ac": "Кондиціонер",
-      "climate": "Клімат-контроль",
-      "heatedSeats": "Підігрів сидінь",
-      "rearCamera": "Камера заднього виду",
-      "parkingSensors": "Парктроніки",
-      "sunroof": "Люк / Панорама"
-    },
-    "step4": {
-      "title": "Ціна",
-      "price": "Ціна"
-    },
-    "step5": {
-      "title": "Опис",
-      "label": "Розкажіть про авто детальніше"
-    },
-    "step6": {
-      "title": "Фотографії"
-    },
-    "buttons": {
-      "back": "Назад",
-      "next": "Далі",
-      "submit": "Опублікувати оголошення",
-      "submitting": "Публікуємо..."
-    },
-    "toast": {
-      "fillField": "Будь ласка, заповніть поле \"{field}\"",
-      "correctField": "Будь ласка, введіть коректне значення для \"{field}\"",
-      "addPhoto": "Будь ласка, додайте хоча б одне фото.",
-      "submitSuccess": "Оголошення успішно опубліковано!"
-    }
-  },
-  "options": {
-    "fuel": {
-      "petrol": "Бензин",
-      "diesel": "Дизель",
-      "electric": "Електро",
-      "hybrid": "Гібрид",
-      "lpg": "Газ/Бензин"
-    },
-    "transmission": {
-      "manual": "Механіка",
-      "automatic": "Автомат",
-      "robot": "Робот"
-    },
-    "vehicleType": {
-      "car": "Легковий",
-      "truck": "Вантажний",
-      "moto": "Мото"
-    },
-    "bodyType": {
-      "sedan": "Седан",
-      "hatchback": "Хетчбек",
-      "wagon": "Універсал",
-      "coupe": "Купе",
-      "cabriolet": "Кабріолет",
-      "suv": "Кросовер",
-      "offroad": "Позашляховик",
-      "pickup": "Пікап",
-      "minivan": "Мінівен"
-    },
-    "region": {
-      "kyiv": "Київська обл.",
-      "lviv": "Львівська обл.",
-      "odesa": "Одеська обл.",
-      "kharkiv": "Харківська обл.",
-      "dnipro": "Дніпропетровська обл.",
-      "other": "Інший"
-    },
-    "color": {
-      "black": "Чорний",
-      "white": "Білий",
-      "blue": "Синій",
-      "red": "Червоний",
-      "gray": "Сірий",
-      "green": "Зелений",
-      "other": "Інший"
-    },
-    "techState": {
-      "full": "Повністю справне",
-      "needsRepair": "На ходу, потребує ремонту",
-      "notMoving": "Не на ходу",
-      "afterAccident": "Після ДТП"
-    },
-    "paint": {
-      "asNew": "Як нове",
-      "minorScratches": "Є незначні подряпини",
-      "used": "Є сліди використання",
-      "needsRepair": "Потребує ремонту"
-    },
-    "driveTrain": {
-      "fwd": "Передній",
-      "rwd": "Задній",
-      "awd": "Повний"
     }
   }
 }
