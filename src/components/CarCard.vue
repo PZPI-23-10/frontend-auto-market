@@ -49,26 +49,26 @@
           <span>{{ t('fuelTypes.' + listing.fuel) }}</span>
         </div>
         <div class="spec-item">
-          <svg :title="t('carCard.specTransmission')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
+          <svg :title="t('carCard.specTransmission')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
           <span>{{ t('transmissionTypes.' + listing.transmission) }}</span>
         </div>
-        <div class="spec-item">
+        
+        <div class="spec-item" v-if="listing.bodyType">
           <svg :title="t('carCard.specBodyType')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 18.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-4.37c0-.3-.1-.59-.28-.84l-1.44-2A.5.5 0 0 1 4.5 10.5h15a.5.5 0 0 1 .22.49l-1.44 2c-.18.25-.28.54-.28.84Z"/><path d="M4 14.13V10.5a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 20 10.5v3.63"/><circle cx="6.5" cy="18.5" r="0.5"/><circle cx="17.5" cy="18.5" r="0.5"/></svg>
           <span>{{ t('bodyTypes.' + listing.bodyType) }}</span>
         </div>
-        <div class="spec-item">
-          <svg :title="t('carCard.specColor')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 6-6"/><path d="M12 14c-1.88 1.88-5.12 1.88-7 0 1.88-1.88 1.88-5.12 0-7 1.88 1.88 5.12 1.88 7 0 1.88 1.88 1.88 5.12 0 7Z"/><path d="m14 12-6 6"/><path d="M14 12c1.88-1.88 5.12-1.88 7 0-1.88 1.88-1.88 5.12 0 7-1.88-1.88-5.12-1.88-7 0-1.88-1.88-1.88-5.12 0-7Z"/></svg>
-          <span>{{ t('colors.' + listing.color) }}</span>
-        </div>
-        <div class="spec-item">
+        <div class="spec-item" v-if="listing.driveTrain">
           <svg :title="t('carCard.specDriveTrain')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 15v-4.32a2 2 0 0 1 1.18-1.83l6-3.46a2 2 0 0 1 1.64 0l6 3.46A2 2 0 0 1 21 10.68V15"/><path d="M5 18v-5h14v5"/></svg>
           <span>{{ t('driveTrainTypes.' + listing.driveTrain) }}</span>
         </div>
-        <div class="spec-item">
+        <div class="spec-item" v-if="listing.engineSize">
           <svg :title="t('carCard.specEngineSize')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8"/><path d="M18 22V10"/><path d="M14 22V10"/><path d="M6 14H4"/><path d="M6 10H4"/><path d="M10 6H8"/><path d="M16 6h-2"/></svg>
           <span>{{ t('carCard.engineSize', { size: listing.engineSize }) }}</span>
         </div>
-        
+        <div class="spec-item" v-if="listing.color">
+          <svg :title="t('carCard.specColor')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 6-6"/><path d="M12 14c-1.88 1.88-5.12 1.88-7 0 1.88-1.88 1.88-5.12 0-7 1.88 1.88 5.12 1.88 7 0 1.88 1.88 1.88 5.12 0 7Z"/><path d="m14 12-6 6"/><path d="M14 12c1.88-1.88 5.12-1.88 7 0-1.88 1.88-1.88 5.12 0 7-1.88-1.88-5.12-1.88-7 0-1.88-1.88-1.88-5.12 0-7Z"/></svg>
+          <span>{{ t('colors.' + listing.color) }}</span>
+        </div>
       </div>
       
       <button 
@@ -83,7 +83,6 @@
 </template>
 
 <script setup>
-// (Ваш <script setup> залишається без змін)
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
@@ -161,7 +160,6 @@ function toggleFavorite() {
 </script>
 
 <style scoped>
-/* (Стилі .car-card, .card-image-wrapper, .price-tag, .carousel-btn - без змін) */
 .car-card {
   background-color: rgba(30, 30, 30, 0.7);
   border-radius: 12px;
@@ -240,8 +238,6 @@ function toggleFavorite() {
 .carousel-btn.next {
   right: 10px;
 }
-
-/* (Стилі .card-content, .card-title - без змін) */
 .card-content {
   padding: 20px;
   display: flex;
@@ -259,16 +255,6 @@ function toggleFavorite() {
 .card-title:hover {
   color: #ffd700;
 }
-
-/* * ОНОВЛЕННЯ 3: Стилі для Розташування 
- */
-.card-year-location {
-  /* Це правило більше не використовується для розташування */
-  font-size: 14px;
-  color: #ccc;
-  margin: 0 0 20px 0;
-}
-/* НОВИЙ СТИЛЬ для розташування (під заголовком) */
 .card-location {
   font-size: 14px;
   color: #ccc;
@@ -283,8 +269,6 @@ function toggleFavorite() {
   stroke: #ccc;
   flex-shrink: 0;
 }
-/* (Стилі .specs-horizontal, .spec-item, .favorite-btn - без змін) */
-/* (Стилі .specs-horizontal, .spec-item, .favorite-btn - без змін) */
 .specs-horizontal {
   display: flex;
   flex-direction: column; 
