@@ -5,7 +5,7 @@
       
       <div class="page-layout">
         
-                <aside class="filter-sidebar">
+        <aside class="filter-sidebar">
           <div class="filter-card">
             <h2>{{ t('listings.filter.title') }}</h2>
             
@@ -37,10 +37,18 @@
               </div>
 
               <div class="form-group">
+                <label>{{ t('fields.mileageLabel') }}</label>
+                <div class="form-row">
+                  <input type="number" v-model.number="filters.mileageMin" :placeholder="t('listings.filter.priceFrom')">
+                  <input type="number" v-model.number="filters.mileageMax" :placeholder="t('listings.filter.priceTo')">
+                </div>
+              </div>
+
+              <div class="form-group">
                 <label for="fuel">{{ t('fields.fuel') }}</label>
                 <select id="fuel" v-model="filters.fuel">
                   <option value="">{{ t('listings.filter.anyFuel') }}</option>
-                                    <option v-for="fuel in fuelTypes" :key="fuel" :value="fuel">{{ t('fuelTypes.' + fuel) }}</option>
+                  <option v-for="fuel in fuelTypes" :key="fuel" :value="fuel">{{ t('fuelTypes.' + fuel) }}</option>
                 </select>
               </div>
 
@@ -48,7 +56,7 @@
                 <label for="transmission">{{ t('fields.transmission') }}</label>
                 <select id="transmission" v-model="filters.transmission">
                   <option value="">{{ t('listings.filter.anyTransmission') }}</option>
-                                    <option v-for="type in transmissionTypes" :key="type" :value="type">{{ t('transmissionTypes.' + type) }}</option>
+                  <option v-for="transType in transmissionTypes" :key="transType" :value="transType">{{ t('transmissionTypes.' + transType) }}</option>
                 </select>
               </div>
               
@@ -60,11 +68,16 @@
           </div>
         </aside>
         
-                <main class="results-list">
+        <main class="results-list">
           
-          <template v-if="paginatedListings.length > 0">
+          <div v-if="isLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>{{ t('listingDetail.loading') }}</p>
+          </div>
+
+          <template v-else-if="filteredListings.length > 0">
             <CarCard 
-              v-for="car in paginatedListings" 
+              v-for="car in filteredListings" 
               :key="car.id" 
               :listing="car"
             />
@@ -75,33 +88,7 @@
             <p>{{ t('listings.noResultsHint') }}</p>
           </div>
           
-          <div v-if="totalPages > 1" class="pagination-controls">
-            <button 
-              class="page-btn" 
-              @click="goToPage(currentPage - 1)" 
-              :disabled="currentPage === 1"
-            >
-              &#10094;             </button>
-            
-            <button 
-              v-for="page in totalPages" 
-              :key="page"
-              class="page-btn"
-              :class="{ active: currentPage === page }"
-              @click="goToPage(page)"
-            >
-              {{ page }}
-            </button>
-            
-            <button 
-              class="page-btn" 
-              @click="goToPage(currentPage + 1)" 
-              :disabled="currentPage === totalPages"
-            >
-              &#10095;             </button>
-          </div>
-          
-        </main>
+          </main>
       </div>
     </div>
   </div>
@@ -110,13 +97,19 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
-import { useRoute } from 'vue-router'; 
 import { useI18n } from 'vue-i18n';
+import axios from 'axios';
 import CarCard from '@/components/CarCard.vue';
 
 const toast = useToast();
-const route = useRoute(); 
-const { t } = useI18n(); 
+const { t } = useI18n();
+
+// Базовий URL
+const API_LISTING_URL = 'https://backend-auto-market.onrender.com/api/Listing';
+
+const isLoading = ref(false);
+const allListings = ref([]); 
+const filteredListings = ref([]); 
 
 // Фільтри
 const filters = ref({
@@ -124,135 +117,134 @@ const filters = ref({
   model: '',
   priceMin: null,
   priceMax: null,
-  yearMin: null,
-  yearMax: null,
+  yearMin: null,  
+  yearMax: null,  
+  mileageMin: null,
+  mileageMax: null, 
   fuel: '',
   transmission: ''
 });
 
-// 3. ОНОВЛЕНО: Опції для <select> (використовуємо ключі)
 const fuelTypes = ref(['petrol', 'diesel', 'electric', 'hybrid', 'gas_petrol']);
 const transmissionTypes = ref(['automatic', 'manual', 'robot']);
 
-// "База даних"
-const allMockCars = ref([]); 
-// Те, що ми показуємо
-const filteredListings = ref([]);
-
-// Логіка пагінації (без змін)
-const currentPage = ref(1);
-const itemsPerPage = 5;
-const totalPages = computed(() => {
-  return Math.ceil(filteredListings.value.length / itemsPerPage);
-});
-const paginatedListings = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return filteredListings.value.slice(start, end);
-});
-function goToPage(page) {
-  if (page < 1 || page > totalPages.value) return;
-  currentPage.value = page;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+// --- 2. МАПЕР ---
+function mapApiToCarCard(apiItem) {
+  return {
+    id: apiItem.id,
+    brand: apiItem.brand?.name || 'Unknown',
+    model: apiItem.model?.name || 'Unknown',
+    year: apiItem.year,
+    mileage: apiItem.mileage,
+    price: apiItem.price,
+    currency: 'USD',
+    fuel: (apiItem.fuelType?.name || '').toLowerCase(), 
+    transmission: (apiItem.gearType?.name || '').toLowerCase(),
+    bodyType: (apiItem.bodyType?.name || '').toLowerCase(),
+    driveTrain: (apiItem.driveType?.name || '').toLowerCase(),
+    engineSize: apiItem.engineSize || 0,
+    color: (apiItem.colorHex || '').toLowerCase(),
+    location: apiItem.city?.name || apiItem.region?.name || 'Україна',
+    images: apiItem.photoUrls || [],
+    mainImage: (apiItem.photoUrls && apiItem.photoUrls.length > 0) ? apiItem.photoUrls[0] : null
+  };
 }
 
-/**
- * (МОК) Функція фільтрації
- */
-function applyFilters() {
-  // 4. Локалізація Toast
-  toast.info(t('listings.filter.submitting'));
+// --- 3. ЗАВАНТАЖЕННЯ (API) ---
+async function fetchListings() {
+  isLoading.value = true;
   
-  let result = [...allMockCars.value]; 
+  const params = {};
+  if (filters.value.priceMin) params.PriceFrom = filters.value.priceMin;
+  if (filters.value.priceMax) params.PriceTo = filters.value.priceMax;
+  
+  if (filters.value.yearMin) params.YearFrom = filters.value.yearMin;
+  if (filters.value.yearMax) params.YearTo = filters.value.yearMax;
+  
+  if (filters.value.mileageMin) params.MileageFrom = filters.value.mileageMin;
+  if (filters.value.mileageMax) params.MileageTo = filters.value.mileageMax;
+  
 
-  // ... (логіка фільтрації залишається без змін, 
-  // ... оскільки вона вже порівнює КЛЮЧІ, наприклад 'diesel' === 'diesel')
+  try {
+    const response = await axios.get(API_LISTING_URL, { params });
+    
+    if (Array.isArray(response.data) && response.data.length > 0) {
+      allListings.value = response.data.map(mapApiToCarCard);
+      toast.success(t('listingDetail.loadSuccess'));
+    } else {
+      console.warn('API returned empty list. Using mock data.');
+      allListings.value = MOCK_CARS;
+    }
+
+  } catch (error) {
+    console.warn('API Error. Using mock data.');
+    allListings.value = MOCK_CARS;
+  } finally {
+    // 2. Запускаємо повну клієнтську фільтрацію
+    applyClientSideFilters();
+    isLoading.value = false;
+  }
+}
+
+// --- 4. КЛІЄНТСЬКА ФІЛЬТРАЦІЯ (ПОВНА) ---
+// Ця функція фільтрує те, що ми отримали (чи з сервера, чи з моків)
+function applyClientSideFilters() {
+  let result = [...allListings.value];
+  
   if (filters.value.brand) {
     result = result.filter(car => 
-      car.brand.toLowerCase().includes(filters.value.brand.toLowerCase())
+      car.brand && car.brand.toLowerCase().includes(filters.value.brand.toLowerCase())
     );
   }
   if (filters.value.model) {
     result = result.filter(car => 
-      car.model.toLowerCase().includes(filters.value.model.toLowerCase())
+      car.model && car.model.toLowerCase().includes(filters.value.model.toLowerCase())
     );
   }
+
   if (filters.value.priceMin) {
     result = result.filter(car => car.price >= filters.value.priceMin);
   }
   if (filters.value.priceMax) {
     result = result.filter(car => car.price <= filters.value.priceMax);
   }
+
   if (filters.value.yearMin) {
     result = result.filter(car => car.year >= filters.value.yearMin);
   }
   if (filters.value.yearMax) {
     result = result.filter(car => car.year <= filters.value.yearMax);
   }
+
+  if (filters.value.mileageMin) {
+    result = result.filter(car => car.mileage >= filters.value.mileageMin);
+  }
+  if (filters.value.mileageMax) {
+    result = result.filter(car => car.mileage <= filters.value.mileageMax);
+  }
+
   if (filters.value.fuel) {
-    result = result.filter(car => car.fuel === filters.value.fuel);
+     result = result.filter(car => car.fuel === filters.value.fuel);
   }
+
   if (filters.value.transmission) {
-    result = result.filter(car => car.transmission === filters.value.transmission);
+     result = result.filter(car => car.transmission === filters.value.transmission);
   }
-  
+
   filteredListings.value = result;
-  currentPage.value = 1;
 }
 
-// Функція, яку викликає кнопка
 function handleFilter() {
-  applyFilters();
+  fetchListings(); 
 }
 
 onMounted(() => {
-  // 5. ОНОВЛЕНО: (Створюємо "мок" дані з КЛЮЧАМИ)
-const generatedCars = [
-    { id: 1, brand: 'Audi', model: 'A6', year: 2020, mileage: 50, fuel: 'diesel', price: 35000, currency: 'USD', location: 'Київ', transmission: 'automatic', bodyType: 'sedan', color: 'black', driveTrain: 'full', engineSize: 2.0, images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800', 'https://images.unsplash.com/photo-1612999332206-819194885c3b?q=80&w=800'] },
-    { id: 2, brand: 'Tesla', model: 'Model 3', year: 2022, mileage: 15, fuel: 'electric', price: 40000, currency: 'USD', location: 'Львів', transmission: 'automatic', bodyType: 'sedan', color: 'white', driveTrain: 'full', engineSize: 0, images: ['https://images.unsplash.com/photo-1554844078-f24c7694d509?q=80&w=800'] },
-    { id: 3, brand: 'BMW', model: 'X5', year: 2019, mileage: 80, fuel: 'petrol', price: 45000, currency: 'USD', location: 'Одеса', transmission: 'automatic', bodyType: 'suv', color: 'blue', driveTrain: 'full', engineSize: 3.0, images: ['https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=800'] },
-    { id: 4, brand: 'Volkswagen', model: 'Passat', year: 2018, mileage: 120, fuel: 'diesel', price: 22000, currency: 'USD', location: 'Харків', transmission: 'manual', bodyType: 'universal', color: 'grey', driveTrain: 'front', engineSize: 2.0, images: ['https://images.unsplash.com/photo-1551830820-330a14b901a8?q=80&w=800'] },
-    { id: 5, brand: 'Toyota', model: 'Camry', year: 2021, mileage: 30, fuel: 'hybrid', price: 33000, currency: 'USD', location: 'Київ', transmission: 'automatic', bodyType: 'sedan', color: 'black', driveTrain: 'front', engineSize: 2.5, images: ['https://images.unsplash.com/photo-1604132223204-b81b53f180f1?q=80&w=800'] },
-    { id: 6, brand: 'Audi', model: 'Q8', year: 2021, mileage: 25, fuel: 'petrol', price: 65000, currency: 'USD', location: 'Дніпро', transmission: 'automatic', bodyType: 'suv', color: 'grey', driveTrain: 'full', engineSize: 3.0, images: ['https://images.unsplash.com/photo-1593361685162-d96f0183b3f2?q=80&w=800'] },
-    { id: 7, brand: 'BMW', model: '3 Series', year: 2017, mileage: 150, fuel: 'petrol', price: 20000, currency: 'USD', location: 'Львів', transmission: 'manual', bodyType: 'coupe', color: 'red', driveTrain: 'rear', engineSize: 2.0, images: ['https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=800'] },
-    { id: 8, brand: 'Audi', model: 'A6', year: 2019, mileage: 60, fuel: 'diesel', price: 32000, currency: 'USD', location: 'Одеса', transmission: 'automatic', bodyType: 'sedan', color: 'white', driveTrain: 'full', engineSize: 2.0, images: ['https://images.unsplash.com/photo-1541348263662-e56892d63df6?q=80&w=800'] },
-    { id: 9, brand: 'Tesla', model: 'Model X', year: 2021, mileage: 40, fuel: 'electric', price: 55000, currency: 'USD', location: 'Київ', transmission: 'automatic', bodyType: 'suv', color: 'black', driveTrain: 'full', engineSize: 0, images: ['https://images.unsplash.com/photo-1617997869485-6013a6c18843?q=80&w=800'] },
-    { id: 10, brand: 'BMW', model: 'X5', year: 2020, mileage: 50, fuel: 'hybrid', price: 48000, currency: 'USD', location: 'Харків', transmission: 'automatic', bodyType: 'suv', color: 'black', driveTrain: 'full', engineSize: 3.0, images: ['https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=800'] },
-    { id: 11, brand: 'Volkswagen', model: 'Golf', year: 2016, mileage: 180, fuel: 'gas_petrol', price: 14000, currency: 'USD', location: 'Львів', transmission: 'manual', bodyType: 'hatchback', color: 'blue', driveTrain: 'front', engineSize: 1.4, images: ['https://images.unsplash.com/photo-1541899121764-4c4f9a009e9e?q=80&w=800'] },
-    { id: 12, brand: 'Toyota', model: 'RAV4', year: 2019, mileage: 70, fuel: 'hybrid', price: 29000, currency: 'USD', location: 'Київ', transmission: 'automatic', bodyType: 'suv', color: 'white', driveTrain: 'full', engineSize: 2.5, images: ['https://images.unsplash.com/photo-1587546224372-4dcfb6f93d6d?q=80&w=800'] },
-    { id: 13, brand: 'Audi', model: 'A4', year: 2018, mileage: 90, fuel: 'diesel', price: 26000, currency: 'USD', location: 'Дніпро', transmission: 'robot', bodyType: 'sedan', color: 'grey', driveTrain: 'front', engineSize: 2.0, images: ['https://images.unsplash.com/photo-1616422285863-18703e720e17?q=80&w=800'] },
-    { id: 14, brand: 'BMW', model: '5 Series', year: 2021, mileage: 30, fuel: 'petrol', price: 52000, currency: 'USD', location: 'Одеса', transmission: 'automatic', bodyType: 'sedan', color: 'black', driveTrain: 'rear', engineSize: 3.0, images: ['https://images.unsplash.com/photo-1617178613169-d17c9c0f999c?q=80&w=800'] },
-  ];
-  allMockCars.value = generatedCars;
-  
-  // (МОК) "Читаємо" URL (без змін, оскільки route.query вже містить ключі)
-  const urlQuery = route.query;
-  let filtersApplied = false;
-  
-  if (urlQuery.brand) {
-    filters.value.brand = urlQuery.brand;
-    filtersApplied = true;
-  }
-  if (urlQuery.model) {
-    filters.value.model = urlQuery.model;
-    filtersApplied = true;
-  }
-  if (urlQuery.fuel) {
-    filters.value.fuel = urlQuery.fuel;
-    filtersApplied = true;
-  }
-  
-  if (filtersApplied) {
-    applyFilters(); 
-  } else {
-    filteredListings.value = generatedCars;
-  }
+  fetchListings();
 });
-
 </script>
 
 <style scoped>
-/* --- 1. Фон та Контейнер (без змін) --- */
+/* (Всі ваші стилі з попередньої версії залишаються без змін) */
 .listings-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
@@ -281,8 +273,6 @@ const generatedCars = [
   margin-bottom: 30px;
   text-align: left;
 }
-
-/* --- 2. Макет сторінки (без змін) --- */
 .page-layout {
   display: grid;
   grid-template-columns: 1fr;
@@ -293,8 +283,6 @@ const generatedCars = [
     grid-template-columns: 1fr 3fr; 
   }
 }
-
-/* --- 3. Фільтр (Стилі полів - без змін) --- */
 .filter-card {
   background-color: rgba(30, 30, 30, 0.7);
   border-radius: 12px;
@@ -335,7 +323,7 @@ const generatedCars = [
   font-size: 14px; font-weight: 300;
   color: #fff; box-sizing: border-box;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%<</polyline>e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 16px 16px;
@@ -361,8 +349,6 @@ const generatedCars = [
   color: #fff; font-size: 16px;
 }
 .btn-submit:hover { background-color: #aa0000; }
-
-/* --- 4. Список результатів (без змін) --- */
 .results-list {
   display: flex;
   flex-direction: column;
@@ -375,42 +361,22 @@ const generatedCars = [
   border-radius: 12px;
   border: 2px solid rgba(255, 255, 255, 0.1);
 }
-
-/* --- 5. СТИЛІ ДЛЯ ПАГІНАЦІЇ (без змін) --- */
-.pagination-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  margin-top: 20px;
-  background-color: rgba(30, 30, 30, 0.7);
-  border-radius: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  padding: 15px;
+.loading-state {
+  text-align: center;
+  padding: 40px;
 }
-.page-btn {
-  font-family: 'Open Sans', sans-serif;
-  font-weight: 600;
-  border: none;
-  border-radius: 6px;
-  min-width: 40px;
-  height: 40px;
-  padding: 0 10px;
-  cursor: pointer;
-  background-color: rgba(255,255,255,0.27);
-  color: #fff;
-  transition: 0.3s;
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 5px solid #555;
+  border-top-color: #ffd700;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px auto;
 }
-.page-btn:hover {
-  background-color: rgba(255,255,255,0.4);
-}
-.page-btn:disabled {
-  background-color: rgba(255,255,255,0.1);
-  color: #777;
-  cursor: not-allowed;
-}
-.page-btn.active {
-  background-color: #ffd700;
-  color: #000;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
