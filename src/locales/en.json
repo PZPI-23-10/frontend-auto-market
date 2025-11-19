@@ -38,7 +38,7 @@
     "specEngineSize": "Engine Size",
     "engineSize": "{size} L",
     "toggleFavorite": "Add to favorites",
-    "favoriteToast": "Listing added to favorites (simulation)"
+    "favoriteToast": "Listing added to favorites"
   },
   "common": {
     "yes": "Yes",
@@ -58,7 +58,7 @@
     "driveTrain": "Drive Train",
     "engineSize": "Engine Size",
     "color": "Color",
-    "paintwork": "Paintwork",
+    "paintwork": "Paint Condition",
     "technicalCondition": "Technical Condition",
     "inAccident": "In accident",
     "metallic": "Metallic"
@@ -115,7 +115,7 @@
       "anyFuel": "Any",
       "anyTransmission": "Any",
       "submit": "Apply",
-      "submitting": "(Simulation) Applying filters..."
+      "submitting": "Applying filters..."
     },
     "noResults": "Nothing Found",
     "noResultsHint": "Try changing your filter parameters"
@@ -222,9 +222,11 @@
     "ordersTab": {
       "title": "My Listings",
       "create": "Create Listing",
-      "placeholder": "Here will be a list of your cars for sale or orders.",
+      "placeholder": "Here will be a list of your cars for sale.",
       "empty": "You don't have any active listings yet.",
       "edit": "Edit",
+      "continueEdit": "Continue Editing",
+      "draftLabel": "Draft",
       "delete": "Delete",
       "deleteConfirm": "Are you sure you want to delete this listing?",
       "deleteSuccess": "Listing deleted!",
@@ -414,7 +416,7 @@
       "truck": "Truck",
       "motorcycle": "Motorcycle"
     },
-   "bodyType": {
+    "bodyType": {
       "sedan": "Sedan",
       "hatchback": "Hatchback",
       "wagon": "Wagon",
@@ -717,16 +719,15 @@
       "volodymyr-volynskyi": "Volodymyr-Volynskyi"
     }
   },
-    "editListing": {
-      "title": "Edit Listing",
-      "buttons": {
-        "saveChanges": "Save Changes"
-      },
-      "toast": {
-        "fetchError": "Failed to load listing data",
-        "saveSuccess": "Listing updated successfully",
-        "photoMarkedForDeletion": "Photo marked for deletion"
-      }
+  "editListing": {
+    "title": "Edit Listing",
+    "buttons": {
+      "saveChanges": "Save Changes"
+    },
+    "toast": {
+      "fetchError": "Failed to load listing data",
+      "saveSuccess": "Listing updated successfully",
+      "photoMarkedForDeletion": "Photo marked for deletion"
     }
+  }
 }
-  

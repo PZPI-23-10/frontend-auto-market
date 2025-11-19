@@ -3,9 +3,7 @@
     <div class="form-container">
       <div class="header-row">
         <h1>{{ pageTitle }}</h1>
-        <button type="button" class="btn-text" @click="handleDraft" :disabled="isSubmitting">
-          <span v-if="!isSubmitting">💾 {{ t('createListing.buttons.saveDraft') }}</span>
-        </button>
+
       </div>
       
       <div class="progressbar-wrapper">
@@ -420,7 +418,6 @@ async function fetchListingData(id) {
     }
 }
 
-// --- ДОПОМІЖНІ ФУНКЦІЇ API ---
 async function fetchBrands(typeId) {
     if (!typeId) return (lists.value.brands = []);
     try {

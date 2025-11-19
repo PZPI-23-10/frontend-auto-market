@@ -41,6 +41,7 @@
 
         <div v-if="activeTab === 'profile'" class="tab-pane">
           <h2>{{ t('profile.profileTab.title') }}</h2>
+          
           <div v-if="!user.isVerified" class="email-verification-section">
             <p class="verification-status warning">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
@@ -70,6 +71,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             {{ t('profile.profileTab.verify.statusSuccess') }}
           </p>
+
           <div class="avatar-upload-section">
             <div class="avatar-preview" @click="triggerFileUpload">
               <img :src="user.avatarUrl || defaultAvatar" :alt="t('profile.profileTab.avatarAlt')">
@@ -115,7 +117,7 @@
               <label for="phoneCode">{{ t('profile.profileTab.form.phone') }}</label>
               <div class="input-group">
                 <select id="phoneCode" v-model="user.phoneCode">
-                                    <option v-for="country in countries" :key="country.code" :value="country.phoneCode">
+                  <option v-for="country in countries" :key="country.code" :value="country.phoneCode">
                     +{{ country.phoneCode }} ({{ country.code }})
                   </option>
                 </select>
@@ -134,7 +136,7 @@
                 <label for="country">{{ t('profile.profileTab.form.country') }}</label>
                 <select id="country" v-model="user.country">
                   <option value="" disabled>{{ t('profile.profileTab.form.countrySelect') }}</option>
-                                    <option v-for="country in countries" :key="country.code" :value="country.code">
+                  <option v-for="country in countries" :key="country.code" :value="country.code">
                     {{ t(country.nameKey) }}
                   </option>
                 </select>
@@ -185,7 +187,7 @@
           </section>
         </div>
 
-<div v-if="activeTab === 'orders'" class="tab-pane">
+        <div v-if="activeTab === 'orders'" class="tab-pane">
           
           <div class="tab-header">
             <h2>{{ t('profile.ordersTab.title') }}</h2>
@@ -202,14 +204,25 @@
 
           <div v-else-if="userListings.length > 0" class="listings-list">
             
-            <div v-for="car in userListings" :key="car.id" class="listing-item-wrapper">
+            <div 
+              v-for="car in userListings" 
+              :key="car.id" 
+              class="listing-item-wrapper"
+              :class="{ 'draft-item': !car.isPublished }" 
+            >
+              <div v-if="!car.isPublished" class="draft-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                {{ t('profile.ordersTab.draftLabel') }}
+              </div>
+
               <CarCard :listing="car" />
               
               <div class="listing-actions">
                 <button class="btn-action btn-edit" @click="editListing(car.id)">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                  {{ t('profile.ordersTab.edit') }}
+                  {{ !car.isPublished ? t('profile.ordersTab.continueEdit') : t('profile.ordersTab.edit') }}
                 </button>
+
                 <button class="btn-action btn-delete" @click="deleteListing(car.id)">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                   {{ t('profile.ordersTab.delete') }}
@@ -235,16 +248,15 @@ import { ref, onMounted, computed, watch} from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
-import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
+import { useI18n } from 'vue-i18n'; 
 import defaultAvatar from '@/assets/default-avatar.png'; 
 import axios from 'axios';
 import CarCard from '@/components/CarCard.vue';
 
-
 const toast = useToast();
-const { t } = useI18n(); // 2. ОТРИМАННЯ t
+const { t } = useI18n(); 
 const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Auth';
-const API_PROFILE_BASE_URL = 'https://backend-auto-market.onrender.com/api/Profile'
+const API_PROFILE_BASE_URL = 'https://backend-auto-market.onrender.com/api/Profile';
 const VERIFY_EMAIL_URL = `${API_BASE_URL}/verify-email`;
 const SEND_VERIFICATION_URL = `${API_BASE_URL}/send-verification-email`;
 const API_LISTING_BASE_URL = 'https://backend-auto-market.onrender.com/api/Listing'; 
@@ -289,39 +301,55 @@ const verificationCodeSent = ref(false);
 const verificationCode = ref('');      
 const isLoadingEmail = ref(false);     
 const isLoadingVerify = ref(false);    
-function mapApiListingToCarCard(apiItem) {
- let images = [];
 
-  // Бэкенд присылает массив в поле photoUrls
+// === 1. Helper для перетворення значень у ключі (lower_snake_case) або null ===
+function toKey(val) {
+  if (!val) return null; // Повертаємо null, щоб приховати поле в CarCard
+  return val.toLowerCase().replace(/\s+/g, '_');
+}
+
+// === 2. Оновлена функція маппінгу ===
+function mapApiListingToCarCard(apiItem) {
+  let images = [];
+
+  // Логіка фото: обробка і об'єктів, і рядків
   if (apiItem.photoUrls && Array.isArray(apiItem.photoUrls) && apiItem.photoUrls.length > 0) {
-    // ПРОВЕРКА: Если первый элемент — это объект (новое DTO), то берем из него .url
     if (typeof apiItem.photoUrls[0] === 'object' && apiItem.photoUrls[0] !== null) {
         images = apiItem.photoUrls.map(p => p.url);
-    } 
-    // ИНАЧЕ: Это старый формат (просто строки)
-    else {
+    } else {
         images = apiItem.photoUrls;
     }
   }
 
+  // Локація
+  const cityLabel = apiItem.city?.name || '';
+  const regionLabel = apiItem.region?.name || '';
+
   return {
     id: apiItem.id,
-    brand: apiItem.brand?.name || 'Не вказано',
-    model: apiItem.model?.name || 'Не вказано',
+    brand: apiItem.brand?.name || '',
+    model: apiItem.model?.name || '',
     year: apiItem.year,
     mileage: apiItem.mileage,
     price: apiItem.price,
     currency: 'USD', 
-    fuel: apiItem.fuelType?.name || '',
-    transmission: apiItem.gearType?.name || '',
-    bodyType: apiItem.bodyType?.name || '',
-    location: apiItem.city?.name || apiItem.region?.name || 'Україна',
+    
+    // Використовуємо toKey:
+    // Це поверне 'petrol' замість 'Petrol', і 'automatic' замість 'Automatic'
+    // Якщо поле пусте (у чернетці), поверне null
+    fuel: toKey(apiItem.fuelType?.name),       
+    transmission: toKey(apiItem.gearType?.name), 
+    bodyType: toKey(apiItem.bodyType?.name),
+    color: toKey(apiItem.colorHex || 'other'), 
+    
+    location: cityLabel || regionLabel || 'Україна',
     images: images, 
     mainImage: images.length > 0 ? images[0] : null,
-    color: apiItem.colorHex,
-    inAccident: apiItem.hasAccident
+    inAccident: apiItem.hasAccident,
+    isPublished: apiItem.isPublished
   };
 }
+
 async function fetchUserListings() {
   isLoadingListings.value = true;
   try {
@@ -331,7 +359,6 @@ async function fetchUserListings() {
     userListings.value = response.data.map(mapApiListingToCarCard);
   } catch (error) {
     console.error('Помилка завантаження оголошень:', error);
-    // ПЕРЕКЛАД: "Не вдалося завантажити..."
     toast.error(t('profile.ordersTab.loadFail'));
   } finally {
     isLoadingListings.value = false;
@@ -375,7 +402,7 @@ const fullName = computed(() => {
 
 onMounted(async () => {
   if (!userId.value || !token.value) {
-    toast.error(t('profile.errors.notLoggedIn')); // 5. Локалізація
+    toast.error(t('profile.errors.notLoggedIn')); 
     router.push('/login');
     return;
   } 
@@ -386,10 +413,8 @@ onMounted(async () => {
     });   
     
     const data = response.data;
-   
     console.log("Profile data received:", data); 
 
-    // (Логіка заповнення user.value залишається без змін)
     user.value.firstName = data.firstName || '';
     user.value.lastName = data.lastName || '';
     user.value.email = data.email || '';
@@ -428,7 +453,6 @@ onMounted(async () => {
 
   } catch (error) {
      console.error('Помилка завантаження профілю (Axios):', error);
- 
      let errorMessage = t('profile.errors.loadProfileDefault');
      if (error.response) {
        errorMessage = error.response.data?.message || error.response.data || t('profile.errors.serverError');
@@ -448,21 +472,20 @@ onMounted(async () => {
 
 async function sendVerificationEmail() {
    if (!token.value) {
-       toast.error(t('profile.errors.authError')); // 7. Локалізація
+       toast.error(t('profile.errors.authError')); 
        return;
    }
    isLoadingEmail.value = true;
-   console.log(`Відправляємо запит на ${SEND_VERIFICATION_URL}`);
    try {
        await axios.post(SEND_VERIFICATION_URL, {}, { 
            headers: { 'Authorization': `Bearer ${token.value}` }
        });
-       toast.success(t('profile.profileTab.verify.toast.sendSuccess')); // 8. Локалізація
+       toast.success(t('profile.profileTab.verify.toast.sendSuccess')); 
        verificationCodeSent.value = true; 
    } catch (error) {
        console.error('Помилка відправки коду:', error);
-       let errMsg = error.response?.data || t('profile.profileTab.verify.toast.sendFail'); // 9. Локалізація
-       toast.error(t('profile.errors.prefix', { error: errMsg })); // 10. Локалізація
+       let errMsg = error.response?.data || t('profile.profileTab.verify.toast.sendFail'); 
+       toast.error(t('profile.errors.prefix', { error: errMsg })); 
    } finally {
        isLoadingEmail.value = false;
    }
@@ -470,27 +493,25 @@ async function sendVerificationEmail() {
 
 async function verifyCode() {
     if (!verificationCode.value || verificationCode.value.length !== 6) {
-        toast.warning(t('profile.profileTab.verify.toast.codeRequired')); // 11. Локалізація
+        toast.warning(t('profile.profileTab.verify.toast.codeRequired')); 
         return;
     }
     if (!token.value) {
-        toast.error(t('profile.errors.authError')); // 12. Локалізація
+        toast.error(t('profile.errors.authError')); 
         return;
     }
     isLoadingVerify.value = true;
-    console.log(`Відправляємо код ${verificationCode.value} на ${VERIFY_EMAIL_URL}`);
     try {
         await axios.post(VERIFY_EMAIL_URL, 
           { code: verificationCode.value }, 
           { headers: { 'Authorization': `Bearer ${token.value}`, 'Content-Type': 'application/json' } }
         );
-        toast.success(t('profile.profileTab.verify.toast.verifySuccess')); // 13. Локалізація
+        toast.success(t('profile.profileTab.verify.toast.verifySuccess')); 
         user.value.isVerified = true; 
         verificationCodeSent.value = false; 
         verificationCode.value = ''; 
     } catch (error) {
         console.error('Помилка перевірки коду:', error);
-        // 14. Локалізація блоку помилок
         let errMsg = t('profile.profileTab.verify.toast.verifyFailDefault');
         if (error.response?.status === 400) {
             errMsg = error.response.data || t('profile.profileTab.verify.toast.invalidCode');
@@ -511,7 +532,7 @@ async function saveProfile() {
     return;
   }
   if (!user.value.phoneNumber) {
-      toast.warning(t('profile.profileTab.toast.phoneRequired')); // 16. Локалізація
+      toast.warning(t('profile.profileTab.toast.phoneRequired')); 
       return;
   }
   
@@ -523,7 +544,7 @@ async function saveProfile() {
       try {
           formData.append('dateOfBirth', new Date(user.value.birthday).toISOString()); 
       } catch (e) {
-          toast.error(t('profile.profileTab.toast.invalidDate')); // 17. Локалізація
+          toast.error(t('profile.profileTab.toast.invalidDate')); 
           return; 
       }
   }
@@ -535,24 +556,17 @@ async function saveProfile() {
     formData.append('Photo', selectedFile.value); 
   } 
 
-  console.log("Sending profile update (FormData):", Object.fromEntries(formData.entries())); 
-  
   try {
     await axios.put(`${API_PROFILE_BASE_URL}/update`, formData, { 
-      headers: { 
-        'Authorization': `Bearer ${token.value}`
-      }
+      headers: { 'Authorization': `Bearer ${token.value}` }
     });
-    toast.success(t('profile.profileTab.toast.saveSuccess')); // 18. Локалізація
+    toast.success(t('profile.profileTab.toast.saveSuccess')); 
     selectedFile.value = null; 
-
     if (selectedFile.value) {
-      toast.info(t('profile.profileTab.toast.avatarInfo')); // 19. Локалізація
+      toast.info(t('profile.profileTab.toast.avatarInfo')); 
     }
-
   } catch (error) {
      console.error('Помилка збереження (Axios):', error);
-     // 20. Локалізація блоку помилок
      let errorMessage = t('profile.profileTab.toast.saveFailDefault');
      if (error.response) {
        if (error.response.data?.errors) {
@@ -568,108 +582,65 @@ async function saveProfile() {
 }
 
 function filterPhoneInput(event) {
-  // (Логіка без змін, не потребує локалізації)
-  const allowedKeys = [
-    'Backspace', 'Delete', 'Tab', 'Enter', 
-    'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
-    'Home', 'End'
-  ];
-  if ((event.ctrlKey || event.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(event.key.toLowerCase())) {
-    return;
-  }
-  if (
-    (event.key >= '0' && event.key <= '9') ||
-    allowedKeys.includes(event.key) ||
-    (event.key.startsWith('Numpad') && !isNaN(event.key.substring(6)))
-  ) {
-    return;
-  }
+  const allowedKeys = [ 'Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End' ];
+  if ((event.ctrlKey || event.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(event.key.toLowerCase())) return;
+  if ((event.key >= '0' && event.key <= '9') || allowedKeys.includes(event.key) || (event.key.startsWith('Numpad') && !isNaN(event.key.substring(6)))) return;
   event.preventDefault();
 }
 
 function onFileSelected(event) {
   const file = event.target.files[0];
   const currentInput = event.target; 
-  if (!file) {
-      selectedFile.value = null; 
-      currentInput.value = ''; 
-      return;
-  }
-  if (!file.type.startsWith('image/')) {
-      toast.error(t('profile.profileTab.toast.imageFileRequired')); // 21. Локалізація
-      selectedFile.value = null; 
-      currentInput.value = ''; 
-      return;
-  }
+  if (!file) { selectedFile.value = null; currentInput.value = ''; return; }
+  if (!file.type.startsWith('image/')) { toast.error(t('profile.profileTab.toast.imageFileRequired')); selectedFile.value = null; currentInput.value = ''; return; }
   selectedFile.value = file; 
   const reader = new FileReader();
   reader.onload = (e) => { user.value.avatarUrl = e.target.result; };
-  reader.onerror = (error) => { /* ... обробка помилок читання ... */ };
   reader.readAsDataURL(file);
-  console.log('Обрано файл:', file.name);
 }
 
-function triggerFileUpload() {
-  fileInput.value.click(); 
-}
+function triggerFileUpload() { fileInput.value.click(); }
 
 async function changePassword() {
-   // 22. Локалізація блоку валідації
    if (!passwordForm.value.currentPassword || !passwordForm.value.newPassword || passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-       toast.warning(t('profile.passwordTab.toast.checkPasswords'));
-       return;
+       toast.warning(t('profile.passwordTab.toast.checkPasswords')); return;
    }
    if (passwordForm.value.newPassword.length < 5 || passwordForm.value.newPassword.length > 27) {
-     toast.warning(t('profile.passwordTab.toast.lengthError', { min: 5, max: 27 }));
-     return;
+     toast.warning(t('profile.passwordTab.toast.lengthError', { min: 5, max: 27 })); return;
    }
-
- const CHANGE_PASSWORD_URL = `${API_BASE_URL}/change-password`; 
- const payload = {
-   Password: passwordForm.value.currentPassword,        
-   NewPassword: passwordForm.value.newPassword,          
-   PasswordConfirmation: passwordForm.value.confirmPassword 
- };
- try {
-   await axios.post(CHANGE_PASSWORD_URL, payload, {
-       headers: { 
-         'Content-Type': 'application/json', 
-         'Authorization': `Bearer ${token.value}` 
-       }
-   });
-   
-   toast.success(t('profile.passwordTab.toast.saveSuccess')); // 23. Локалізація
-   passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
-   
- } catch (error) {
-    console.error('Помилка зміни пароля (Axios):', error);
-    // 24. Локалізація блоку помилок
-    let errorMessage = t('profile.passwordTab.toast.saveFailDefault');
-     if (error.response) {
-       if (error.response.status === 400 && typeof error.response.data === 'string') {
-           if (error.response.data.includes("Old password is incorrect")) { errorMessage = t('profile.passwordTab.toast.oldPasswordError'); } 
-           else if (error.response.data.includes("do not match")) { errorMessage = t('profile.passwordTab.toast.mismatchError'); } 
-           else { errorMessage = error.response.data; }
-       } else { errorMessage = error.response.data?.message || t('profile.errors.serverError'); }
-     } else if (error.request) { errorMessage = t('profile.errors.noResponse'); } 
-     else { errorMessage = error.message; }
-     toast.error(t('profile.passwordTab.toast.saveFailPrefix', { error: errorMessage }));
- }
+   const CHANGE_PASSWORD_URL = `${API_BASE_URL}/change-password`; 
+   const payload = { Password: passwordForm.value.currentPassword, NewPassword: passwordForm.value.newPassword, PasswordConfirmation: passwordForm.value.confirmPassword };
+   try {
+     await axios.post(CHANGE_PASSWORD_URL, payload, {
+         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.value}` }
+     });
+     toast.success(t('profile.passwordTab.toast.saveSuccess')); 
+     passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
+   } catch (error) {
+      let errorMessage = t('profile.passwordTab.toast.saveFailDefault');
+       if (error.response) {
+         if (error.response.status === 400 && typeof error.response.data === 'string') {
+             if (error.response.data.includes("Old password is incorrect")) { errorMessage = t('profile.passwordTab.toast.oldPasswordError'); } 
+             else if (error.response.data.includes("do not match")) { errorMessage = t('profile.passwordTab.toast.mismatchError'); } 
+             else { errorMessage = error.response.data; }
+         } else { errorMessage = error.response.data?.message || t('profile.errors.serverError'); }
+       } else if (error.request) { errorMessage = t('profile.errors.noResponse'); } 
+       else { errorMessage = error.message; }
+       toast.error(t('profile.passwordTab.toast.saveFailPrefix', { error: errorMessage }));
+   }
 }
 
 function forgotPassword() {
     if (user.value.email) {
       router.push({ name: 'forgot-password', query: { email: user.value.email } }); 
-      toast.info(t('profile.passwordTab.toast.redirecting')); // 25. Локалізація
+      toast.info(t('profile.passwordTab.toast.redirecting')); 
     } else {
-      toast.warning(t('profile.passwordTab.toast.noEmailWarning')); // 26. Локалізація
+      toast.warning(t('profile.passwordTab.toast.noEmailWarning')); 
       router.push({ name: 'forgot-password' }); 
     }
 }
 
-function goToCreateListing() {
-  router.push('/create-listing');
-}
+function goToCreateListing() { router.push('/create-listing'); }
 </script>
 
 <style scoped>
@@ -1139,11 +1110,39 @@ button {
 }
 
 .listing-item-wrapper {
-  /* Трохи затемнюємо фон під карткою */
   background-color: rgba(255, 255, 255, 0.05); 
   border-radius: 12px;
   padding: 15px;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative; /* ВАЖНО для позиционирования бейджа */
+}
+
+/* === ДОБАВЛЕННЫЕ СТИЛИ ДЛЯ ЧЕРНОВИКОВ === */
+.listing-item-wrapper.draft-item {
+  border: 1px dashed rgba(255, 215, 0, 0.3);
+  background-color: rgba(255, 215, 0, 0.02);
+}
+
+.draft-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ffd700;
+  color: #000;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.draft-badge svg {
+  width: 12px;
+  height: 12px;
 }
 
 .listing-actions {

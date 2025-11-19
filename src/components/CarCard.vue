@@ -41,33 +41,34 @@
       </p>
       
       <div class="specs-horizontal">
-        <div class="spec-item">
+        <div class="spec-item" v-if="listing.year">
           <svg :title="t('fields.year')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           <span>{{ listing.year }}</span>
         </div>
-        <div class="spec-item">
+
+        <div class="spec-item" v-if="listing.mileage">
           <svg :title="t('carCard.specMileage')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0-20 0"/><path d="m14 14-2-2-2 2"/><path d="M12 12v-6"/></svg>
           <span>{{ t('carCard.mileage', { km: listing.mileage }) }}</span>
         </div>
         
-        <div class="spec-item">
+        <div class="spec-item" v-if="listing.fuel">
           <svg :title="t('carCard.specFuel')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 11h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1Z"/><path d="M18 11V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"/><path d="M6 11h4"/><path d="M6 15h2"/></svg>
-          <span>{{ t('options.fuel.' + listing.fuel) }}</span>
+          <span>{{ t('options.fuel.' + listing.fuel.toLowerCase()) }}</span>
         </div>
 
-        <div class="spec-item">
+        <div class="spec-item" v-if="listing.transmission">
           <svg :title="t('carCard.specTransmission')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
-          <span>{{ t('options.transmission.' + listing.transmission) }}</span>
+          <span>{{ t('options.transmission.' + listing.transmission.toLowerCase()) }}</span>
         </div>
         
         <div class="spec-item" v-if="listing.bodyType">
           <svg :title="t('carCard.specBodyType')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 18.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-4.37c0-.3-.1-.59-.28-.84l-1.44-2A.5.5 0 0 1 4.5 10.5h15a.5.5 0 0 1 .22.49l-1.44 2c-.18.25-.28.54-.28.84Z"/><path d="M4 14.13V10.5a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 20 10.5v3.63"/><circle cx="6.5" cy="18.5" r="0.5"/><circle cx="17.5" cy="18.5" r="0.5"/></svg>
-          <span>{{ t('options.bodyType.' + listing.bodyType) }}</span>
+          <span>{{ t('options.bodyType.' + listing.bodyType.toLowerCase()) }}</span>
         </div>
 
         <div class="spec-item" v-if="listing.driveTrain">
           <svg :title="t('carCard.specDriveTrain')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 15v-4.32a2 2 0 0 1 1.18-1.83l6-3.46a2 2 0 0 1 1.64 0l6 3.46A2 2 0 0 1 21 10.68V15"/><path d="M5 18v-5h14v5"/></svg>
-          <span>{{ t('options.driveTrain.' + listing.driveTrain) }}</span>
+          <span>{{ t('options.driveTrain.' + listing.driveTrain.toLowerCase()) }}</span>
         </div>
 
         <div class="spec-item" v-if="listing.engineSize">
