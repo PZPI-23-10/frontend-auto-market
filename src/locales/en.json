@@ -716,5 +716,17 @@
       "vedmezhe": "Vedmezhe",
       "volodymyr-volynskyi": "Volodymyr-Volynskyi"
     }
-  }
+  },
+    "editListing": {
+      "title": "Edit Listing",
+      "buttons": {
+        "saveChanges": "Save Changes"
+      },
+      "toast": {
+        "fetchError": "Failed to load listing data",
+        "saveSuccess": "Listing updated successfully",
+        "photoMarkedForDeletion": "Photo marked for deletion"
+      }
+    }
 }
+  

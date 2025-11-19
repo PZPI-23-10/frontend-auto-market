@@ -2,7 +2,7 @@
   <div class="create-listing-view">
     <div class="form-container">
       <div class="header-row">
-        <h1>{{ t('createListing.title') }}</h1>
+        <h1>{{ pageTitle }}</h1>
         <button type="button" class="btn-text" @click="handleDraft" :disabled="isSubmitting">
           <span v-if="!isSubmitting">💾 {{ t('createListing.buttons.saveDraft') }}</span>
         </button>
@@ -124,51 +124,13 @@
                   <select id="transmission" v-model="listing.gearTypeId" required>
                     <option :value="null" disabled>{{ t('createListing.select') }}</option>
                     <option v-for="gear in lists.gearTypes" :key="gear.id" :value="gear.id">
-                       {{ getLabel('transmission', gear.name) }}
+                        {{ getLabel('transmission', gear.name) }}
                     </option>
                   </select>
                 </div>
               </div>
 
               <div class="form-row">
-                <div class="form-group">
-                  <label for="driveTrain">{{ t('createListing.step2.driveTrain') }} *</label>
-                  <select id="driveTrain" v-model="listing.driveTrain" required>
-                    <option value="" disabled>{{ t('createListing.select') }}</option>
-                    <option v-for="dt in driveTrainTypes" :key="dt" :value="t(dt)">{{ t(dt) }}</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="engineSize">{{ t('createListing.step2.engineSize') }} *</label>
-                  <input type="number" id="engineSize" v-model.number="listing.engineSize" required :placeholder="t('createListing.step2.engineSizePlaceholder')">
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="color">{{ t('createListing.step2.color') }} *</label>
-                  <select id="color" v-model="listing.colorHex" required>
-                    <option value="" disabled>{{ t('createListing.select') }}</option>
-                    <option v-for="c in colorOptions" :key="c.hex" :value="c.hex">
-                      {{ c.name }}
-                    </option>
-                  </select>
-                </div>
-                <div class="form-group checkbox-group">
-                  <input type="checkbox" id="metallic" v-model="listing.isMetallic">
-                  <label for="metallic">{{ t('createListing.step2.metallic') }}</label>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="paintwork">{{ t('createListing.step2.paintwork') }} *</label>
-                  <select id="paintwork" v-model="listing.paintwork" required>
-                    <option value="" disabled>{{ t('createListing.select') }}</option>
-                    <option v-for="p in paintworkStates" :key="p" :value="t(p)">{{ t(p) }}</option>
-                  </select>
-                </div>
-
                 <div class="form-group">
                   <label for="technicalCondition">{{ t('createListing.step2.technicalCondition') }} *</label>
                   <select id="technicalCondition" v-model="listing.conditionId" required>
@@ -178,8 +140,16 @@
                     </option>
                   </select>
                 </div>
+                <div class="form-group">
+                  <label for="color">{{ t('createListing.step2.color') }} *</label>
+                  <select id="color" v-model="listing.colorHex" required>
+                    <option value="" disabled>{{ t('createListing.select') }}</option>
+                    <option v-for="c in colorOptions" :key="c.hex" :value="c.hex">
+                      {{ c.name }}
+                    </option>
+                  </select>
+                </div>
               </div>
-              
               <div class="form-group checkbox-group single-checkbox">
                   <input type="checkbox" id="inAccident" v-model="listing.inAccident">
                   <label for="inAccident">{{ t('createListing.step2.inAccident') }}</label>
@@ -187,36 +157,6 @@
             </section>
             
             <section class="form-card" v-else-if="currentStep === 3">
-              <h2>{{ t('createListing.step3.title') }}</h2>
-              <div class="comfort-grid">
-                <div class="form-group checkbox-group">
-                  <input type="checkbox" id="comfort_ac" v-model="listing.comfort.airConditioning">
-                  <label for="comfort_ac">{{ t('createListing.step3.ac') }}</label>
-                </div>
-                <div class="form-group checkbox-group">
-                  <input type="checkbox" id="comfort_climate" v-model="listing.comfort.climateControl">
-                  <label for="comfort_climate">{{ t('createListing.step3.climate') }}</label>
-                </div>
-                <div class="form-group checkbox-group">
-                  <input type="checkbox" id="comfort_seats" v-model="listing.comfort.heatedSeats">
-                  <label for="comfort_seats">{{ t('createListing.step3.heatedSeats') }}</label>
-                </div>
-                <div class="form-group checkbox-group">
-                  <input type="checkbox" id="comfort_camera" v-model="listing.comfort.rearCamera">
-                  <label for="comfort_camera">{{ t('createListing.step3.rearCamera') }}</label>
-                </div>
-                <div class="form-group checkbox-group">
-                  <input type="checkbox" id="comfort_sensors" v-model="listing.comfort.parkingSensors">
-                  <label for="comfort_sensors">{{ t('createListing.step3.parkingSensors') }}</label>
-                </div>
-                <div class="form-group checkbox-group">
-                  <input type="checkbox" id="comfort_sunroof" v-model="listing.comfort.sunroof">
-                  <label for="comfort_sunroof">{{ t('createListing.step3.sunroof') }}</label>
-                </div>
-              </div>
-            </section>
-            
-            <section class="form-card" v-else-if="currentStep === 4">
               <h2>{{ t('createListing.step4.title') }} <small>* {{ t('createListing.required') }}</small></h2>
               <div class="form-group price-group">
                 <label for="price">{{ t('createListing.step4.price') }} *</label>
@@ -230,7 +170,7 @@
               </div>
             </section>
             
-            <section class="form-card" v-else-if="currentStep === 5">
+            <section class="form-card" v-else-if="currentStep === 4">
               <h2>{{ t('createListing.step5.title') }}</h2>
               <div class="form-group">
                 <label for="description">{{ t('createListing.step5.label') }}</label>
@@ -238,11 +178,13 @@
               </div>
             </section>
             
-            <section class="form-card" v-else-if="currentStep === 6">
+            <section class="form-card" v-else-if="currentStep === 5">
               <h2>{{ t('createListing.step6.title') }} <small>* {{ t('createListing.required') }}</small></h2>
               <PhotoUploader 
                 :maxFiles="10" 
                 @files-updated="updateFiles" 
+                @remove-existing="handlePhotoDeletion"
+                :initialFiles="listingPhotos"
               />
             </section>
           </Transition>
@@ -266,7 +208,7 @@
             :disabled="isSubmitting"
             style="margin-right: auto; margin-left: 10px;"
           >
-             💾 {{ t('createListing.buttons.saveDraft') }}
+              💾 {{ t('createListing.buttons.saveDraft') }}
           </button>
           
           <button 
@@ -285,7 +227,7 @@
             :disabled="isSubmitting"
             v-if="currentStep === steps.length"
           >
-            {{ isSubmitting ? t('createListing.buttons.submitting') : t('createListing.buttons.submit') }}
+            {{ submitButtonText }}
           </button>
         </div>
 
@@ -302,21 +244,36 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'; 
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router'; 
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import PhotoUploader from '@/components/PhotoUploader.vue'; 
 import { useAuth } from '@/store/auth'; 
 
+const route = useRoute(); 
 const router = useRouter();
 const toast = useToast();
 const { t, te } = useI18n();
-const { token, user } = useAuth(); // Дістаємо user для номера телефону
-const isSubmitting = ref(false);
+const { token, user } = useAuth();
 const DRAFT_STORAGE_KEY = 'newListingDraft';
 
 const API_HOST = 'https://backend-auto-market.onrender.com/api';
+
+// --- РЕЖИМ РЕДАКТИРОВАНИЯ ---
+const listingId = ref(route.params.id); 
+const isEditMode = computed(() => !!listingId.value);
+const isSubmitting = ref(false);
+const isDataLoading = ref(isEditMode.value); 
+const pageTitle = computed(() => 
+  isEditMode.value ? t('editListing.title') : t('createListing.title')
+);
+const submitButtonText = computed(() => {
+    if (isSubmitting.value) {
+        return t('createListing.buttons.submitting');
+    }
+    return isEditMode.value ? t('editListing.buttons.saveChanges') : t('createListing.buttons.submit');
+});
 
 // --- СПИСКИ ДАНИХ ---
 const lists = ref({
@@ -331,7 +288,7 @@ const lists = ref({
   gearTypes: [],
 });
 
-// --- ДАНІ ОГОЛОШЕННЯ ---
+// --- ДАНІ ОГОЛОШЕННЯ (ОЧИЩЕНО) ---
 const listing = ref({
   vehicleTypeId: null,
   brandId: null,
@@ -343,39 +300,27 @@ const listing = ref({
   cityId: null,
   fuelTypeId: null,
   gearTypeId: null,
-  driveTrain: '', 
-  engineSize: '',
+  // engineSize ВИДАЛЕНО
   colorHex: '', 
-  isMetallic: false,
   inAccident: false,
   conditionId: null, 
-  paintwork: '',
   price: '',
   currency: 'USD', 
   description: '',
-  comfort: {
-    airConditioning: false,
-    climateControl: false,
-    heatedSeats: false,
-    rearCamera: false,
-    parkingSensors: false,
-    sunroof: false
-  }
+  photosToDelete: [] 
 });
-const listingPhotos = ref([]);
+const listingPhotos = ref([]); 
 
+// --- ПІДТРИМУЮЧІ СПИСКИ ---
 const currentStep = ref(1);
 const steps = ref([
   { titleKey: 'createListing.steps.basic' },
   { titleKey: 'createListing.steps.specs' },
-  { titleKey: 'createListing.steps.comfort' },
-  { titleKey: 'createListing.steps.price' },
-  { titleKey: 'createListing.steps.description' },
-  { titleKey: 'createListing.steps.photos' }
+  { titleKey: 'createListing.steps.price' },      
+  { titleKey: 'createListing.steps.description' }, 
+  { titleKey: 'createListing.steps.photos' }       
 ]);
 
-const paintworkStates = ref(['options.paint.asNew', 'options.paint.minorScratches', 'options.paint.used', 'options.paint.needsRepair']);
-const driveTrainTypes = ref(['options.driveTrain.fwd', 'options.driveTrain.rwd', 'options.driveTrain.awd']);
 const colorOptions = [
   { name: 'Чорний', hex: '#000000' },
   { name: 'Білий', hex: '#FFFFFF' },
@@ -396,10 +341,8 @@ const years = computed(() => {
   return yearList;
 });
 
-// --- ФУНКЦІЯ ДЛЯ ПЕРЕКЛАДУ (з покращеним форматуванням ключів) ---
 function getLabel(category, serverName) {
   if (!serverName) return '';
-  // Формуємо ключ: "Bila Tserkva" -> "bila_tserkva"
   const keyRaw = serverName.toLowerCase()
     .replace(/\s+/g, '_')     
     .replace(/\//g, '_')      
@@ -407,17 +350,109 @@ function getLabel(category, serverName) {
     .replace(/\./g, '');      
     
   const fullKey = `options.${category}.${keyRaw}`;
-
-  // Перевіряємо, чи існує переклад
   if (te(fullKey)) {
     return t(fullKey); 
   }
-  
-  // Якщо перекладу немає - повертаємо оригінальну назву з бази
   return serverName; 
 }
+async function fetchListingData(id) {
+   isDataLoading.value = true;
+    try {
+        const res = await axios.get(`${API_HOST}/Listing/${id}`);
+        const data = res.data;
 
-// --- ЗАВАНТАЖЕННЯ БАЗОВИХ СПИСКІВ ---
+        const vehicleTypeId = data.vehicleType?.id ?? data.model?.brand?.vehicleTypeId ?? null;
+        const brandId = data.brand?.id ?? data.model?.brandId ?? null;
+        const modelId = data.model?.id ?? null; 
+        const regionId = data.region?.id ?? data.city?.regionId ?? null;
+        
+        listing.value.vehicleTypeId = vehicleTypeId;
+        listing.value.brandId = brandId;
+        listing.value.regionId = regionId;
+        listing.value.modelId = modelId; 
+
+        await fetchBrands(vehicleTypeId);
+        await fetchModels(brandId, vehicleTypeId);
+        await fetchBodyTypes(modelId); 
+        await fetchCities(regionId);
+        
+        listing.value.cityId = data.city?.id ?? null;
+        listing.value.bodyTypeId = data.bodyType?.id ?? null; 
+        listing.value.year = data.year;
+        listing.value.mileage = data.mileage;
+        listing.value.fuelTypeId = data.fuelType?.id ?? data.fuelTypeId ?? null;
+        listing.value.gearTypeId = data.gearType?.id ?? data.gearTypeId ?? null;
+        
+        listing.value.colorHex = data.colorHex;
+        listing.value.inAccident = data.hasAccident;
+        listing.value.conditionId = data.condition?.id ?? data.conditionId ?? null;
+
+        listing.value.price = data.price;
+        listing.value.currency = data.currency;
+        listing.value.description = data.description;
+        
+        if (data.photoUrls && Array.isArray(data.photoUrls)) {
+            
+            if (data.photoUrls.length > 0 && typeof data.photoUrls[0] === 'object') {
+                 listingPhotos.value = data.photoUrls.map(p => ({ 
+                    url: p.url,      
+                    id: p.id,       
+                    isExisting: true 
+                }));
+            } 
+            else {
+                 listingPhotos.value = data.photoUrls.map((url, index) => ({ 
+                    url: url, 
+                    id: -index, 
+                    isExisting: true 
+                }));
+            }
+        } else {
+            listingPhotos.value = [];
+        }
+
+    } catch (e) {
+        console.error("Помилка завантаження даних:", e);
+        toast.error(t('editListing.toast.fetchError'));
+        router.push('/profile');
+    } finally {
+        isDataLoading.value = false;
+    }
+}
+
+// --- ДОПОМІЖНІ ФУНКЦІЇ API ---
+async function fetchBrands(typeId) {
+    if (!typeId) return (lists.value.brands = []);
+    try {
+        const res = await axios.get(`${API_HOST}/VehicleBrand/for-type/${typeId}`);
+        lists.value.brands = res.data;
+    } catch (e) { console.error(e); lists.value.brands = []; }
+}
+async function fetchModels(brandId, typeId) {
+    if (!brandId || !typeId) return (lists.value.models = []);
+    try {
+        const res = await axios.get(`${API_HOST}/VehicleModel`, {
+            params: { brandId: brandId, vehicleTypeId: typeId }
+        });
+        lists.value.models = res.data;
+    } catch (e) { console.error(e); lists.value.models = []; }
+}
+async function fetchBodyTypes(modelId) {
+    if (!modelId) return (lists.value.bodyTypes = []);
+    try {
+        const res = await axios.get(`${API_HOST}/VehicleBodyType/for-model/${modelId}`);
+        lists.value.bodyTypes = res.data;
+    } catch (e) { console.error(e); lists.value.bodyTypes = []; }
+}
+async function fetchCities(regionId) {
+    if (!regionId) return (lists.value.cities = []);
+    try {
+        const res = await axios.get(`${API_HOST}/City/for-region/${regionId}`);
+        lists.value.cities = res.data;
+    } catch (e) { console.error(e); lists.value.cities = []; }
+}
+
+// --- МОНТУВАННЯ ---
 onMounted(async () => {
   try {
     const [types, reg, cond, fuels, gears] = await Promise.all([
@@ -433,75 +468,55 @@ onMounted(async () => {
     lists.value.conditions = cond.data;
     lists.value.fuelTypes = fuels.data;
     lists.value.gearTypes = gears.data;
+    
+    if (isEditMode.value) {
+        await fetchListingData(listingId.value);
+    }
   } catch (e) {
     console.error("Помилка завантаження списків:", e);
+    if (isEditMode.value) {
+        toast.error(t('editListing.toast.fetchError'));
+        router.push('/profile');
+    }
   }
 });
 
 // --- WATCHERS ---
-
-// 1. Тип -> Бренди
 watch(() => listing.value.vehicleTypeId, async (newId) => {
-  listing.value.brandId = null;
-  listing.value.modelId = null;
-  lists.value.brands = [];
-  if (!newId) return;
-  try {
-    const res = await axios.get(`${API_HOST}/VehicleBrand/for-type/${newId}`);
-    lists.value.brands = res.data;
-  } catch (e) { console.error(e); }
+    if (isDataLoading.value) return; 
+    listing.value.brandId = null;
+    listing.value.modelId = null;
+    await fetchBrands(newId);
 });
-
-// 2. Бренд -> Моделі (ОНОВЛЕНО: ВИКОРИСТОВУЄМО НОВИЙ API З ФІЛЬТРАЦІЄЮ)
 watch(() => listing.value.brandId, async (newBrandId) => {
-  listing.value.modelId = null;
-  lists.value.models = [];
-  
-  if (!newBrandId) return;
-
-  try {
-    // Передаємо і brandId, і vehicleTypeId для точної фільтрації
-    const currentVehicleTypeId = listing.value.vehicleTypeId;
-    const res = await axios.get(`${API_HOST}/VehicleModel`, {
-      params: {
-        brandId: newBrandId,
-        vehicleTypeId: currentVehicleTypeId
-      }
-    });
-    lists.value.models = res.data;
-  } catch (e) { 
-    console.error("Помилка завантаження моделей:", e); 
-  }
+    if (isDataLoading.value) return; 
+    listing.value.modelId = null;
+    await fetchModels(newBrandId, listing.value.vehicleTypeId);
 });
-
-// 3. Модель -> Типи кузова
 watch(() => listing.value.modelId, async (newId) => {
-  listing.value.bodyTypeId = null;
-  lists.value.bodyTypes = [];
-  if (!newId) return;
-  try {
-    const res = await axios.get(`${API_HOST}/VehicleBodyType/for-model/${newId}`);
-    lists.value.bodyTypes = res.data;
-  } catch (e) { console.error(e); }
+    if (isDataLoading.value) return; 
+    listing.value.bodyTypeId = null;
+    await fetchBodyTypes(newId);
 });
-
-// 4. Регіон -> Міста
 watch(() => listing.value.regionId, async (newId) => {
-  listing.value.cityId = null;
-  lists.value.cities = [];
-  if (!newId) return;
-  try {
-    const res = await axios.get(`${API_HOST}/City/for-region/${newId}`);
-    lists.value.cities = res.data;
-  } catch (e) { console.error(e); }
+    if (isDataLoading.value) return; 
+    listing.value.cityId = null;
+    await fetchCities(newId);
 });
 
-
-// --- НАВІГАЦІЯ І ВІДПРАВКА ---
+// --- ОБРОБКА ФОТО ---
 function updateFiles(files) {
-  listingPhotos.value = files;
+    listingPhotos.value = files; // Тільки НОВІ файли
 }
 
+function handlePhotoDeletion(deletedId) {
+    if (!listing.value.photosToDelete.includes(deletedId)) {
+        listing.value.photosToDelete.push(deletedId);
+        toast.info(t('editListing.toast.photoMarkedForDeletion'));
+    }
+}
+
+// --- НАВІГАЦІЯ ---
 function prevStep() {
   if (currentStep.value > 1) currentStep.value--;
 }
@@ -509,63 +524,130 @@ function prevStep() {
 function nextStep() {
   if (currentStep.value === 1) {
     if (!listing.value.vehicleTypeId || !listing.value.brandId || !listing.value.modelId || !listing.value.regionId || !listing.value.cityId || !listing.value.bodyTypeId) {
-       toast.warning(t('createListing.toast.fillField', { field: 'Required fields' }));
-       return;
+        toast.warning(t('createListing.toast.fillField', { field: 'Required fields' }));
+        return;
     }
   }
   if (currentStep.value === 2) {
-     if (!listing.value.fuelTypeId || !listing.value.gearTypeId || !listing.value.colorHex || !listing.value.conditionId) {
+      if (!listing.value.fuelTypeId || !listing.value.gearTypeId || !listing.value.colorHex || !listing.value.conditionId) {
         toast.warning(t('createListing.toast.fillField', { field: 'Required fields' }));
         return;
-     }
+      }
   }
   if (currentStep.value < steps.value.length) {
-     currentStep.value++;
-     window.scrollTo(0,0);
+      currentStep.value++;
+      window.scrollTo(0,0);
   }
-}
-
-function getFormData() {
+}function getFormData() {
   const formData = new FormData();
   
-  // 1. Ідентифікатори (Foreign Keys)
+  if (isEditMode.value && listingId.value) {
+      formData.append('Id', listingId.value);
+  }
+
+  // FK
   if (listing.value.modelId) formData.append('ModelId', listing.value.modelId);
   if (listing.value.bodyTypeId) formData.append('BodyTypeId', listing.value.bodyTypeId);
   if (listing.value.conditionId) formData.append('ConditionId', listing.value.conditionId);
   if (listing.value.cityId) formData.append('CityId', listing.value.cityId);
-  // Обов'язково додаємо ці поля, щоб уникнути помилки FK = 0
   if (listing.value.fuelTypeId) formData.append('FuelTypeId', listing.value.fuelTypeId);
   if (listing.value.gearTypeId) formData.append('GearTypeId', listing.value.gearTypeId);
   
-  // 2. Інші дані
+  // Fields
   formData.append('Year', listing.value.year);
   formData.append('Mileage', listing.value.mileage || 0);
   formData.append('Price', listing.value.price || 0);
   formData.append('Description', listing.value.description || '');
   formData.append('ColorHex', listing.value.colorHex || '#000000'); 
   formData.append('HasAccident', listing.value.inAccident);
-
-  // Додаємо номер телефону (беремо з профілю або заглушку)
+  
   const userPhone = user?.value?.phoneNumber || '0000000000';
   formData.append('Number', userPhone);
 
-  // 3. Фото
-  if (listingPhotos.value.length) {
-    listingPhotos.value.forEach((file) => {
-        formData.append('Photos', file);
+  if (listing.value.photosToDelete && Array.isArray(listing.value.photosToDelete)) {
+    listing.value.photosToDelete.forEach(id => {
+        if (Number.isInteger(id) && id > 0) {
+            formData.append('PhotosToRemove', id); 
+        }
     });
   }
+
+  if (listingPhotos.value.length) {
+    listingPhotos.value.forEach((file) => {
+       if (file instanceof File) {
+           formData.append('NewPhotos', file); 
+       }
+    });
+  }
+  
   return formData;
 }
+// --- ВІДПРАВКА (PUBLISH / UPDATE PUBLISHED) ---
+async function handleSubmit() {
+  if (isSubmitting.value) return;
+  
+  // Валидация только для создания
+  if (!isEditMode.value && listingPhotos.value.length === 0) {
+      toast.warning(t('createListing.toast.addPhoto'));
+      return;
+  }
 
-// --- ЗБЕРЕЖЕННЯ ЧЕРНЕТКИ ---
+  isSubmitting.value = true;
+  
+  // Логика выбора URL:
+  // Если редактируем (PUT api/Listing/{id})
+  // Если создаем (POST api/Listing)
+  const url = isEditMode.value 
+      ? `${API_HOST}/Listing/${listingId.value}` 
+      : `${API_HOST}/Listing`; 
+      
+  const method = isEditMode.value ? 'put' : 'post';
+
+  try {
+    const formData = getFormData();
+    
+    // Для создания (POST) нам нужно убедиться, что DTO 'PublishedVehicleListingRequest'
+    // на бэкенде тоже принимает 'NewPhotos', иначе переименуй ключ ниже только для POST
+    // if (!isEditMode.value) { ... logic to rename NewPhotos to Photos if needed ... }
+
+    await axios[method](url, formData, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    
+    toast.success(isEditMode.value ? t('editListing.toast.saveSuccess') : t('createListing.toast.submitSuccess'));
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+    router.push('/profile');
+    
+  } catch (error) {
+    console.error("Помилка обробки оголошення:", error);
+    handleError(error); // Вынес обработку ошибок отдельно
+  } finally {
+    isSubmitting.value = false;
+  }
+}
+
+// --- ВІДПРАВКА ЧЕРНЕТКИ (DRAFT) ---
 async function handleDraft() {
   if (isSubmitting.value) return;
   isSubmitting.value = true;
   
+  // Логика выбора URL для черновика:
+  // Редактирование черновика: PUT api/Listing/draft/{id}
+  // Создание нового черновика: POST api/Listing/draft
+  const url = isEditMode.value 
+      ? `${API_HOST}/Listing/draft/${listingId.value}` 
+      : `${API_HOST}/Listing/draft`; 
+      
+  const method = isEditMode.value ? 'put' : 'post';
+
   try {
     const formData = getFormData();
-    await axios.post(`${API_HOST}/Listing/draft`, formData, {
+    // DraftVehicleListingRequest на бэке ждет 'NewPhotos' - тут всё совпадает идеально
+    
+    await axios[method](url, formData, {
       headers: {
         'Authorization': `Bearer ${token.value}`,
         'Content-Type': 'multipart/form-data'
@@ -574,55 +656,27 @@ async function handleDraft() {
     toast.success(t('createListing.toast.draftSaved'));
   } catch (error) {
     console.error("Помилка чернетки:", error);
-    toast.error("Не вдалося зберегти чернетку");
+    handleError(error);
   } finally {
     isSubmitting.value = false;
   }
 }
 
-// --- ПУБЛІКАЦІЯ ---
-async function handleSubmit() {
-  if (isSubmitting.value) return;
-  
-  if (listingPhotos.value.length === 0) {
-      toast.warning(t('createListing.toast.addPhoto'));
-      return;
-  }
-
-  isSubmitting.value = true;
-
-  try {
-    const formData = getFormData();
-    await axios.post(`${API_HOST}/Listing`, formData, {
-      headers: {
-        'Authorization': `Bearer ${token.value}`,
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    
-    toast.success(t('createListing.toast.submitSuccess'));
-    localStorage.removeItem(DRAFT_STORAGE_KEY);
-    router.push('/profile');
-    
-  } catch (error) {
-    console.error("Помилка створення:", error);
-    let msg = "Помилка при створенні оголошення";
+// Вспомогательная функция для красивого вывода ошибок
+function handleError(error) {
+    let msg = "Сталася помилка";
     if (error.response?.data?.title) {
         msg = error.response.data.title;
     } else if (typeof error.response?.data === 'string') {
         msg = error.response.data;
     } else if (error.response?.data?.errors) {
-         msg = Object.values(error.response.data.errors).flat().join('\n');
+        // Собираем все ошибки валидации в одну строку
+        msg = Object.values(error.response.data.errors).flat().join('\n');
     }
     toast.error(msg);
-  } finally {
-    isSubmitting.value = false;
-  }
 }
 </script>
-
 <style scoped>
-/* Стилі без змін */
 .create-listing-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;

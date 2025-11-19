@@ -296,28 +296,39 @@ function toCamelCase(str) {
   if (!str) return '';
   return str.toLowerCase().replace(/_([a-z])/g, (g) => g[1].toUpperCase());
 }
-
 function mapApiToDetail(apiItem) {
   // Логіка кольорів: якщо прийшов HEX, шукаємо його, якщо текст - lowercase
   let colorKey = apiItem.colorHex || 'other';
-  // Якщо це не HEX (не починається з #), то це назва (Black -> black)
   if (!colorKey.startsWith('#')) {
       colorKey = colorKey.toLowerCase();
   }
 
-  // Логіка приводу: якщо пусто, повертаємо null, щоб не було "options.driveTrain."
+  // Логіка приводу
   const driveTrainKey = apiItem.driveType?.name 
     ? apiItem.driveType.name.toLowerCase() 
     : 'unknown'; 
 
-  // Логіка стану фарби: API може дати "AsNew", а в JSON "asNew"
-  // Спробуємо привести до camelCase, якщо це одне слово - просто lowercase
+  // Логіка стану фарби
   let paintKey = apiItem.paintwork || 'used';
-  paintKey = paintKey.charAt(0).toLowerCase() + paintKey.slice(1); // AsNew -> asNew
+  paintKey = paintKey.charAt(0).toLowerCase() + paintKey.slice(1);
+
+  // === ВИПРАВЛЕННЯ ФОТО (Початок) ===
+  let processedImages = [placeholderImage]; // Дефолтне фото
+
+  // Перевіряємо і 'photos' (новий стандарт), і 'photoUrls' (старий)
+  const rawPhotos = apiItem.photos || apiItem.photoUrls;
+
+  if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
+    processedImages = rawPhotos.map(item => {
+        // Якщо це об'єкт { id, url }, беремо url. Якщо рядок - залишаємо як є.
+        return (typeof item === 'object' && item !== null) ? item.url : item;
+    });
+  }
+  // === ВИПРАВЛЕННЯ ФОТО (Кінець) ===
 
   return {
     id: apiItem.id,
-    userId: apiItem.userId, // !!! Зберігаємо ID власника для запиту
+    userId: apiItem.userId, 
     brand: apiItem.brand?.name || 'Unknown',
     model: apiItem.model?.name || 'Unknown',
     year: apiItem.year,
@@ -340,8 +351,8 @@ function mapApiToDetail(apiItem) {
     paintwork: paintKey, 
     technicalCondition: (apiItem.condition?.name || 'undamaged').toLowerCase().replace(/\s+/g, '_'),
 
-    // Медіа
-    images: (apiItem.photoUrls && apiItem.photoUrls.length > 0) ? apiItem.photoUrls : [placeholderImage],
+    // Медіа (Використовуємо оброблений масив)
+    images: processedImages, 
     description: apiItem.description || '',
 
     // Комфорт

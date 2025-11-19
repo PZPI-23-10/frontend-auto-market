@@ -289,8 +289,21 @@ const verificationCodeSent = ref(false);
 const verificationCode = ref('');      
 const isLoadingEmail = ref(false);     
 const isLoadingVerify = ref(false);    
-
 function mapApiListingToCarCard(apiItem) {
+ let images = [];
+
+  // Бэкенд присылает массив в поле photoUrls
+  if (apiItem.photoUrls && Array.isArray(apiItem.photoUrls) && apiItem.photoUrls.length > 0) {
+    // ПРОВЕРКА: Если первый элемент — это объект (новое DTO), то берем из него .url
+    if (typeof apiItem.photoUrls[0] === 'object' && apiItem.photoUrls[0] !== null) {
+        images = apiItem.photoUrls.map(p => p.url);
+    } 
+    // ИНАЧЕ: Это старый формат (просто строки)
+    else {
+        images = apiItem.photoUrls;
+    }
+  }
+
   return {
     id: apiItem.id,
     brand: apiItem.brand?.name || 'Не вказано',
@@ -303,13 +316,12 @@ function mapApiListingToCarCard(apiItem) {
     transmission: apiItem.gearType?.name || '',
     bodyType: apiItem.bodyType?.name || '',
     location: apiItem.city?.name || apiItem.region?.name || 'Україна',
-    images: apiItem.photoUrls || [], 
-    mainImage: (apiItem.photoUrls && apiItem.photoUrls.length > 0) ? apiItem.photoUrls[0] : null,
+    images: images, 
+    mainImage: images.length > 0 ? images[0] : null,
     color: apiItem.colorHex,
     inAccident: apiItem.hasAccident
   };
 }
-
 async function fetchUserListings() {
   isLoadingListings.value = true;
   try {
@@ -328,12 +340,12 @@ async function fetchUserListings() {
 
 watch(activeTab, (newTab) => {
   if (newTab === 'orders') {
-    fetchUserListings(); // Завантажуємо тільки коли відкрили вкладку
+    fetchUserListings(); 
   }
 });
 
 function editListing(id) {
-  router.push({ name: 'create-listing', query: { id: id } });
+  router.push({ name: 'edit-listing', params: { id: id } });
 }
 
 async function deleteListing(id) {
