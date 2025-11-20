@@ -440,7 +440,7 @@
       "atv": "ATV"
     },
     "region": {
-      "kyiv,_misto": "Kyiv City",
+      "kyiv_misto": "Kyiv City",
       "vinnytska_oblast": "Vinnytsia Region",
       "volynska_oblast": "Volyn Region",
       "dnipropetrovska_oblast": "Dnipropetrovsk Region",
@@ -465,8 +465,8 @@
       "cherkaska_oblast": "Cherkasy Region",
       "chernivetska_oblast": "Chernivtsi Region",
       "chernihivska_oblast": "Chernihiv Region",
-      "sevastopol,_misto": "Sevastopol City",
-      "krym,_avtonomna_respublika": "Crimea"
+      "sevastopol_misto": "Sevastopol City",
+      "krym_avtonomna_respublika": "Crimea"
     },
     "color": {
       "#000000": "Black",

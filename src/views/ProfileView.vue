@@ -378,6 +378,9 @@ function editListing(id) {
 async function deleteListing(id) {
   if (!confirm(t('profile.ordersTab.deleteConfirm'))) return;
 
+  console.log("Мій поточний ID (з токена):", userId.value);
+  const car = userListings.value.find(c => c.id === id);
+  console.log("ID оголошення, яке видаляємо:", id);
   try {
     await axios.delete(`${API_LISTING_BASE_URL}/${id}`, {
       headers: { 'Authorization': `Bearer ${token.value}` }
@@ -389,7 +392,12 @@ async function deleteListing(id) {
     
   } catch (error) {
     console.error('Помилка видалення:', error);
-    toast.error(t('profile.ordersTab.deleteFail'));
+    if (error.response && error.response.status === 404) {
+       userListings.value = userListings.value.filter(item => item.id !== id);
+       toast.warning("Оголошення вже було видалено (оновлюємо список).");
+    } else {
+       toast.error(t('profile.ordersTab.deleteFail'));
+    }
   }
 }
 

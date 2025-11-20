@@ -1,16 +1,13 @@
 <template>
   <div class="home-page">
-    <section 
-      class="hero-section" 
-      :style="{ backgroundImage: 'url(' + currentCarImage + ')' }"
-    >
+    <section class="hero-section">
       <div class="container hero-container">
         
         <div class="hero-content">
-                    <span class="hero-subtitle">{{ t('home.hero.subtitle') }}</span>
+          <span class="hero-subtitle">{{ t('home.hero.subtitle') }}</span>
           <h1 class="hero-title">{{ t('home.hero.title') }}</h1>
           <div class="hero-buttons">
-            <a href="#" class="btn btn-primary">{{ t('home.hero.discover') }}</a>
+            <router-link to="/listings" class="btn btn-primary">{{ t('home.hero.discover') }}</router-link>
             <a href="#" class="btn btn-secondary">{{ t('home.hero.meet') }}</a>
           </div>
         </div>
@@ -18,301 +15,271 @@
         <div class="hero-form">
           <h2>{{ t('home.form.title') }}</h2>
           <form @submit.prevent="handleSearch">
+            
             <div class="form-group">
-                            <label for="brand">{{ t('home.form.brandLabel') }}</label>
-              <select id="brand" v-model="searchFilters.brand">
-                <option value="">{{ t('home.form.brandPlaceholder') }}</option>
-                                <option value="Audi">Audi</option>
-                <option value="BMW">BMW</option>
-                <option value="Tesla">Tesla</option>
-              </select>
+              <label>{{ t('createListing.step1.vehicleType') }}</label>
+              <SearchableSelect 
+                v-model="filters.vehicleTypeId" 
+                :options="lists.vehicleTypes"
+                :placeholder="t('listings.filter.any') || 'Всі типи'" 
+                translation-scope="options.vehicleType"
+              />
             </div>
+
             <div class="form-group">
-              <label for="model">{{ t('home.form.modelLabel') }}</label>
-              <select id="model" v-model="searchFilters.model">
-                <option value="">{{ t('home.form.modelPlaceholder') }}</option>
-                              </select>
+              <label>{{ t('fields.brand') }}</label>
+              <SearchableSelect 
+                v-model="filters.brandId" 
+                :options="lists.brands" 
+                :placeholder="t('listings.filter.brandPlaceholder')"
+              />
             </div>
+
             <div class="form-group">
-              <label for="type">{{ t('home.form.typeLabel') }}</label>
-              <select id="type" v-model="searchFilters.type">
-                <option value="">{{ t('home.form.typePlaceholder') }}</option>
-                                <option value="diesel">{{ t('fuelTypes.diesel') }}</option>
-                <option value="petrol">{{ t('fuelTypes.petrol') }}</option>
-                <option value="electric">{{ t('fuelTypes.electric') }}</option>
-              </select>
+              <label>{{ t('fields.model') }}</label>
+              <SearchableSelect 
+                v-model="filters.modelId" 
+                :options="lists.models"
+                :placeholder="t('listings.filter.modelPlaceholder')"
+                :disabled="!filters.brandId"
+              />
             </div>
-            <button type="submit" class="btn-submit">{{ t('home.form.submit') }}</button>
+
+            <div class="form-group">
+              <label>{{ t('fields.fuel') }}</label>
+              <SearchableSelect 
+                v-model="filters.fuelTypeId" 
+                :options="lists.fuelTypes"
+                :placeholder="t('listings.filter.anyFuel')"
+                translation-scope="options.fuel"
+              />
+            </div>
+
+            <button type="submit" class="btn-submit">
+              {{ t('home.form.submit') }}
+            </button>
           </form>
         </div>
 
       </div>
     </section>
     
-    <section >
-            </section>
+    <section>
+      </section>
 
     <button class="fab-sell-car" @click="handleSellClick">
-            {{ t('home.sellButton') }} +
+      {{ t('home.sellButton') }} +
     </button>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuth } from '@/store/auth';
-import { useToast } from 'vue-toastification';
-import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
+import { useI18n } from 'vue-i18n';
+import axios from 'axios';
+import SearchableSelect from '@/components/SearchableSelect.vue';
 
-import carImage1 from '@/assets/car-header1.jpg';
-import carImage2 from '@/assets/car-header2.jpg';
-
-// --- Ініціалізація ---
+const { t } = useI18n();
 const router = useRouter();
-const toast = useToast();
-const { isAuthenticated } = useAuth();
-const { t } = useI18n(); // 2. ОТРИМАННЯ ФУНКЦІЇ t
 
-// --- Логіка фону (без змін) ---
-const carImages = [ carImage1, carImage2 ];
-const currentCarImage = ref(carImages[0]); 
+const API_BASE = 'https://backend-auto-market.onrender.com/api';
+const bgImage = ref('https://images.unsplash.com/photo-1493238792000-8113da705763?q=80&w=1920');
 
- setInterval(() => {
-  const currentIndex = carImages.indexOf(currentCarImage.value);
-  const nextIndex = (currentIndex + 1) % carImages.length;
-   currentCarImage.value = carImages[nextIndex];
-   }, 5000);
+// Зберігаємо "Всі бренди" окремо, щоб можна було до них повернутися
+const fullBrands = ref([]);
 
-// --- ЛОГІКА ДЛЯ ФОРМИ ПОШУКУ ---
-const searchFilters = ref({
-  brand: '',
-  model: '',
-  type: ''
+const lists = ref({
+  vehicleTypes: [],
+  brands: [], // Те, що відображається зараз
+  models: [],
+  fuelTypes: []
 });
 
+const filters = ref({
+  vehicleTypeId: null,
+  brandId: null,
+  modelId: null,
+  fuelTypeId: null
+});
+
+// --- 1. ЗАВАНТАЖЕННЯ ---
+onMounted(async () => {
+  try {
+    // Вантажимо ВСЕ: Типи, Паливо І Бренди
+    const [typesRes, fuelsRes, brandsRes] = await Promise.all([
+      axios.get(`${API_BASE}/VehicleType`),
+      axios.get(`${API_BASE}/FuelType`),
+      axios.get(`${API_BASE}/VehicleBrand`)
+    ]);
+
+    lists.value.vehicleTypes = typesRes.data;
+    lists.value.fuelTypes = fuelsRes.data;
+    
+    // Зберігаємо повний список брендів
+    fullBrands.value = brandsRes.data;
+    // І показуємо його одразу
+    lists.value.brands = brandsRes.data;
+
+  } catch (e) {
+    console.error("Помилка завантаження HomeView:", e);
+  }
+});
+
+// --- 2. ЛОГІКА ---
+
+// A) Зміна ТИПУ -> Фільтруємо БРЕНДИ через API (або повертаємо всі)
+watch(() => filters.value.vehicleTypeId, async (newTypeId) => {
+  // Скидаємо вибір бренду/моделі при зміні типу, щоб не було конфліктів
+  filters.value.brandId = null;
+  filters.value.modelId = null;
+  lists.value.models = [];
+
+  if (!newTypeId) {
+    // Якщо "Всі типи" (скинуто) -> показуємо повний список брендів з пам'яті
+    lists.value.brands = fullBrands.value;
+    return;
+  }
+
+  // Якщо обрано тип -> вантажимо бренди ТІЛЬКИ для цього типу з сервера
+  try {
+    const res = await axios.get(`${API_BASE}/VehicleBrand/for-type/${newTypeId}`);
+    lists.value.brands = res.data;
+  } catch (e) { 
+    console.error(e); 
+    // Якщо помилка, залишаємо пустий список або повертаємо повний
+    lists.value.brands = []; 
+  }
+});
+
+// Б) Зміна БРЕНДУ -> Вантажимо МОДЕЛІ
+watch(() => filters.value.brandId, async (newBrandId) => {
+  filters.value.modelId = null;
+  lists.value.models = [];
+  
+  if (!newBrandId) return;
+
+  try {
+    const params = { brandId: newBrandId };
+    // Додаємо тип до запиту, тільки якщо він обраний
+    if (filters.value.vehicleTypeId) {
+      params.vehicleTypeId = filters.value.vehicleTypeId;
+    }
+    const res = await axios.get(`${API_BASE}/VehicleModel`, { params });
+    lists.value.models = res.data;
+  } catch (e) { console.error(e); }
+});
+
+// --- 3. ДІЇ ---
 function handleSearch() {
-  const query = {};
-  if (searchFilters.value.brand) {
-    query.brand = searchFilters.value.brand;
-  }
-  if (searchFilters.value.model) {
-    query.model = searchFilters.value.model;
-  }
-  if (searchFilters.value.type) {
-    // 3. Тепер тут буде 'diesel', 'petrol' і т.д., що коректно
-    query.fuel = searchFilters.value.type; 
-  }
-  router.push({ path: '/listings', query: query });
+  const queryParams = {};
+  if (filters.value.vehicleTypeId) queryParams.vehicleTypeId = filters.value.vehicleTypeId;
+  if (filters.value.brandId) queryParams.brandId = filters.value.brandId;
+  if (filters.value.modelId) queryParams.modelId = filters.value.modelId;
+  if (filters.value.fuelTypeId) queryParams.fuelTypeId = filters.value.fuelTypeId;
+
+  router.push({ name: 'listings', query: queryParams });
 }
 
-// --- ЛОГІКА ДЛЯ КНОПКИ "ПРОДАТИ" ---
 function handleSellClick() {
-  if (isAuthenticated.value) {
-      router.push('/create-listing');
-  } else {
-    // 4. Локалізація Toast
-    toast.warning(t('home.sellWarning'));
-    router.push('/login');
-  }
+  router.push('/create-listing');
 }
-
 </script>
 
 <style scoped>
-/* (Всі стилі .home-page, .hero-section і т.д. - без змін) */
-.home-page {
-  width: 100%;
-  margin: 0;
-}
+.home-page { font-family: 'Open Sans', sans-serif; }
+
 .hero-section {
-  min-height: 100vh;
+  height: 100vh;
+  background-image: url('@/assets/car-header1.jpg');
   background-size: cover;
   background-position: center;
+  background-attachment: fixed;
   display: flex;
   align-items: center;
-  color: white;
   position: relative;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  transition: background-image 0.7s ease-in-out;
+  color: #fff;
 }
+
 .hero-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0,0,0,0.5);
+  z-index: 0;
 }
+
 .container {
-  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 0px;
+  padding: 0 20px;
   position: relative;
   z-index: 1;
-}
-.hero-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 30px;
-}
-.hero-content {
-  position: relative;
-  z-index: 1;
-  text-align: left;
-  flex-basis: 55%;
-}
-.hero-subtitle {
-  font-size: 14px;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-.hero-content h1, .hero-title {
-  font-size: 56px;
-  font-weight: bold;
-  margin-top: 10px;
-  margin-bottom: 30px;
-  line-height: 1.2;
-}
-.hero-content p {
-  font-size: 20px;
-}
-.hero-buttons {
-  display: flex;
-  gap: 15px;
-}
-.hero-buttons .btn {
-  padding: 15px 30px;
-  text-decoration: none;
-  border-radius: 5px;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-}
-.btn-primary {
-  background: #fff;
-  color: #000;
-}
-.btn-primary:hover {
-  background: #eee;
-}
-.btn-secondary {
-  background: transparent;
-  color: #fff;
-  border: 2px solid #fff;
-}
-.btn-secondary:hover {
-  background: #fff;
-  color: #000;
-}
-.hero-form {
-  flex-basis: 27%;
-  background: rgba(30, 30, 30, 0.7);
-  backdrop-filter: blur(5px);
-  padding: 30px;
-  border-radius: 8px;
-  color: #fff;
-  position: relative;
-  z-index: 1;
-}
-.hero-form h2 {
-  font-size: 32px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-.form-group {
-  margin-bottom: 20px;
-}
-.form-group label {
-  display: block;
-  font-size: 12px;
-  text-transform: uppercase;
-  margin-bottom: 5px;
-}
-.form-group select {
   width: 100%;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid #555;
-  border-radius: 5px;
-  color: #fff;
-  font-size: 16px;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 20px;
 }
-.form-group select option {
-  background: #333;
-  color: #fff;
-}
-.btn-submit {
-  width: 100%;
-  padding: 15px;
-  background: #cc0000;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s ease;
-  text-transform: uppercase;
-}
-.btn-submit:hover {
-  background: #aa0000;
-}
-@media screen and (max-width: 768px) {
-  .hero-section {
-    padding-top: 100px;
-    padding-bottom: 50px;
-  }
-.container {
-    padding: 0 20px;
-  }
- .hero-container {
+
+@media (max-width: 992px) {
+  .hero-container {
     flex-direction: column;
+    justify-content: center;
     gap: 40px;
-  }
-  .hero-content {
-    flex-basis: auto;
     text-align: center;
   }
-  .hero-content h1, .hero-title {
-    font-size: 36px;
-  }
-  .hero-buttons {
-    justify-content: center;
-  }
-  .hero-form {
-    flex-basis: auto;
-    width: 100%; 
-  }
-} 
+}
+
+.hero-content { max-width: 600px; }
+.hero-subtitle {
+  color: #ffd700; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; font-size: 14px; margin-bottom: 10px; display: block;
+}
+.hero-title {
+  font-size: 48px; font-weight: 800; line-height: 1.1;
+  margin-bottom: 30px; text-transform: uppercase;
+}
+.hero-buttons { display: flex; gap: 15px; }
+@media (max-width: 992px) { .hero-buttons { justify-content: center; } }
+
+.btn {
+  padding: 12px 30px; border-radius: 30px; font-weight: 700;
+  text-decoration: none; text-transform: uppercase; font-size: 14px; transition: 0.3s;
+}
+.btn-primary { background: #cc0000; color: #fff; }
+.btn-primary:hover { background: #ff0000; }
+.btn-secondary { background: transparent; border: 2px solid #fff; color: #fff; }
+.btn-secondary:hover { background: #fff; color: #000; }
+
+/* --- ФОРМА --- */
+.hero-form {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  border-radius: 10px;
+  width: 350px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.hero-form h2 { margin-top: 0; font-size: 24px; margin-bottom: 20px; text-align: center; }
+
+.form-group { margin-bottom: 15px; text-align: left; }
+.form-group label {
+  display: block; font-size: 12px; color: #ddd; margin-bottom: 5px;
+  text-transform: none !important; letter-spacing: 1px;
+}
+
+.btn-submit {
+  width: 100%; padding: 14px; background: #ffd700; color: #000;
+  border: none; border-radius: 5px; font-weight: 800; text-transform: uppercase;
+  cursor: pointer; margin-top: 10px; transition: 0.3s;
+}
+.btn-submit:hover { background: #ffed4a; transform: translateY(-2px); }
+
 .fab-sell-car {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  z-index: 1000; 
-  background: #cc0000;
-  color: #fff;
-  border: none;
-  border-radius: 50px; 
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  padding: 15px 30px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  position: fixed; bottom: 30px; right: 30px;
+  background: #cc0000; color: #fff; border: none;
+  padding: 15px 25px; border-radius: 50px; font-weight: 700; font-size: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4); cursor: pointer; z-index: 100; transition: 0.3s;
 }
-.fab-sell-car:hover {
-  background: #aa0000;
-  transform: translateY(-2px); 
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-}
+.fab-sell-car:hover { background: #ff0000; transform: scale(1.05); }
 </style>

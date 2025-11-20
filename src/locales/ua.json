@@ -225,6 +225,7 @@
       "create": "Створити оголошення",
       "empty": "У вас ще немає активних оголошень.",
       "edit": "Редагувати",
+      "continueEdit": "Продовжити редагувати",
       "delete": "Видалити",
       "deleteConfirm": "Ви впевнені, що хочете видалити це оголошення?",
       "deleteSuccess": "Оголошення видалено!",
@@ -438,7 +439,7 @@
       "atv": "Квадроцикл"
     },
    "region": {
-      "kyiv,_misto": "м. Київ",
+      "kyiv_misto": "м. Київ",
       "vinnytska_oblast": "Вінницька обл.",
       "volynska_oblast": "Волинська обл.",
       "dnipropetrovska_oblast": "Дніпропетровська обл.",
@@ -463,8 +464,8 @@
       "cherkaska_oblast": "Черкаська обл.",
       "chernivetska_oblast": "Чернівецька обл.",
       "chernihivska_oblast": "Чернігівська обл.",
-      "sevastopol,_misto": "м. Севастополь",
-      "krym,_avtonomna_respublika": "АР Крим"
+      "sevastopol_misto": "м. Севастополь",
+      "krym_avtonomna_respublika": "АР Крим"
     },
     "color": {
      "#000000": "Чорний",
