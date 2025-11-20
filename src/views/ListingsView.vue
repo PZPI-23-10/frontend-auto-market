@@ -231,13 +231,17 @@ async function loadModels(brandId) {
 function mapApiToCarCard(apiItem) {
   // 1. Правильна обробка фото (як у ProfileView)
   let images = [];
-  if (apiItem.photoUrls && Array.isArray(apiItem.photoUrls) && apiItem.photoUrls.length > 0) {
-    // Перевіряємо, чи елемент є об'єктом (наприклад { id: 1, url: '...' })
-    if (typeof apiItem.photoUrls[0] === 'object' && apiItem.photoUrls[0] !== null) {
-        images = apiItem.photoUrls.map(p => p.url);
+   let rawPhotos = apiItem.photos || apiItem.photoUrls;
+
+  if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
+    if (typeof rawPhotos[0] === 'object' && rawPhotos[0] !== null) {
+        
+        rawPhotos.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+        images = rawPhotos.map(p => p.url);
+        
     } else {
-        // Якщо це просто рядок
-        images = apiItem.photoUrls;
+        images = rawPhotos;
     }
   }
 

@@ -312,16 +312,19 @@ function toKey(val) {
 function mapApiListingToCarCard(apiItem) {
   let images = [];
 
-  // Логіка фото: обробка і об'єктів, і рядків
-  if (apiItem.photoUrls && Array.isArray(apiItem.photoUrls) && apiItem.photoUrls.length > 0) {
-    if (typeof apiItem.photoUrls[0] === 'object' && apiItem.photoUrls[0] !== null) {
-        images = apiItem.photoUrls.map(p => p.url);
+  let rawPhotos = apiItem.photos || apiItem.photoUrls;
+
+  if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
+    if (typeof rawPhotos[0] === 'object' && rawPhotos[0] !== null) {
+        
+        rawPhotos.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+        images = rawPhotos.map(p => p.url);
+        
     } else {
-        images = apiItem.photoUrls;
+        images = rawPhotos;
     }
   }
-
-  // Локація
   const cityLabel = apiItem.city?.name || '';
   const regionLabel = apiItem.region?.name || '';
 
@@ -334,9 +337,6 @@ function mapApiListingToCarCard(apiItem) {
     price: apiItem.price,
     currency: 'USD', 
     
-    // Використовуємо toKey:
-    // Це поверне 'petrol' замість 'Petrol', і 'automatic' замість 'Automatic'
-    // Якщо поле пусте (у чернетці), поверне null
     fuel: toKey(apiItem.fuelType?.name),       
     transmission: toKey(apiItem.gearType?.name), 
     bodyType: toKey(apiItem.bodyType?.name),
