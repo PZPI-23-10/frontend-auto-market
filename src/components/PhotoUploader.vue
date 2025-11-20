@@ -1,52 +1,65 @@
 <template>
   <div class="photo-uploader">
-    <div class="upload-area">
-      <label
-        for="file-input"
-        class="upload-label"
-        :class="{ 'is-dragging': isDragging }"
-        @dragover.prevent="onDragOver"
-        @dragleave.prevent="onDragLeave"
-        @drop.prevent="onDrop"
+    
+    <div 
+      class="upload-area"
+      :class="{ 'is-dragging': isDragging }"
+      @dragover.prevent="onDragOver"
+      @dragleave.prevent="onDragLeave"
+      @drop.prevent="onDropFile"
+      @click="triggerFileInput"
+    >
+      <input 
+        type="file" 
+        ref="fileInput" 
+        multiple 
+        accept="image/*" 
+        @change="handleFileChange" 
+        style="display: none;"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0  0  24  24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-        <span>{{ t('uploader.label', { count: maxFiles }) }}</span>
-      </label>
-
-      <input
-        id="file-input"
-        ref="fileInput"
-        type="file"
-        multiple
-        accept="image/*"
-        @change="handleFileChange"
-        :disabled="allPhotos.length >= maxFiles"
-      />
+      <div class="upload-placeholder">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p>{{ t('uploader.label', { count: maxFiles }) }}</p>
+        <small>{{ photoList.length }} / {{ maxFiles }}</small>
+      </div>
     </div>
 
-    <div v-if="allPhotos.length > 0" class="previews-grid">
-      <div v-for="photo in allPhotos" :key="photo.id" class="preview-item">
-        <img
-          :src="photo.url || photo.preview"
-          :alt="t('uploader.previewAlt')"
-          @click="openModal(photo.url || photo.preview)"
-        />
-        <button type="button" class="delete-btn" @click="removeImage(photo.id, photo.isNew)">
+    <transition-group name="photo-list" tag="div" class="photo-list" v-if="photoList.length > 0">
+      <div 
+        v-for="(photo, index) in photoList" 
+        :key="photo.uid"
+        class="photo-item"
+        draggable="true"
+        @dragstart="onSortStart($event, index)"
+        @drop="onSortDrop($event, index)"
+        @dragover.prevent
+        @dragenter.prevent
+      >
+        <img :src="photo.url" :alt="`Photo ${index}`" @click="openModal(photo.url)">
+        
+        <button class="remove-btn" @click.stop="removePhoto(index)">
           &times;
         </button>
+        
+        <div class="photo-badges">
+          <span v-if="index === 0" class="badge-main">Main</span>
+          <span v-if="photo.isNew" class="badge-new">New</span>
+        </div>
+      </div>
+    </transition-group>
+
+    <div v-if="isModalOpen" class="modal-overlay" @click="closeModal">
+      <div class="modal-content">
+        <img :src="currentImage" alt="Full size">
+        <button class="close-modal" @click="closeModal">&times;</button>
       </div>
     </div>
 
-    <div v-if="isModalOpen" class="image-modal-overlay" @click="closeModal">
-      <div class="image-modal-content" @click.stop>
-        <button class="modal-close-btn" @click="closeModal">&times;</button>
-        <img :src="currentImage" :alt="t('uploader.modalAlt')" class="modal-image" />
-      </div>
-    </div>
   </div>
 </template>
+
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, watch, onBeforeUnmount } from 'vue';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 
@@ -54,81 +67,72 @@ const toast = useToast();
 const { t } = useI18n();
 
 const props = defineProps({
-  maxFiles: { type: Number, default: 5 },
-  initialFiles: { type: Array, default: () => [] }
+  maxFiles: { type: Number, default: 10 },
+  initialFiles: { type: Array, default: () => [] } // [{ url: '...', id: 123, ... }]
 });
 
-// Добавляем событие 'remove-existing' для корректного общения с сервером
 const emit = defineEmits(['files-updated', 'remove-existing']);
 
+// ЕДИНЫЙ СПИСОК ФОТО (и старых, и новых)
+const photoList = ref([]); 
 const fileInput = ref(null);
-const existingPhotos = ref([]);
-const newFiles = ref([]);
 const isDragging = ref(false);
-
 const isModalOpen = ref(false);
 const currentImage = ref('');
+
+// Константы
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-// ИСПРАВЛЕНИЕ 1: Более надежная генерация ID
-// Использование счетчика гарантирует уникальность даже в быстрых циклах
-let uniqueIdCounter = 0;
-const uid = () => `photo-${Date.now()}-${Math.floor(Math.random() * 10000)}-${uniqueIdCounter++}`;
+// Генератор уникальных ключей для v-for (чтобы Vue не путался при сортировке)
+let uidCounter = 0;
+const generateUid = () => `img-${Date.now()}-${uidCounter++}`;
 
-const allPhotos = computed(() => {
-  return [...existingPhotos.value, ...newFiles.value];
-});
+// --- 1. ИНИЦИАЛИЗАЦИЯ ---
+watch(() => props.initialFiles, (newFiles) => {
+  // Заполняем список только если он пуст (первая загрузка), 
+  // чтобы не перезатирать локальные изменения пользователя
+  if (photoList.value.length === 0 && newFiles && newFiles.length > 0) {
+    photoList.value = newFiles.map(f => ({
+      uid: generateUid(),
+      id: f.id,       // ID из базы данных (int)
+      url: f.url,     // Ссылка
+      file: null,     // Файла нет, это ссылка
+      isExisting: true,
+      isNew: false
+    }));
+    emitUpdate();
+  }
+}, { immediate: true });
 
-// Watcher для initialFiles
-watch(
-  () => props.initialFiles,
-  (newInitial) => {
-    if (newInitial && newInitial.length > 0) {
-      existingPhotos.value = newInitial.map((file) => ({
-        id: file.id || uid(), // Если ID нет, создаем стабильный
-        url: file.url,
-        isNew: false,
-        isExisting: true
-      }));
-    } else {
-      existingPhotos.value = [];
-    }
-  },
-  { deep: true, immediate: true }
-);
-
-function openModal(imageSrc) {
-  currentImage.value = imageSrc;
-  isModalOpen.value = true;
-  document.body.style.overflow = 'hidden';
-}
-function closeModal() {
-  isModalOpen.value = false;
-  currentImage.value = '';
-  document.body.style.overflow = '';
+// --- 2. ЗАГРУЗКА ФАЙЛОВ ---
+function triggerFileInput() {
+  fileInput.value.click();
 }
 
-// Drag & Drop
 function onDragOver() { isDragging.value = true; }
 function onDragLeave() { isDragging.value = false; }
-function onDrop(event) {
+
+function onDropFile(event) {
   isDragging.value = false;
   const files = Array.from(event.dataTransfer.files || []);
   processFiles(files);
 }
 
-function handleFileChange(evt) {
-  const files = Array.from(evt.target.files || []);
+function handleFileChange(event) {
+  const files = Array.from(event.target.files || []);
   processFiles(files);
-  if (fileInput.value) fileInput.value.value = null;
+  event.target.value = ''; // Сброс инпута
 }
 
 function processFiles(files) {
-  if (!files || files.length === 0) return;
+  if (!files.length) return;
+
+  let addedCount = 0;
 
   for (const file of files) {
-    if (allPhotos.value.length >= props.maxFiles) {
+    // Валидация
+    if (photoList.value.length >= props.maxFiles) {
       toast.warning(t('uploader.maxFilesWarning', { count: props.maxFiles }));
       break;
     }
@@ -141,61 +145,230 @@ function processFiles(files) {
       continue;
     }
 
-    const fileObject = {
-      id: uid(),
-      file,
-      preview: URL.createObjectURL(file),
-      isNew: true,
-      isExisting: false
-    };
+    // Добавление в общий список
+    photoList.value.push({
+      uid: generateUid(),
+      id: null,            // ID нет, это новый файл
+      url: URL.createObjectURL(file), // Превью
+      file: file,          // Сам файл для отправки
+      isExisting: false,
+      isNew: true
+    });
+    addedCount++;
+  }
 
-    newFiles.value.push(fileObject);
-    emitNewFiles();
+  if (addedCount > 0) {
+    emitUpdate();
   }
 }
 
-/**
- * ИСПРАВЛЕНИЕ 2: Логика удаления
- */
-function removeImage(id, isNew) {
-  if (isNew) {
-    // Логика для НОВЫХ файлов (которые еще не загружены на сервер)
-    const target = newFiles.value.find(f => f.id === id);
-    if (target && target.preview) URL.revokeObjectURL(target.preview);
+// --- 3. УДАЛЕНИЕ ---
+function removePhoto(index) {
+  const photo = photoList.value[index];
 
-    newFiles.value = newFiles.value.filter(f => f.id !== id);
-    
-    // Обновляем список файлов для загрузки
-    emitNewFiles();
-  } else {
-    // Логика для СУЩЕСТВУЮЩИХ файлов (с сервера)
-    existingPhotos.value = existingPhotos.value.filter(f => f.id !== id);
-
-    emit('remove-existing', id);
+  // Если это существующее фото, сообщаем родителю ID для удаления из базы
+  if (photo.isExisting) {
+    emit('remove-existing', photo.id);
+  } 
+  // Если новое - чистим память превью
+  else if (photo.url) {
+    URL.revokeObjectURL(photo.url);
   }
+
+  photoList.value.splice(index, 1);
+  emitUpdate();
 }
 
-function emitNewFiles() {
-  const filesToUpload = newFiles.value.map(f => f.file);
-  emit('files-updated', filesToUpload);
+// --- 4. СОРТИРОВКА (Drag & Drop внутри списка) ---
+let draggedItemIndex = null;
+
+function onSortStart(event, index) {
+  draggedItemIndex = index;
+  event.dataTransfer.effectAllowed = 'move';
+  // Небольшой хак, чтобы скрыть "призрака" элемента при перетаскивании (опционально)
+  // event.dataTransfer.setDragImage(new Image(), 0, 0);
 }
+
+function onSortDrop(event, targetIndex) {
+  // Перемещаем элемент в массиве
+  const itemToMove = photoList.value[draggedItemIndex];
+  photoList.value.splice(draggedItemIndex, 1); // Удалить со старого места
+  photoList.value.splice(targetIndex, 0, itemToMove); // Вставить на новое
+  
+  draggedItemIndex = null;
+  emitUpdate();
+}
+
+// --- 5. ОТПРАВКА ДАННЫХ РОДИТЕЛЮ ---
+function emitUpdate() {
+  // Отправляем ВЕСЬ список в том порядке, в котором он сейчас на экране.
+  // Родитель (getFormData) сам разберется, где File, а где ID.
+  emit('files-updated', photoList.value);
+}
+
+// --- 6. УТИЛИТЫ ---
+function openModal(src) {
+  currentImage.value = src;
+  isModalOpen.value = true;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  isModalOpen.value = false;
+  document.body.style.overflow = '';
+}
+
+// Очистка памяти при уходе со страницы
+onBeforeUnmount(() => {
+  photoList.value.forEach(p => {
+    if (p.isNew && p.url) URL.revokeObjectURL(p.url);
+  });
+});
 </script>
 
 <style scoped>
-.upload-label { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; min-height:150px; border-radius:6px; background-color:rgba(255,255,255,0.1); border:2px dashed #555; color:#fff; cursor:pointer; transition:all 0.3s ease; }
-.upload-label.is-dragging { border-color:#ffd700; background-color:rgba(255,215,0,0.1); }
-.upload-label:hover { border-color:#ffd700; background-color:rgba(255,255,255,0.15); }
-.upload-label svg { width:40px; height:40px; margin-bottom:10px; stroke:#ffd700; pointer-events:none; }
-.upload-label span { font-weight:500; text-align:center; pointer-events:none; max-width:100%; box-sizing:border-box; }
-#file-input { display:none; }
-.previews-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:15px; margin-top:20px; }
-.preview-item { position:relative; border-radius:6px; overflow:hidden; border:1px solid #555; }
-.preview-item img { width:100%; height:100px; object-fit:cover; display:block; cursor:zoom-in; }
-.delete-btn { position:absolute; top:5px; right:5px; width:24px; height:24px; border-radius:50%; background:rgba(0,0,0,0.7); color:white; border:none; font-size:16px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; line-height:1; }
-.delete-btn:hover { background:#cc0000; }
-.image-modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(5px); display:flex; align-items:center; justify-content:center; z-index:10000; overflow-y:auto; padding:40px 0; box-sizing:border-box; }
-.image-modal-content { position:relative; max-width:90%; max-height:90vh; display:flex; justify-content:center; align-items:center; background-color:rgba(30,30,30,0.7); border-radius:12px; border:2px solid rgba(255,255,255,0.1); box-shadow:0 0 40px rgba(8,7,16,0.6); padding:20px; box-sizing:border-box; margin:auto 0; }
-.modal-image { max-width:100%; max-height:100%; object-fit:contain; display:block; }
-.modal-close-btn { position:absolute; top:5px; right:5px; background:#070101; color:white; border:none; border-radius:50%; width:40px; height:40px; font-size:28px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background-color 0.3s; z-index:10001; }
-.modal-close-btn:hover { background:#5f0707; }
+.photo-uploader {
+  width: 100%;
+}
+
+/* Зона загрузки */
+.upload-area {
+  border: 2px dashed #555;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.02);
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+.upload-area:hover, .upload-area.is-dragging {
+  border-color: #cc0000;
+  background: rgba(204, 0, 0, 0.05);
+  color: #fff;
+}
+
+.upload-placeholder svg {
+  margin-bottom: 10px;
+  color: #888;
+}
+
+/* Сетка фото */
+.photo-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 15px;
+}
+
+/* Анимация списка */
+.photo-list-move {
+  transition: transform 0.4s;
+}
+
+.photo-item {
+  position: relative;
+  aspect-ratio: 1; /* Квадрат */
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #444;
+  cursor: grab;
+  background: #000;
+}
+
+.photo-item:active {
+  cursor: grabbing;
+}
+
+.photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.2s;
+}
+
+.photo-item:hover img {
+  opacity: 0.8;
+}
+
+/* Кнопка удаления */
+.remove-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.remove-btn:hover {
+  background: #cc0000;
+}
+
+/* Бейджи */
+.photo-badges {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.badge-main, .badge-new {
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge-main {
+  background: #ffd700;
+  color: #000;
+}
+
+.badge-new {
+  background: #cc0000;
+  color: #fff;
+}
+
+/* Модалка */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-content img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 4px;
+}
+
+.close-modal {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 40px;
+  cursor: pointer;
+}
 </style>
