@@ -37,7 +37,11 @@
       >
         <img :src="photo.url" :alt="`Photo ${index}`" @click="openModal(photo.url)">
         
-        <button class="remove-btn" @click.stop="removePhoto(index)">
+        <button 
+          type="button" 
+          class="remove-btn" 
+          @click.stop="removePhoto(index)"
+        >
           &times;
         </button>
         
