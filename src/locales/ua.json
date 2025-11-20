@@ -468,7 +468,7 @@
       "krym_avtonomna_respublika": "АР Крим"
     },
     "color": {
-     "#000000": "Чорний",
+      "#000000": "Чорний",
       "#ffffff": "Білий",
       "#0000ff": "Синій", 
       "#ff0000": "Червоний",
@@ -665,7 +665,7 @@
       "holmivskyi": "Гольмівський",
       "novodruzhesk": "Новодружеськ",
       "karnaukhivka": "Карнаухівка",
-      "velikaya_berezovitsa": "Велика Березовиця",
+      "velikaya_berëzovitsa": "Велика Березовиця",
       "rozkishne": "Розкішне",
       "vorzel": "Ворзель",
       "shepetivka": "Шепетівка",

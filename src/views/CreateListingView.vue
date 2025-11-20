@@ -66,7 +66,7 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="mileage">{{ t('createListing.step1.mileage') }} *</label>
-                  <input type="number" id="mileage" v-model.number="listing.mileage" required :placeholder="t('createListing.step1.mileagePlaceholder')">
+                  <input type="number" id="mileage" v-model.number="listing.mileage" required :placeholder="t('createListing.step1.mileagePlaceholder')" @keydown="preventInvalidInput">
                 </div>
 
                 <div class="form-group">
@@ -143,7 +143,7 @@
                   <select id="color" v-model="listing.colorHex" required>
                     <option value="" disabled>{{ t('createListing.select') }}</option>
                     <option v-for="c in colorOptions" :key="c.hex" :value="c.hex">
-                      {{ c.name }}
+                      {{ t('options.color.' + c.hex) }}
                     </option>
                   </select>
                 </div>
@@ -159,7 +159,7 @@
               <div class="form-group price-group">
                 <label for="price">{{ t('createListing.step4.price') }} *</label>
                 <div class="input-group">
-                  <input type="number" id="price" v-model.number="listing.price" required placeholder="0">
+                  <input type="number" id="price" v-model.number="listing.price" required placeholder="0" @keydown="preventInvalidInput">
                   <select id="currency" v-model="listing.currency">
                     <option value="USD">USD</option>
                     <option value="UAH">UAH</option>
@@ -318,13 +318,14 @@ const steps = ref([
 ]);
 
 const colorOptions = [
-  { name: 'Чорний', hex: '#000000' },
-  { name: 'Білий', hex: '#FFFFFF' },
-  { name: 'Сірий', hex: '#808080' },
-  { name: 'Червоний', hex: '#FF0000' },
-  { name: 'Синій', hex: '#0000FF' },
-  { name: 'Зелений', hex: '#008000' },
-  { name: 'Інший', hex: '#CCCCCC' },
+  { hex: '#000000' },
+  { hex: '#ffffff' },
+  { hex: '#808080' },
+  { hex: '#cccccc' }, 
+  { hex: '#ff0000' },
+  { hex: '#0000ff' },
+  { hex: '#008000' },
+  { hex: 'other' }   
 ];
 
 const years = computed(() => {
@@ -337,9 +338,17 @@ const years = computed(() => {
   return yearList;
 });
 
+const preventInvalidInput = (event) => {
+  if (['-', '+', 'e', 'E'].includes(event.key)) {
+    event.preventDefault();
+  }
+};
+
 function getLabel(category, serverName) {
   if (!serverName) return '';
   const keyRaw = serverName.toLowerCase()
+    .replace(/'/g, '')       
+    .replace(/’/g, '')
     .replace(/\s+/g, '_')     
     .replace(/\//g, '_')      
     .replace(/,/g, '')        
