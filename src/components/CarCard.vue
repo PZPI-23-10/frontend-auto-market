@@ -1,17 +1,17 @@
 <template>
-  <div class="car-card" @mouseenter="pauseAutoplay" @mouseleave="startAutoplay">
+  <div class="car-card" @mouseenter="pauseAutoplay" @mouseleave="startAutoplay" @click="goToDetails">
     
     <div class="card-image-wrapper" @wheel.prevent="handleWheel">
       
       <div 
         class="blur-background"
-        :style="{ backgroundImage: `url(${currentImageUrl || placeholderImage})` }"
+        :style="{ backgroundImage: `url(${currentImageUrl})` }"
       ></div>
 
       <img 
         :src="currentImageUrl" 
         :alt="t('carCard.imageAlt')"
-        @click="goToDetails"
+        class="main-img"
         @error="$event.target.src = placeholderImage" 
       >
       
@@ -19,19 +19,15 @@
         {{ formattedPrice }}
       </div>
       
-      <template v-if="listing.images && listing.images.length > 1">
-        <button class="carousel-btn prev" @click.stop="prevImage">
-          &#10094;
-        </button>
-        <button class="carousel-btn next" @click.stop="nextImage">
-          &#10095;
-        </button>
+      <template v-if="validImages.length > 1">
+        <button class="carousel-btn prev" @click.stop="prevImage">&#10094;</button>
+        <button class="carousel-btn next" @click.stop="nextImage">&#10095;</button>
       </template>
 
     </div>
     
     <div class="card-content">
-      <h3 class="card-title" @click="goToDetails">
+      <h3 class="card-title">
         {{ listing.brand }} {{ listing.model }}
       </h3>
       
@@ -61,26 +57,7 @@
           <span>{{ t('options.transmission.' + listing.transmission.toLowerCase()) }}</span>
         </div>
         
-        <div class="spec-item" v-if="listing.bodyType">
-          <svg :title="t('carCard.specBodyType')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 18.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-4.37c0-.3-.1-.59-.28-.84l-1.44-2A.5.5 0 0 1 4.5 10.5h15a.5.5 0 0 1 .22.49l-1.44 2c-.18.25-.28.54-.28.84Z"/><path d="M4 14.13V10.5a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 20 10.5v3.63"/><circle cx="6.5" cy="18.5" r="0.5"/><circle cx="17.5" cy="18.5" r="0.5"/></svg>
-          <span>{{ t('options.bodyType.' + listing.bodyType.toLowerCase()) }}</span>
         </div>
-
-        <div class="spec-item" v-if="listing.driveTrain">
-          <svg :title="t('carCard.specDriveTrain')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 15v-4.32a2 2 0 0 1 1.18-1.83l6-3.46a2 2 0 0 1 1.64 0l6 3.46A2 2 0 0 1 21 10.68V15"/><path d="M5 18v-5h14v5"/></svg>
-          <span>{{ t('options.driveTrain.' + listing.driveTrain.toLowerCase()) }}</span>
-        </div>
-
-        <div class="spec-item" v-if="listing.engineSize">
-          <svg :title="t('carCard.specEngineSize')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8"/><path d="M18 22V10"/><path d="M14 22V10"/><path d="M6 14H4"/><path d="M6 10H4"/><path d="M10 6H8"/><path d="M16 6h-2"/></svg>
-          <span>{{ t('carCard.engineSize', { size: listing.engineSize }) }}</span>
-        </div>
-
-        <div class="spec-item" v-if="listing.color">
-          <svg :title="t('carCard.specColor')" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 6-6"/><path d="M12 14c-1.88 1.88-5.12 1.88-7 0 1.88-1.88 1.88-5.12 0-7 1.88 1.88 5.12 1.88 7 0 1.88 1.88 1.88 5.12 0 7Z"/><path d="m14 12-6 6"/><path d="M14 12c1.88-1.88 5.12-1.88 7 0-1.88 1.88-1.88 5.12 0 7-1.88-1.88-5.12-1.88-7 0-1.88-1.88-1.88-5.12 0-7Z"/></svg>
-          <span>{{ t('options.color.' + listing.color.toLowerCase()) }}</span>
-        </div>
-      </div>
       
       <button 
         class="favorite-btn" 
@@ -113,42 +90,51 @@ const { t, locale } = useI18n();
 
 const currentImageIndex = ref(0);
 
-const hasImages = computed(() => 
-  props.listing.images && props.listing.images.length > 0
-);
+// --- НОВА ЛОГІКА ОТРИМАННЯ КАРТИНОК ---
+const validImages = computed(() => {
+  // Перевіряємо обидва можливих поля: images або photoUrls
+  const source = props.listing.images || props.listing.photoUrls;
+  
+  if (!source || !Array.isArray(source)) return [];
+  
+  // Мапимо масив: витягуємо URL, якщо це об'єкт
+  return source.map(item => {
+    if (typeof item === 'object' && item !== null && item.url) {
+      return item.url;
+    }
+    return item; // Якщо це вже рядок
+  }).filter(url => url); // Прибираємо пусті значення
+});
 
 const currentImageUrl = computed(() => {
-  if (hasImages.value) {
-    return props.listing.images[currentImageIndex.value];
+  if (validImages.value.length > 0) {
+    return validImages.value[currentImageIndex.value];
   }
   return placeholderImage;
 });
 
+const formattedPrice = computed(() => {
+  if (!props.listing || typeof props.listing.price !== 'number') return t('carCard.priceNA');
+  return `${props.listing.price.toLocaleString(locale.value)} ${props.listing.currency || 'USD'}`;
+});
+
 function nextImage() {
-  if (!hasImages.value) return;
-  currentImageIndex.value = (currentImageIndex.value + 1) % props.listing.images.length;
-}
-
-function prevImage() {
-  if (!hasImages.value) return;
-  currentImageIndex.value = 
-    (currentImageIndex.value - 1 + props.listing.images.length) % props.listing.images.length;
-}
-
-function handleWheel(event) {
-  if (!hasImages.value) return;
-  
-  if (event.deltaY > 0) {
-    nextImage();
-  } else {
-    prevImage();
+  if (validImages.value.length > 0) {
+    currentImageIndex.value = (currentImageIndex.value + 1) % validImages.value.length;
   }
 }
 
-const formattedPrice = computed(() => {
-  if (!props.listing || typeof props.listing.price !== 'number') return t('carCard.priceNA');
-  return `${props.listing.price.toLocaleString(locale.value)} ${props.listing.currency}`;
-});
+function prevImage() {
+  if (validImages.value.length > 0) {
+    currentImageIndex.value = (currentImageIndex.value - 1 + validImages.value.length) % validImages.value.length;
+  }
+}
+
+function handleWheel(event) {
+  if (validImages.value.length <= 1) return;
+  if (event.deltaY > 0) nextImage();
+  else prevImage();
+}
 
 function goToDetails() {
   router.push(`/listing/${props.listing.id}`);
@@ -163,7 +149,6 @@ function startAutoplay() {}
 </script>
 
 <style scoped>
-/* (Стилі .car-card, .card-image-wrapper, .price-tag, .carousel-btn - без змін) */
 .car-card {
   background-color: rgba(30, 30, 30, 0.7);
   border-radius: 12px;
@@ -174,6 +159,7 @@ function startAutoplay() {}
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  cursor: pointer; /* Щоб було видно, що клікабельно */
 }
 @media (min-width: 768px) {
   .car-card {
@@ -183,14 +169,16 @@ function startAutoplay() {}
 }
 .car-card:hover {
   border-color: rgba(255, 215, 0, 0.5);
+  transform: translateY(-5px); /* Легка анімація */
 }
 
+/* --- СТИЛІ КАРТИНКИ (BLUR) --- */
 .card-image-wrapper {
   position: relative;
   width: 100%;
   height: 200px;
   overflow: hidden; 
-  background: #000; 
+  background: #0e0e0e; /* Темний фон */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -203,28 +191,31 @@ function startAutoplay() {}
   }
 }
 
-/* --- ВИПРАВЛЕННЯ КАРТИНОК: РОЗМИТИЙ ФОН --- */
+/* Блюр-фон */
 .blur-background {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background-size: cover;
   background-position: center;
   filter: blur(15px) brightness(0.6); 
+  transform: scale(1.2); /* Прибираємо білі краї */
   z-index: 1; 
-  transform: scale(1.1); 
 }
-.card-image-wrapper img {
+
+/* Головне фото */
+.main-img {
+  position: relative;
+  z-index: 2;
   max-width: 100%;
   max-height: 100%;
   width: auto;
   height: auto;
-  object-fit: contain; 
-  position: relative; 
-  z-index: 2;
-  cursor: pointer;
+  object-fit: contain; /* Вписуємо фото повністю */
+  transition: transform 0.3s ease;
+}
+
+.car-card:hover .main-img {
+  transform: scale(1.05); /* Зум при наведенні */
 }
 
 .price-tag {
@@ -262,14 +253,10 @@ function startAutoplay() {}
 .carousel-btn:hover {
   background: rgba(0, 0, 0, 0.8);
 }
-.carousel-btn.prev {
-  left: 10px;
-}
-.carousel-btn.next {
-  right: 10px;
-}
+.carousel-btn.prev { left: 10px; }
+.carousel-btn.next { right: 10px; }
 
-/* (Стилі .card-content, .card-title - без змін) */
+/* --- ІНШІ СТИЛІ (БЕЗ ЗМІН) --- */
 .card-content {
   padding: 20px;
   display: flex;
@@ -282,10 +269,6 @@ function startAutoplay() {}
   font-weight: 600;
   color: #fff;
   margin: 0 0 5px 0;
-  cursor: pointer;
-}
-.card-title:hover {
-  color: #ffd700;
 }
 .card-location {
   font-size: 14px;
@@ -296,10 +279,7 @@ function startAutoplay() {}
   gap: 6px;
 }
 .card-location svg {
-  width: 14px;
-  height: 14px;
-  stroke: #ccc;
-  flex-shrink: 0;
+  width: 14px; height: 14px; stroke: #ccc; flex-shrink: 0;
 }
 .specs-horizontal {
   display: flex;
@@ -315,37 +295,20 @@ function startAutoplay() {}
   }
 }
 .spec-item {
-  display: flex;
-  align-items: center; 
-  font-size: 13px; 
-  color: #ccc;
-  gap: 8px;
-}
-.spec-item strong {
-  color: #fff;
-  font-weight: 500;
+  display: flex; align-items: center; 
+  font-size: 13px; color: #ccc; gap: 8px;
 }
 .spec-item svg {
-  width: 16px;
-  height: 16px;
-  stroke: #ffd700; 
-  flex-shrink: 0;
+  width: 16px; height: 16px; stroke: #ffd700; flex-shrink: 0;
 }
 .favorite-btn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
+  position: absolute; top: 20px; right: 20px;
+  background: transparent; border: none; cursor: pointer;
 }
 .favorite-btn svg {
-  stroke: #fff;
-  fill: none;
-  transition: all 0.3s;
+  stroke: #fff; fill: none; transition: all 0.3s;
 }
 .favorite-btn:hover svg {
-  stroke: #cc0000;
-  fill: #cc0000;
+  stroke: #cc0000; fill: #cc0000;
 }
 </style>
