@@ -7,7 +7,7 @@
       <div class="container hero-container">
         
         <div class="hero-content">
-                    <span class="hero-subtitle">{{ t('home.hero.subtitle') }}</span>
+          <span class="hero-subtitle">{{ t('home.hero.subtitle') }}</span>
           <h1 class="hero-title">{{ t('home.hero.title') }}</h1>
           <div class="hero-buttons">
             <a href="#" class="btn btn-primary">{{ t('home.hero.discover') }}</a>
@@ -19,10 +19,10 @@
           <h2>{{ t('home.form.title') }}</h2>
           <form @submit.prevent="handleSearch">
             <div class="form-group">
-                            <label for="brand">{{ t('home.form.brandLabel') }}</label>
+              <label for="brand">{{ t('home.form.brandLabel') }}</label>
               <select id="brand" v-model="searchFilters.brand">
                 <option value="">{{ t('home.form.brandPlaceholder') }}</option>
-                                <option value="Audi">Audi</option>
+                <option value="Audi">Audi</option>
                 <option value="BMW">BMW</option>
                 <option value="Tesla">Tesla</option>
               </select>
@@ -31,15 +31,15 @@
               <label for="model">{{ t('home.form.modelLabel') }}</label>
               <select id="model" v-model="searchFilters.model">
                 <option value="">{{ t('home.form.modelPlaceholder') }}</option>
-                              </select>
+                </select>
             </div>
             <div class="form-group">
               <label for="type">{{ t('home.form.typeLabel') }}</label>
               <select id="type" v-model="searchFilters.type">
                 <option value="">{{ t('home.form.typePlaceholder') }}</option>
-                                <option value="diesel">{{ t('fuelTypes.diesel') }}</option>
-                <option value="petrol">{{ t('fuelTypes.petrol') }}</option>
-                <option value="electric">{{ t('fuelTypes.electric') }}</option>
+                <option value="diesel">{{ t('options.fuel.diesel') }}</option>
+                <option value="petrol">{{ t('options.fuel.petrol') }}</option>
+                <option value="electric">{{ t('options.fuel.electric') }}</option>
               </select>
             </div>
             <button type="submit" class="btn-submit">{{ t('home.form.submit') }}</button>
@@ -50,41 +50,49 @@
     </section>
     
     <section >
-            </section>
+       </section>
 
     <button class="fab-sell-car" @click="handleSellClick">
-            {{ t('home.sellButton') }} +
+       {{ t('home.sellButton') }} +
     </button>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
-import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
+import { useI18n } from 'vue-i18n';
 
 import carImage1 from '@/assets/car-header1.jpg';
 import carImage2 from '@/assets/car-header2.jpg';
 
-// --- Ініціалізація ---
+// --- Инициализация ---
 const router = useRouter();
 const toast = useToast();
 const { isAuthenticated } = useAuth();
-const { t } = useI18n(); // 2. ОТРИМАННЯ ФУНКЦІЇ t
+const { t } = useI18n(); 
 
-// --- Логіка фону (без змін) ---
+// --- Логика фона ---
 const carImages = [ carImage1, carImage2 ];
 const currentCarImage = ref(carImages[0]); 
+let intervalId = null;
 
- setInterval(() => {
-  const currentIndex = carImages.indexOf(currentCarImage.value);
-  const nextIndex = (currentIndex + 1) % carImages.length;
-   currentCarImage.value = carImages[nextIndex];
-   }, 5000);
+// Запускаем смену фона при монтировании и очищаем при размонтировании
+onMounted(() => {
+  intervalId = setInterval(() => {
+    const currentIndex = carImages.indexOf(currentCarImage.value);
+    const nextIndex = (currentIndex + 1) % carImages.length;
+    currentCarImage.value = carImages[nextIndex];
+  }, 5000);
+});
 
-// --- ЛОГІКА ДЛЯ ФОРМИ ПОШУКУ ---
+onUnmounted(() => {
+  if (intervalId) clearInterval(intervalId);
+});
+
+// --- ЛОГИКА ДЛЯ ФОРМЫ ПОИСКА ---
 const searchFilters = ref({
   brand: '',
   model: '',
@@ -100,27 +108,26 @@ function handleSearch() {
     query.model = searchFilters.value.model;
   }
   if (searchFilters.value.type) {
-    // 3. Тепер тут буде 'diesel', 'petrol' і т.д., що коректно
+    // Передаем 'diesel', 'petrol' и т.д.
     query.fuel = searchFilters.value.type; 
   }
+  // Переход на страницу каталога с фильтрами
   router.push({ path: '/listings', query: query });
 }
 
-// --- ЛОГІКА ДЛЯ КНОПКИ "ПРОДАТИ" ---
+// --- ЛОГИКА ДЛЯ КНОПКИ "ПРОДАТИ" ---
 function handleSellClick() {
   if (isAuthenticated.value) {
       router.push('/create-listing');
   } else {
-    // 4. Локалізація Toast
     toast.warning(t('home.sellWarning'));
     router.push('/login');
   }
 }
-
 </script>
 
 <style scoped>
-/* (Всі стилі .home-page, .hero-section і т.д. - без змін) */
+/* Стили остаются без изменений, как в вашем примере */
 .home-page {
   width: 100%;
   margin: 0;
@@ -174,9 +181,6 @@ function handleSellClick() {
   margin-top: 10px;
   margin-bottom: 30px;
   line-height: 1.2;
-}
-.hero-content p {
-  font-size: 20px;
 }
 .hero-buttons {
   display: flex;

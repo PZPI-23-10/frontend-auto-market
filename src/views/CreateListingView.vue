@@ -298,7 +298,7 @@ const listing = ref({
   cityId: null,
   fuelTypeId: null,
   gearTypeId: null,
-  // engineSize ВИДАЛЕНО
+  isPublished: false,
   colorHex: '', 
   inAccident: false,
   conditionId: null, 
@@ -308,8 +308,6 @@ const listing = ref({
   photosToDelete: [] 
 });
 const listingPhotos = ref([]); 
-
-// --- ПІДТРИМУЮЧІ СПИСКИ ---
 const currentStep = ref(1);
 const steps = ref([
   { titleKey: 'createListing.steps.basic' },
@@ -363,7 +361,7 @@ async function fetchListingData(id) {
         const brandId = data.brand?.id ?? data.model?.brandId ?? null;
         const modelId = data.model?.id ?? null; 
         const regionId = data.region?.id ?? data.city?.regionId ?? null;
-        
+        listing.value.isPublished = data.isPublished;
         listing.value.vehicleTypeId = vehicleTypeId;
         listing.value.brandId = brandId;
         listing.value.regionId = regionId;
@@ -579,34 +577,38 @@ function nextStep() {
   
   return formData;
 }
-// --- ВІДПРАВКА (PUBLISH / UPDATE PUBLISHED) ---
 async function handleSubmit() {
   if (isSubmitting.value) return;
   
-  // Валидация только для создания
-  if (!isEditMode.value && listingPhotos.value.length === 0) {
+  const hasExistingPhotos = listingPhotos.value.some(p => p.isExisting);
+  const hasNewPhotos = listingPhotos.value.some(p => p instanceof File);
+  
+  if (!hasExistingPhotos && !hasNewPhotos) {
       toast.warning(t('createListing.toast.addPhoto'));
       return;
   }
 
   isSubmitting.value = true;
   
-  // Логика выбора URL:
-  // Если редактируем (PUT api/Listing/{id})
-  // Если создаем (POST api/Listing)
-  const url = isEditMode.value 
-      ? `${API_HOST}/Listing/${listingId.value}` 
-      : `${API_HOST}/Listing`; 
-      
-  const method = isEditMode.value ? 'put' : 'post';
+  let url = '';
+  let method = '';
+
+  if (isEditMode.value) {
+      if (listing.value.isPublished === false) {
+          url = `${API_HOST}/Listing/draft/${listingId.value}/publish`;
+          method = 'post';
+      } else {
+          url = `${API_HOST}/Listing/${listingId.value}`;
+          method = 'put';
+      }
+  } else {
+      url = `${API_HOST}/Listing`;
+      method = 'post';
+  }
 
   try {
     const formData = getFormData();
     
-    // Для создания (POST) нам нужно убедиться, что DTO 'PublishedVehicleListingRequest'
-    // на бэкенде тоже принимает 'NewPhotos', иначе переименуй ключ ниже только для POST
-    // if (!isEditMode.value) { ... logic to rename NewPhotos to Photos if needed ... }
-
     await axios[method](url, formData, {
       headers: {
         'Authorization': `Bearer ${token.value}`,
@@ -614,18 +616,17 @@ async function handleSubmit() {
       }
     });
     
-    toast.success(isEditMode.value ? t('editListing.toast.saveSuccess') : t('createListing.toast.submitSuccess'));
+    toast.success(t('createListing.toast.submitSuccess'));
     localStorage.removeItem(DRAFT_STORAGE_KEY);
     router.push('/profile');
     
   } catch (error) {
     console.error("Помилка обробки оголошення:", error);
-    handleError(error); // Вынес обработку ошибок отдельно
+    handleError(error);
   } finally {
     isSubmitting.value = false;
   }
 }
-
 // --- ВІДПРАВКА ЧЕРНЕТКИ (DRAFT) ---
 async function handleDraft() {
   if (isSubmitting.value) return;

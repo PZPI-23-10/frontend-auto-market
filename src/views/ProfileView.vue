@@ -420,7 +420,7 @@ onMounted(async () => {
     user.value.email = data.email || '';
     user.value.address = data.address || '';
     user.value.bio = data.aboutYourself || ''; 
-    user.value.avatarUrl =  data.avatar?.url || null; 
+    user.value.avatarUrl =  data.avatarUrl || null;
     user.value.country = data.country || 'UA';
     user.value.isVerified = data.isVerified || false; 
 
