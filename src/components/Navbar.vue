@@ -14,16 +14,18 @@
               <span>{{ $t('nav.whoWeAre') }}</span>
             </a>
             <ul class="dropdown-content">
-              <li><a href="#">{{ $t('nav.aboutUs') }}</a></li>
+              <li>
+                <router-link to="/about">{{ $t('nav.aboutUs') }}</router-link>
+              </li>
               <li><a href="#">{{ $t('nav.contactUs') }}</a></li>
               <li><a href="#">{{ $t('nav.reviews') }}</a></li>
             </ul>
           </li>
           
           <li v-if="!isAuthPage" class="navbar-dropdown">
-            <a href="#">
+            <router-link to="/news"> 
               <span>{{ $t('nav.news') }}</span>
-            </a>
+            </router-link>
           </li>
           
           <li v-if="!isAuthPage" class="navbar-dropdown">

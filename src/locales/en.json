@@ -729,5 +729,28 @@
       "saveSuccess": "Listing updated successfully",
       "photoMarkedForDeletion": "Photo marked for deletion"
     }
+  },
+  "news": {
+    "title": "Latest Automotive News",
+    "subtitle": "Stay updated with the car world, reviews, and market trends",
+    "readMore": "Read more",
+    "loadMore": "Load more"
+  },"about": {
+    "title": "About AutoMarket",
+    "subtitle": "Driving the future of car sales in Ukraine since 2010.",
+    "mission": {
+      "title": "Our Mission",
+      "text1": "We strive to make buying and selling cars transparent, safe, and easy for everyone. AutoMarket is not just a platform; it is a community of enthusiasts.",
+      "text2": "Our algorithms check every listing to protect you from fraud, and our support team is always ready to help.",
+      "cta": "View Cars"
+    },
+    "stats": {
+      "years": "Years on Market",
+      "customers": "Happy Customers",
+      "cars": "Cars Sold"
+    },
+    "team": {
+      "title": "Meet Our Team"
+    }
   }
 }

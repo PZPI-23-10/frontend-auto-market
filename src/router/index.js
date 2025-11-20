@@ -8,6 +8,8 @@ import CreateListingView from '@/views/CreateListingView.vue'
 import ListingsView from '@/views/ListingsView.vue'
 import ListingDetailView from '@/views/ListingDetailView.vue'
 import ForgotPasswordView from '@/components/ForgotPasswordView.vue'
+import NewsView from '../views/NewsView.vue'
+import AboutView from '../views/AboutView.vue'
 import { useAuth } from '@/store/auth'
 
 const routes = [
@@ -21,7 +23,6 @@ const routes = [
   { path: '/verify-email', name: 'verify-email', component: VerifyEmailView, meta: { requiresAuth: true } },
 
   { path: '/create-listing', name: 'create-listing', component: CreateListingView, meta: { requiresAuth: true } },
-
   {
     path: '/listing/edit/:id',
     name: 'edit-listing',
@@ -29,7 +30,16 @@ const routes = [
     meta: { requiresAuth: true },
     props: true
   },
-
+  {
+    path: '/about',
+    name: 'about',
+    component: AboutView
+  },
+  {
+    path: '/news',
+    name: 'news',
+    component: NewsView
+  },
   { path: '/forgot-password', name: 'forgot-password', component: ForgotPasswordView },
 ]
 

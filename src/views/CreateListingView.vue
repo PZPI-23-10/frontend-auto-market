@@ -350,18 +350,19 @@ function getLabel(category, serverName) {
     return t(fullKey); 
   }
   return serverName; 
-}
-async function fetchListingData(id) {
-   isDataLoading.value = true;
+}async function fetchListingData(id) {
+    isDataLoading.value = true;
     try {
         const res = await axios.get(`${API_HOST}/Listing/${id}`);
         const data = res.data;
 
+        // --- Маппинг основных полей ---
         const vehicleTypeId = data.vehicleType?.id ?? data.model?.brand?.vehicleTypeId ?? null;
         const brandId = data.brand?.id ?? data.model?.brandId ?? null;
         const modelId = data.model?.id ?? null; 
         const regionId = data.region?.id ?? data.city?.regionId ?? null;
-        listing.value.isPublished = data.isPublished;
+        
+        listing.value.isPublished = data.isPublished; // Важно для логики публикации
         listing.value.vehicleTypeId = vehicleTypeId;
         listing.value.brandId = brandId;
         listing.value.regionId = regionId;
@@ -387,19 +388,25 @@ async function fetchListingData(id) {
         listing.value.currency = data.currency;
         listing.value.description = data.description;
         
-        if (data.photoUrls && Array.isArray(data.photoUrls)) {
-            
-            if (data.photoUrls.length > 0 && typeof data.photoUrls[0] === 'object') {
-                 listingPhotos.value = data.photoUrls.map(p => ({ 
+        // --- ЛОГИКА ФОТО (СОРТИРОВКА) ---
+        // Проверяем photos (новый формат) или photoUrls (старый)
+        let rawPhotos = data.photos || data.photoUrls || [];
+        
+        if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
+            // Если это объекты с SortOrder - сортируем их
+            if (typeof rawPhotos[0] === 'object') {
+                rawPhotos.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+                
+                listingPhotos.value = rawPhotos.map(p => ({ 
                     url: p.url,      
-                    id: p.id,       
-                    isExisting: true 
+                    id: p.id,        
+                    isExisting: true // Флаг: это фото уже есть на сервере
                 }));
-            } 
-            else {
-                 listingPhotos.value = data.photoUrls.map((url, index) => ({ 
+            } else {
+                // Если это просто массив строк (старый формат), берем как есть
+                listingPhotos.value = rawPhotos.map((url, index) => ({ 
                     url: url, 
-                    id: -index, 
+                    id: -index, // Фейковый ID
                     isExisting: true 
                 }));
             }
@@ -540,7 +547,7 @@ function nextStep() {
       formData.append('Id', listingId.value);
   }
 
-  // FK
+  // --- FK ---
   if (listing.value.modelId) formData.append('ModelId', listing.value.modelId);
   if (listing.value.bodyTypeId) formData.append('BodyTypeId', listing.value.bodyTypeId);
   if (listing.value.conditionId) formData.append('ConditionId', listing.value.conditionId);
@@ -548,7 +555,7 @@ function nextStep() {
   if (listing.value.fuelTypeId) formData.append('FuelTypeId', listing.value.fuelTypeId);
   if (listing.value.gearTypeId) formData.append('GearTypeId', listing.value.gearTypeId);
   
-  // Fields
+  // --- Fields ---
   formData.append('Year', listing.value.year);
   formData.append('Mileage', listing.value.mileage || 0);
   formData.append('Price', listing.value.price || 0);
@@ -559,6 +566,7 @@ function nextStep() {
   const userPhone = user?.value?.phoneNumber || '0000000000';
   formData.append('Number', userPhone);
 
+  // --- 1. Удаление фото (PhotosToRemove) ---
   if (listing.value.photosToDelete && Array.isArray(listing.value.photosToDelete)) {
     listing.value.photosToDelete.forEach(id => {
         if (Number.isInteger(id) && id > 0) {
@@ -567,23 +575,36 @@ function nextStep() {
     });
   }
 
-  if (listingPhotos.value.length) {
-    listingPhotos.value.forEach((file) => {
-       if (file instanceof File) {
-           formData.append('NewPhotos', file); 
-       }
-    });
-  }
+  // --- 2. Сортировка и Новые фото ---
+  let newPhotoIndex = 0;    
+  let updatePhotoIndex = 0; 
+
+  listingPhotos.value.forEach((photoItem, index) => {
+      
+      // === ВАЖНОЕ ИСПРАВЛЕНИЕ ===
+      // PhotoUploader возвращает объект { file: File, ... }, а не сам File.
+      // Мы берем .file, если он есть.
+      const actualFile = photoItem.file; 
+
+      // СЦЕНАРИЙ А: Это НОВОЕ фото (есть файл)
+      if (actualFile instanceof File) {
+          formData.append(`NewPhotos[${newPhotoIndex}].File`, actualFile);
+          formData.append(`NewPhotos[${newPhotoIndex}].SortOrder`, index);
+          newPhotoIndex++;
+      }
+      
+      else if (photoItem.isExisting && photoItem.id > 0) {
+          formData.append(`UpdatedPhotoSortOrder[${updatePhotoIndex}].PhotoId`, photoItem.id);
+          formData.append(`UpdatedPhotoSortOrder[${updatePhotoIndex}].SortOrder`, index);
+          updatePhotoIndex++;
+      }
+  });
   
   return formData;
 }
 async function handleSubmit() {
   if (isSubmitting.value) return;
-  
-  const hasExistingPhotos = listingPhotos.value.some(p => p.isExisting);
-  const hasNewPhotos = listingPhotos.value.some(p => p instanceof File);
-  
-  if (!hasExistingPhotos && !hasNewPhotos) {
+  if (listingPhotos.value.length === 0) {
       toast.warning(t('createListing.toast.addPhoto'));
       return;
   }
@@ -597,7 +618,8 @@ async function handleSubmit() {
       if (listing.value.isPublished === false) {
           url = `${API_HOST}/Listing/draft/${listingId.value}/publish`;
           method = 'post';
-      } else {
+      } 
+      else {
           url = `${API_HOST}/Listing/${listingId.value}`;
           method = 'put';
       }

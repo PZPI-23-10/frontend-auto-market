@@ -8,7 +8,6 @@
           <h1 class="hero-title">{{ t('home.hero.title') }}</h1>
           <div class="hero-buttons">
             <router-link to="/listings" class="btn btn-primary">{{ t('home.hero.discover') }}</router-link>
-            <a href="#" class="btn btn-secondary">{{ t('home.hero.meet') }}</a>
           </div>
         </div>
 
