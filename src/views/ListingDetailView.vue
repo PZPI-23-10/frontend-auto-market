@@ -156,57 +156,6 @@
                   </li>
                 </ul>
               </div>
-
-              <div class="filter-card comfort-card">
-                <h2>{{ t('createListing.steps.comfort') }}</h2>
-                <ul class="specs-list comfort-list">
-                  <li :class="{ 'is-missing': !listing.comfort.airConditioning }">
-                    <span>
-                      <svg v-if="listing.comfort.airConditioning" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      {{ t('createListing.step3.ac') }}
-                    </span>
-                  </li>
-                  <li :class="{ 'is-missing': !listing.comfort.climateControl }">
-                    <span>
-                       <svg v-if="listing.comfort.climateControl" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                       <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                       {{ t('createListing.step3.climate') }}
-                    </span>
-                  </li>
-                  <li :class="{ 'is-missing': !listing.comfort.heatedSeats }">
-                    <span>
-                      <svg v-if="listing.comfort.heatedSeats" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      {{ t('createListing.step3.heatedSeats') }}
-                    </span>
-                  </li>
-                  <li :class="{ 'is-missing': !listing.comfort.rearCamera }">
-                    <span>
-                      <svg v-if="listing.comfort.rearCamera" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      {{ t('createListing.step3.rearCamera') }}
-                    </span>
-                  </li>
-                  <li :class="{ 'is-missing': !listing.comfort.parkingSensors }">
-                    <span>
-                      <svg v-if="listing.comfort.parkingSensors" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      {{ t('createListing.step3.parkingSensors') }}
-                    </span>
-                  </li>
-                  <li :class="{ 'is-missing': !listing.comfort.sunroof }">
-                    <span>
-                      <svg v-if="listing.comfort.sunroof" class="comfort-icon check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      <svg v-else class="comfort-icon cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      {{ t('createListing.step3.sunroof') }}
-                    </span>
-                  </li>
-                </ul>
-                <p v-if="!hasComfortOptions" class="no-comfort">
-                   -- Опції не вказані --
-                </p>
-              </div>
             </div>
 
             <div class="desc-column">
@@ -362,15 +311,6 @@ function mapApiToDetail(apiItem) {
 
     images: processedImages, // Вже відсортовані
     description: apiItem.description || '',
-
-    comfort: {
-      airConditioning: apiItem.comfort?.airConditioning || false,
-      climateControl: apiItem.comfort?.climateControl || false,
-      heatedSeats: apiItem.comfort?.heatedSeats || false,
-      rearCamera: apiItem.comfort?.rearCamera || false,
-      parkingSensors: apiItem.comfort?.parkingSensors || false,
-      sunroof: apiItem.comfort?.sunroof || false
-    }
   };
 }
 onMounted(async () => {
@@ -419,10 +359,6 @@ onMounted(async () => {
 const formattedPrice = computed(() => {
   if (!listing.value) return '';
   return `${listing.value.price.toLocaleString(locale.value)} ${listing.value.currency}`;
-});
-const hasComfortOptions = computed(() => {
-  if (!listing.value || !listing.value.comfort) return false;
-  return Object.values(listing.value.comfort).some(value => value === true);
 });
 
 // Галерея
@@ -489,7 +425,7 @@ function closeModal() {
   margin-bottom: 20px;
 }
 
-.form-card h2, .filter-card h2, .comfort-card h2 {
+.form-card h2, .filter-card h2 {
   margin-top: 0;
   margin-bottom: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
@@ -599,14 +535,6 @@ function closeModal() {
 .specs-list li span { color: #aaa; display: flex; align-items: center; gap: 10px; }
 .specs-list li strong { color: #fff; font-weight: 600; text-align: right; }
 .specs-list li svg { width: 18px; height: 18px; stroke: #ffd700; stroke-width: 2; }
-
-/* Комфорт */
-.comfort-list li { display: flex; justify-content: flex-start; padding: 8px 0; border-bottom: none; }
-.comfort-list li .comfort-icon { width: 20px; height: 20px; margin-right: 12px; flex-shrink: 0; }
-.comfort-list li .comfort-icon.check { stroke: #4cd137; } 
-.comfort-list li .comfort-icon.cross { stroke: #e84118; }
-.comfort-list li.is-missing { opacity: 0.4; text-decoration: line-through; }
-.no-comfort { text-align: center; color: #777; font-style: italic; padding: 20px; }
 
 .description-text { font-size: 15px; line-height: 1.8; color: #e0e0e0; white-space: pre-wrap; }
 
