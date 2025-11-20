@@ -199,12 +199,13 @@
             {{ t('createListing.buttons.back') }}
           </button>
           
-          <button 
+         <button 
             type="button" 
             class="btn-secondary" 
             @click="handleDraft" 
             :disabled="isSubmitting"
             style="margin-right: auto; margin-left: 10px;"
+            v-if="!listing.isPublished" 
           >
               💾 {{ t('createListing.buttons.saveDraft') }}
           </button>

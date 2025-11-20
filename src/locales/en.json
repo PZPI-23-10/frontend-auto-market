@@ -22,6 +22,7 @@
     "label": "Click or drag photos (up to {count})",
     "maxFilesWarning": "You can upload a maximum of {count} photos.",
     "imageOnlyWarning": "Only images can be selected.",
+    "fileSizeWarning": "File \"{name}\" is too large. Max size: {size} MB.", 
     "previewAlt": "preview",
     "modalAlt": "Fullscreen image"
   },
@@ -493,7 +494,8 @@
     "driveTrain": {
       "fwd": "Front-wheel Drive",
       "rwd": "Rear-wheel Drive",
-      "awd": "All-wheel Drive"
+      "awd": "All-wheel Drive",
+      "unknown": "Unknown"
     },
     "city": {
       "kyiv": "Kyiv",
@@ -765,4 +767,5 @@
       "sendFail": "Failed to send request."
     }
   }
+
 }
