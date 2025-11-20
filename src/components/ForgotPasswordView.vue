@@ -1,149 +1,156 @@
 <template>
   <div class="forgot-password-container">
     <form @submit.prevent="requestPasswordReset">
-      <h3>Скидання пароля</h3>
+      <h3>{{ t('forgotPassword.title') }}</h3>
 
       <p class="info-text">
-        Введіть ваш email та новий пароль. Ми надішлемо лист для підтвердження зміни.
+        {{ t('forgotPassword.infoText') }}
       </p>
 
-      <label for="email">Email</label>
+      <label for="email">{{ t('login.emailLabel') }}</label>
       <input 
         id="email" 
         type="email" 
-        placeholder="Введіть ваш email" 
+        :placeholder="t('login.emailPlaceholder')" 
         v-model="email" 
         required 
         :disabled="isEmailDisabled" 
       />
 
-      <label for="newPassword">Новий Пароль</label>
+      <label for="newPassword">{{ t('profile.passwordTab.new') }}</label>
       <input 
         id="newPassword" 
         type="password" 
-        placeholder="Введіть новий пароль" 
+        :placeholder="t('profile.passwordTab.new')" 
         v-model="newPassword" 
         required 
       />
 
-      <label for="confirmPassword">Підтвердіть Пароль</label>
+      <label for="confirmPassword">{{ t('profile.passwordTab.confirm') }}</label>
       <input 
         id="confirmPassword" 
         type="password" 
-        placeholder="Повторіть новий пароль" 
+        :placeholder="t('profile.passwordTab.confirm')" 
         v-model="confirmPassword" 
         required 
       />
 
       <button type="submit" class="submit-btn" :disabled="isLoading">
-        {{ isLoading ? 'Відправка...' : 'Надіслати лист підтвердження' }}
+        {{ isLoading ? t('forgotPassword.submitting') : t('forgotPassword.submit') }}
       </button>
 
       <div class="back-to-login">
-        <router-link to="/login">Повернутися до входу</router-link>
+        <router-link to="/login">{{ t('forgotPassword.backToLogin') }}</router-link>
       </div>
     </form>
   </div>
-</template><script setup>
+</template>
+
+<script setup>
 // --- Імпорти ---
-import { ref, onMounted } from 'vue'; // Додано onMounted
-import { useRouter, useRoute } from 'vue-router'; // Додано useRoute
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useToast } from 'vue-toastification';
+import { useI18n } from 'vue-i18n'; // 1. Імпорт локалізації
 import axios from 'axios';
 
 // --- Константи та ініціалізація ---
 const API_FORGOT_PASSWORD_URL = 'https://backend-auto-market.onrender.com/api/Auth/reset-password'; 
 const toast = useToast();
 const router = useRouter();
-const route = useRoute(); // Ініціалізуємо route
+const route = useRoute();
+const { t } = useI18n(); // 2. Ініціалізація функції перекладу
 
 // --- Refs для стану ---
 const email = ref('');
 const newPassword = ref('');
 const confirmPassword = ref('');
 const isLoading = ref(false);
-const isEmailDisabled = ref(false); // Для блокування поля email
+const isEmailDisabled = ref(false);
 
 // --- Хук життєвого циклу ---
 onMounted(() => {
-  // Перевіряємо, чи є email в query параметрах URL
   const emailFromQuery = route.query.email;
   if (emailFromQuery && typeof emailFromQuery === 'string') {
-    email.value = emailFromQuery; // Встановлюємо email
-    isEmailDisabled.value = true; // Блокуємо поле для редагування
+    email.value = emailFromQuery;
+    isEmailDisabled.value = true;
   }
 });
 
-// --- Функція відправки запиту на скидання пароля ---
+// --- Функція відправки запиту ---
 async function requestPasswordReset() {
-  // Валідація полів
+  // Валідація
   if (!email.value || !newPassword.value || !confirmPassword.value) {
-    toast.warning('Будь ласка, заповніть усі поля.');
+    toast.warning(t('forgotPassword.toast.fillAll')); // Локалізована помилка
     return;
   }
-  // Додаткова перевірка формату email (можна додати isValidEmail)
   
   if (newPassword.value.length < 5 || newPassword.value.length > 27) {
-    toast.warning('Пароль має містити від 5 до 27 символів.');
+    // Використовуємо існуючий ключ для довжини пароля
+    toast.warning(t('profile.passwordTab.toast.lengthError', { min: 5, max: 27 }));
     return;
   }
+  
   if (newPassword.value !== confirmPassword.value) {
-    toast.warning('Нові паролі не співпадають.');
+    // Використовуємо існуючий ключ для неспівпадіння
+    toast.warning(t('profile.passwordTab.toast.mismatchError'));
     return;
   }
 
-  isLoading.value = true; // Показуємо індикатор завантаження
+  isLoading.value = true;
 
-  // Формуємо тіло запиту відповідно до бекенду
   const payload = {
       Email: email.value,
-      Password: newPassword.value, // Бекенд очікує новий пароль тут
+      Password: newPassword.value,
       PasswordConfirmation: confirmPassword.value 
   };
 
   try {
-    console.log(`Відправляємо запит на скидання для ${email.value} на ${API_FORGOT_PASSWORD_URL}`);
+    console.log(`Відправляємо запит на скидання для ${email.value}`);
     
-    // Відправляємо POST запит
     await axios.post(API_FORGOT_PASSWORD_URL, payload, {
         headers: { 'Content-Type': 'application/json' }
     });
 
-    toast.success('Лист для підтвердження зміни пароля надіслано на вашу пошту.');
+    toast.success(t('forgotPassword.toast.sentSuccess')); // Локалізований успіх
     router.push('/login'); 
 
   } catch (error) {
     console.error('Помилка запиту на скидання пароля:', error);
-    let errorMessage = 'Не вдалося відправити запит.';
+    
+    // Локалізована дефолтна помилка
+    let errorMessage = t('forgotPassword.toast.sendFail');
+    
     if (error.response) {
-       // Обробка помилок від бекенду
-       if (error.response.status === 404) { // NotFound
-           errorMessage = 'Якщо акаунт з таким email існує, лист підтвердження надіслано.';
+       if (error.response.status === 404) {
+           // Можна залишити це повідомлення або додати ключ
+           errorMessage = t('forgotPassword.toast.sentSuccess'); // Для безпеки часто пишуть "успіх", навіть якщо мейла немає
            toast.info(errorMessage); 
-       } else if (error.response.status === 400 && typeof error.response.data === 'string') { // BadRequest
-           errorMessage = error.response.data; 
-           toast.error(`Помилка: ${errorMessage}`);
-       } else { // Інші помилки сервера
-           errorMessage = error.response.data?.message || 'Помилка сервера.';
-           toast.error(`Помилка: ${errorMessage}`);
+           return; // Щоб не показувати error знизу
+       } else if (error.response.status === 400 && typeof error.response.data === 'string') {
+           errorMessage = error.response.data; // Повідомлення з бекенду зазвичай не перекладають, або треба мапити
+           toast.error(`${t('login.errors.prefix', { error: '' })} ${errorMessage}`);
+           return;
+       } else {
+           errorMessage = error.response.data?.message || t('profile.errors.serverError');
        }
-    } else if (error.request) { // Помилка мережі
-      errorMessage = 'Немає відповіді від сервера.';
-      toast.error(errorMessage);
-    } else { // Інша помилка
+    } else if (error.request) {
+      errorMessage = t('profile.errors.noResponse');
+    } else {
       errorMessage = error.message;
-      toast.error(errorMessage);
     }
+    
+    toast.error(t('profile.errors.prefix', { error: errorMessage }));
   } finally {
-    isLoading.value = false; // Ховаємо індикатор завантаження
+    isLoading.value = false;
   }
 }
 </script>
 
 <style scoped>
-/* === Використовуємо стилі, схожі на Login/Verify === */
+/* ВАШІ СТИЛІ ЗАЛИШАЮТЬСЯ БЕЗ ЗМІН */
 .forgot-password-container {
-  background-image: url('@/assets/car-header1.jpg'); /* Або інший фон */
+  background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
   background-position: center;
   min-height: 100vh;
@@ -236,10 +243,10 @@ input:focus {
   border: none;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 30px; /* Збільшив відступ */
+  margin-top: 30px;
   transition: 0.3s;
   font-family: 'Open Sans', sans-serif;
-  background-color: #cc0000; /* Червона кнопка */
+  background-color: #cc0000;
   color: #fff;
 }
 .submit-btn:hover:not(:disabled) {

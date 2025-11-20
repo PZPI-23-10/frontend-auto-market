@@ -752,5 +752,17 @@
     "team": {
       "title": "Meet Our Team"
     }
+  },
+  "forgotPassword": {
+    "title": "Reset Password",
+    "infoText": "Enter your email and new password. We will send a confirmation email.",
+    "submit": "Send Confirmation Email",
+    "submitting": "Sending...",
+    "backToLogin": "Back to Login",
+    "toast": {
+      "fillAll": "Please fill in all fields.",
+      "sentSuccess": "Password reset confirmation email sent.",
+      "sendFail": "Failed to send request."
+    }
   }
 }

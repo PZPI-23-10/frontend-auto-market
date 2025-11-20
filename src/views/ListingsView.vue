@@ -114,7 +114,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router'; // Додаємо useRoute для читання параметрів з URL
+import { useRoute } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
@@ -123,7 +123,7 @@ import SearchableSelect from '@/components/SearchableSelect.vue';
 
 const toast = useToast();
 const { t } = useI18n();
-const route = useRoute(); // Ініціалізація роута
+const route = useRoute();
 
 const API_BASE = 'https://backend-auto-market.onrender.com/api';
 const API_LISTING_URL = `${API_BASE}/Listing`;
@@ -132,7 +132,6 @@ const isLoading = ref(false);
 const allListings = ref([]); 
 const filteredListings = ref([]); 
 
-// КЕШ ДЛЯ ВСІХ БРЕНДІВ
 const fullData = ref({
   brands: [] 
 });
@@ -156,79 +155,61 @@ const filters = ref({
   gearTypeId: null  
 });
 
-// --- 1. ЗАВАНТАЖЕННЯ ---
 onMounted(async () => {
-  // Зчитуємо параметри з URL (якщо прийшли з головної сторінки)
   if (route.query.vehicleTypeId) filters.value.vehicleTypeId = Number(route.query.vehicleTypeId);
   if (route.query.brandId) filters.value.brandId = Number(route.query.brandId);
   if (route.query.modelId) filters.value.modelId = Number(route.query.modelId);
   if (route.query.fuelTypeId) filters.value.fuelTypeId = Number(route.query.fuelTypeId);
 
   try {
-    // Вантажимо ВСЕ, включаючи ВСІ Бренди
     const [typesRes, fuelsRes, gearsRes, brandsRes] = await Promise.all([
       axios.get(`${API_BASE}/VehicleType`),
       axios.get(`${API_BASE}/FuelType`),
       axios.get(`${API_BASE}/GearType`),
-      axios.get(`${API_BASE}/VehicleBrand`) // Всі бренди
+      axios.get(`${API_BASE}/VehicleBrand`)
     ]);
     
     lists.value.vehicleTypes = typesRes.data;
     lists.value.fuelTypes = fuelsRes.data;
     lists.value.gearTypes = gearsRes.data;
     
-    // Зберігаємо і показуємо
     fullData.value.brands = brandsRes.data;
     lists.value.brands = brandsRes.data;
     
-    // Якщо ми прийшли з URL з обраним типом -> одразу фільтруємо бренди
     if (filters.value.vehicleTypeId) {
        lists.value.brands = fullData.value.brands.filter(b => b.vehicleTypeId === filters.value.vehicleTypeId);
     }
 
-    // Якщо прийшли з URL з обраним брендом -> вантажимо моделі
     if (filters.value.brandId) {
        loadModels(filters.value.brandId);
     }
 
-    // Завантажуємо машини
     fetchListings();
   } catch (e) {
     console.error("Error loading initial lists:", e);
   }
 });
 
-// --- 2. ЛОГІКА ---
-
-// А) ТИП -> Фільтруємо БРЕНДИ (клієнтська фільтрація з кешу)
-watch(() => filters.value.vehicleTypeId, async (newTypeId) => {
+// --- ЛОГІКА СПИСКІВ ---
+watch(() => filters.value.vehicleTypeId, (newTypeId) => {
   const previousBrandId = filters.value.brandId;
-  
   filters.value.brandId = null;
   filters.value.modelId = null;
-  lists.value.models = [];
-
-  try {
-    if (!newTypeId) {
-      lists.value.brands = fullData.value.brands;
-    } else {
-      const res = await axios.get(`${API_BASE}/VehicleBrand/for-type/${newTypeId}`);
-      lists.value.brands = res.data;
-    }
-    if (previousBrandId) {
-      const isBrandStillAvailable = lists.value.brands.find(b => b.id === previousBrandId);
-      if (isBrandStillAvailable) {
-        filters.value.brandId = previousBrandId;
-        loadModels(previousBrandId);
-      }
-    }
-  } catch (e) {
-    console.error("Помилка фільтрації брендів:", e);
-    lists.value.brands = fullData.value.brands; 
+  lists.value.models = []; 
+  
+  if (!newTypeId) {
+    lists.value.brands = fullData.value.brands;
+  } else {
+    const filtered = fullData.value.brands.filter(b => b.vehicleTypeId === newTypeId);
+    lists.value.brands = filtered.length > 0 ? filtered : fullData.value.brands;
+  }
+  
+  if (previousBrandId && lists.value.brands.find(b => b.id === previousBrandId)) {
+     filters.value.brandId = previousBrandId;
+     loadModels(previousBrandId);
   }
 });
 
-// Б) БРЕНД -> Вантажимо МОДЕЛІ
 watch(() => filters.value.brandId, (newBrandId) => {
   filters.value.modelId = null;
   lists.value.models = [];
@@ -246,8 +227,20 @@ async function loadModels(brandId) {
   } catch (e) { console.error(e); }
 }
 
-// --- 3. ЗАВАНТАЖЕННЯ АВТО ---
+// --- ВИПРАВЛЕНА ФУНКЦІЯ МАППІНГУ ---
 function mapApiToCarCard(apiItem) {
+  // 1. Правильна обробка фото (як у ProfileView)
+  let images = [];
+  if (apiItem.photoUrls && Array.isArray(apiItem.photoUrls) && apiItem.photoUrls.length > 0) {
+    // Перевіряємо, чи елемент є об'єктом (наприклад { id: 1, url: '...' })
+    if (typeof apiItem.photoUrls[0] === 'object' && apiItem.photoUrls[0] !== null) {
+        images = apiItem.photoUrls.map(p => p.url);
+    } else {
+        // Якщо це просто рядок
+        images = apiItem.photoUrls;
+    }
+  }
+
   return {
     id: apiItem.id,
     vehicleTypeId: apiItem.vehicleType?.id,
@@ -255,6 +248,7 @@ function mapApiToCarCard(apiItem) {
     modelId: apiItem.model?.id,
     fuelTypeId: apiItem.fuelType?.id,
     gearTypeId: apiItem.gearType?.id,
+    
     brand: apiItem.brand?.name || 'Unknown',
     model: apiItem.model?.name || 'Unknown',
     year: apiItem.year,
@@ -268,12 +262,13 @@ function mapApiToCarCard(apiItem) {
     engineSize: apiItem.engineSize || 0,
     color: (apiItem.colorHex || '').toLowerCase(),
     location: apiItem.city?.name || apiItem.region?.name || 'Україна',
-    images: apiItem.photoUrls || [],
-    mainImage: (apiItem.photoUrls && apiItem.photoUrls.length > 0) ? apiItem.photoUrls[0] : null
+    
+    // 2. Присвоюємо оброблені фото
+    images: images,
+    mainImage: images.length > 0 ? images[0] : null
   };
 }
 
-// Функція для блокуваня вводу "-", "e"
 const preventInvalidInput = (event) => {
   if (['-', '+', 'e', 'E'].includes(event.key)) {
     event.preventDefault();
@@ -301,7 +296,7 @@ async function fetchListings() {
     if (Array.isArray(response.data)) {
       allListings.value = response.data.map(mapApiToCarCard);
       if(response.data.length > 0) {
-           // toast.success(t('listingDetail.loadSuccess')); // Опціонально
+           // toast.success(t('listingDetail.loadSuccess'));
       }
     } 
   } catch (error) {
