@@ -10,6 +10,7 @@ import ListingDetailView from '@/views/ListingDetailView.vue'
 import ForgotPasswordView from '@/components/ForgotPasswordView.vue'
 import NewsView from '../views/NewsView.vue'
 import AboutView from '../views/AboutView.vue'
+import AdminView from '../views/AdminView.vue'
 import { useAuth } from '@/store/auth'
 
 const routes = [
@@ -41,6 +42,7 @@ const routes = [
     component: NewsView
   },
   { path: '/forgot-password', name: 'forgot-password', component: ForgotPasswordView },
+  { path: '/admin', name: 'admin', component: AdminView},
 ]
 
 const router = createRouter({
