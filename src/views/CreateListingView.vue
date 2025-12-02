@@ -325,8 +325,7 @@ const colorOptions = [
   { hex: '#cccccc' }, 
   { hex: '#ff0000' },
   { hex: '#0000ff' },
-  { hex: '#008000' },
-  { hex: 'other' }   
+  { hex: '#008000' }
 ];
 
 const years = computed(() => {
@@ -365,8 +364,7 @@ function getLabel(category, serverName) {
     try {
         const res = await axios.get(`${API_HOST}/Listing/${id}`);
         const data = res.data;
-
-        // --- Маппинг основных полей ---
+        console.log("Статус с сервера:", data.isPublished);
         const vehicleTypeId = data.vehicleType?.id ?? data.model?.brand?.vehicleTypeId ?? null;
         const brandId = data.brand?.id ?? data.model?.brandId ?? null;
         const modelId = data.model?.id ?? null; 
@@ -604,7 +602,7 @@ function nextStep() {
       }
       
       else if (photoItem.isExisting && photoItem.id > 0) {
-          formData.append(`UpdatedPhotoSortOrder[${updatePhotoIndex}].PhotoId`, photoItem.id);
+          formData.append(`UpdatedPhotoSortOrder[${updatePhotoIndex}].Id`, photoItem.id);
           formData.append(`UpdatedPhotoSortOrder[${updatePhotoIndex}].SortOrder`, index);
           updatePhotoIndex++;
       }
@@ -623,7 +621,7 @@ async function handleSubmit() {
   
   let url = '';
   let method = '';
-
+  
   if (isEditMode.value) {
       if (listing.value.isPublished === false) {
           url = `${API_HOST}/Listing/draft/${listingId.value}/publish`;
@@ -641,12 +639,11 @@ async function handleSubmit() {
   try {
     const formData = getFormData();
     
-    await axios[method](url, formData, {
-      headers: {
-        'Authorization': `Bearer ${token.value}`,
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+await axios[method](url, formData, {
+  headers: {
+    'Authorization': `Bearer ${token.value}`
+  }
+});
     
     toast.success(t('createListing.toast.submitSuccess'));
     localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -679,8 +676,7 @@ async function handleDraft() {
     
     await axios[method](url, formData, {
       headers: {
-        'Authorization': `Bearer ${token.value}`,
-        'Content-Type': 'multipart/form-data'
+        'Authorization': `Bearer ${token.value}`
       }
     });
     toast.success(t('createListing.toast.draftSaved'));

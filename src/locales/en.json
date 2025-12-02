@@ -16,7 +16,8 @@
     "favorites": "Favorites",
     "logout": "Logout",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "admin": "Admin Dashboard"
   },
   "uploader": {
     "label": "Click or drag photos (up to {count})",

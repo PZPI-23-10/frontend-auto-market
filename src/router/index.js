@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+// ... твои импорты компонентов ...
 import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
@@ -11,6 +12,7 @@ import ForgotPasswordView from '@/components/ForgotPasswordView.vue'
 import NewsView from '../views/NewsView.vue'
 import AboutView from '../views/AboutView.vue'
 import AdminView from '../views/AdminView.vue'
+
 import { useAuth } from '@/store/auth'
 
 const routes = [
@@ -19,10 +21,10 @@ const routes = [
   { path: '/register', name: 'register', component: RegisterView },
   { path: '/listings', name: 'listings', component: ListingsView },
   { path: '/listing/:id', name: 'listing-detail', component: ListingDetailView, props: true },
-
+  
   { path: '/profile', name: 'profile', component: ProfileView, meta: { requiresAuth: true } },
   { path: '/verify-email', name: 'verify-email', component: VerifyEmailView, meta: { requiresAuth: true } },
-
+  
   { path: '/create-listing', name: 'create-listing', component: CreateListingView, meta: { requiresAuth: true } },
   {
     path: '/listing/edit/:id',
@@ -31,18 +33,16 @@ const routes = [
     meta: { requiresAuth: true },
     props: true
   },
-  {
-    path: '/about',
-    name: 'about',
-    component: AboutView
-  },
-  {
-    path: '/news',
-    name: 'news',
-    component: NewsView
-  },
+  { path: '/about', name: 'about', component: AboutView },
+  { path: '/news', name: 'news', component: NewsView },
   { path: '/forgot-password', name: 'forgot-password', component: ForgotPasswordView },
-  { path: '/admin', name: 'admin', component: AdminView},
+  
+  { 
+    path: '/admin', 
+    name: 'admin', 
+    component: AdminView,
+    meta: { requiresAuth: true, requiresAdmin: true } 
+  },
 ]
 
 const router = createRouter({
@@ -51,17 +51,24 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const { token } = useAuth();
+  const { token, isAdmin } = useAuth();
 
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin);
 
   if (requiresAuth && !token.value) {
-    console.log('Навігація заблокована: потрібна авторизація, токена немає. Перехід на /login.');
+    console.log('Доступ запрещен: нет авторизации');
     next({ name: 'login' });
-  } else {
-    console.log(`Навігація дозволена до: ${to.path}`);
-    next();
+    return;
   }
+
+  if (requiresAdmin && !isAdmin.value) {
+    console.log('Доступ запрещен: недостаточно прав');
+    next({ name: 'home' }); 
+    return;
+  }
+
+  next();
 });
 
 export default router

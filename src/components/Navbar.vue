@@ -65,6 +65,11 @@
           </li>
           
           <template v-if="isLoggedIn">
+            <li v-if="isAdmin" class="login-mobile">
+               <router-link to="/admin" style="color: #d9534f;">
+                 <span>{{ $t('nav.admin') }}</span>
+               </router-link>
+            </li>
             <li class="login-mobile">
               <router-link to="/profile">
                 <span>{{ $t('nav.myProfile') }}</span>
@@ -109,14 +114,19 @@
             </li>
             
             <li v-if="isLoggedIn" class="navbar-dropdown lang-desktop">
-              <a href="#" class="lang-toggle" style="padding: 10px 15px;">
-                <span>{{ $t('nav.profile') }}</span> 
-              </a>
-              <ul class="dropdown-content dropdown-right">
-                <li><router-link to="/profile">{{ $t('nav.settings') }}</router-link></li>
-                <li><a href="#" @click.prevent="handleLogout">{{ $t('nav.logout') }}</a></li>
-              </ul>
-            </li>
+                <a href="#" class="lang-toggle" style="padding: 10px 15px;">
+                  <span>{{ $t('nav.profile') }}</span> 
+                </a>
+                <ul class="dropdown-content dropdown-right">
+                 <li v-if="isAdmin">
+                    <router-link to="/admin" style="color: #d9534f; font-weight: bold;">
+                        {{ $t('nav.admin') }} 
+                    </router-link>
+                </li>
+                  <li><router-link to="/profile">{{ $t('nav.settings') }}</router-link></li>
+                  <li><a href="#" @click.prevent="handleLogout">{{ $t('nav.logout') }}</a></li>
+                </ul>
+              </li>
           </ul>
 
           <button class="nav-toggler" @click="toggleNav">
@@ -131,13 +141,19 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+// Импортируем наш стор
 import { useAuth } from '@/store/auth' 
 
 const isOpen = ref(false)
 const route = useRoute()
 const router = useRouter()
 const { locale } = useI18n()
-const { isAuthenticated: isLoggedIn, clearAuthData } = useAuth()
+
+// 1. Достаем isAdmin. Теперь он сам знает, админ ты или нет.
+const { isAuthenticated: isLoggedIn, isAdmin, clearAuthData, checkVerificationStatus } = useAuth()
+
+// 2. Запускаем проверку при загрузке меню (на случай, если пользователь нажал F5)
+checkVerificationStatus();
 
 function handleLogout() {
   clearAuthData() 
@@ -148,7 +164,6 @@ function toggleNav() {
   isOpen.value = !isOpen.value
 }
 
-// Пути, на которых прячем меню
 const hideNavPaths = ['/login', '/register'] 
 const isAuthPage = computed(() => {
   return hideNavPaths.includes(route.path)
@@ -159,11 +174,7 @@ function changeLanguage(lang) {
   localStorage.setItem('lang', lang)
 }
 </script>
-
 <style scoped>
-/* (Всі ваші старі стилі: .logo-img, .container, .navbar-area і т.д. 
-   залишаються БЕЗ ЗМІН) 
-*/
 
 .logo-img {
   width: 140px; 

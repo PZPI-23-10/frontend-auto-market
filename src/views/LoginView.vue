@@ -33,31 +33,27 @@
       </button>
     </form>
   </div>
-</template>
-<script setup>
+</template><script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
-import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
+import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 
 const API_LOGIN_URL = 'https://backend-auto-market.onrender.com/api/Auth/login';
 const API_GOOGLE_LOGIN_URL = 'https://backend-auto-market.onrender.com/api/Auth/web/google';
 const GOOGLE_CLIENT_ID = '71975591740-1ikt0qhpb1g570oogv7pomahcr09hqf8.apps.googleusercontent.com';
 
-// --- Ініціалізація ---
-const { setAuthData } = useAuth();
+const { setAuthData, checkVerificationStatus } = useAuth(); 
 const toast = useToast();
-const { t } = useI18n(); // 2. ОТРИМАННЯ t
+const { t } = useI18n();
 const username = ref('');
 const password = ref('');
 const router = useRouter();
 
-// --- Звичайний логін ---
 async function login() {
   if (!username.value || !password.value) {
-    // 3. Локалізація
     toast.warning(t('login.validation.emailPasswordRequired'));
     return;
   }
@@ -73,17 +69,19 @@ async function login() {
     });
     const data = response.data;
     if (!data.accessToken || !data.userId) { 
-      // 4. Локалізація (для внутрішньої помилки)
       throw new Error(t('login.errors.noToken')); 
     }
+    
     setAuthData(data.userId, data.accessToken);
-    // 5. Локалізація
+
+    await checkVerificationStatus(); 
+
     toast.success(t('login.success'));
     router.push('/');
+    
   } catch (error) {
     console.error('Помилка логіну (Axios):', error);
     let errorMessage;
-    // 6. Локалізація блоку помилок
     if (error.response) {
       errorMessage = error.response.data?.message || error.response.data || error.response.statusText || t('login.errors.invalidCredentials');
     } else if (error.request) {
@@ -101,15 +99,18 @@ async function handleGoogleCredentialResponse(response) {
   try {
     const backendResponse = await axios.post(API_GOOGLE_LOGIN_URL, { googleToken, rememberMe: true });
     const data = backendResponse.data;
-    if (!data.accessToken || !data.userId) { throw new Error(t('login.errors.noToken')); } // Використовуємо той самий ключ
+    if (!data.accessToken || !data.userId) { throw new Error(t('login.errors.noToken')); }
+    
     setAuthData(data.userId, data.accessToken);
-    // 7. Локалізація
+
+    await checkVerificationStatus();
+
     toast.success(t('login.googleSuccess'));
     router.push('/');
+    
   } catch (error) {
     console.error('Помилка Google логіну на бекенді:', error);
     let errorMessage;
-    // 8. Локалізація блоку помилок Google
      if (error.response) {
        errorMessage = error.response.data?.message || error.response.data || t('login.errors.googleServer');
      } else if (error.request) {
@@ -124,7 +125,6 @@ async function handleGoogleCredentialResponse(response) {
 onMounted(() => {
   if (!GOOGLE_CLIENT_ID) {
     console.error('VITE_GOOGLE_CLIENT_ID не знайдено у змінних середовища!');
-    // 9. Локалізація
     toast.error(t('login.errors.googleConfig'));
     return; 
   }
@@ -141,12 +141,10 @@ onMounted(() => {
       );
     } catch (error) {
       console.error("Помилка ініціалізації Google Sign-In:", error);
-      // 10. Локалізація
       toast.error(t('login.errors.googleInit'));
     }
   } else {
     console.error("Бібліотека Google Identity Services (GSI) не завантажилась або недоступна.");
-    // (Можна також додати toast, якщо ця помилка часто виникає у користувачів)
   }
 });
 
