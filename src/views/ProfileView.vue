@@ -610,32 +610,78 @@ function onFileSelected(event) {
 function triggerFileUpload() { fileInput.value.click(); }
 
 async function changePassword() {
-   if (!passwordForm.value.currentPassword || !passwordForm.value.newPassword || passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-       toast.warning(t('profile.passwordTab.toast.checkPasswords')); return;
-   }
-   if (passwordForm.value.newPassword.length < 5 || passwordForm.value.newPassword.length > 27) {
-     toast.warning(t('profile.passwordTab.toast.lengthError', { min: 5, max: 27 })); return;
-   }
-   const CHANGE_PASSWORD_URL = `${API_BASE_URL}/change-password`; 
-   const payload = { Password: passwordForm.value.currentPassword, NewPassword: passwordForm.value.newPassword, PasswordConfirmation: passwordForm.value.confirmPassword };
-   try {
-     await axios.post(CHANGE_PASSWORD_URL, payload, {
-         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.value}` }
-     });
-     toast.success(t('profile.passwordTab.toast.saveSuccess')); 
-     passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
-   } catch (error) {
-      let errorMessage = t('profile.passwordTab.toast.saveFailDefault');
+    if (!passwordForm.value.currentPassword || !passwordForm.value.newPassword || !passwordForm.value.confirmPassword) {
+        toast.warning(t('profile.passwordTab.toast.checkPasswords'));
+        return;
+    }
+    
+    if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+        toast.warning(t('profile.passwordTab.toast.mismatchError'));
+        return;
+    }
+
+    const pass = passwordForm.value.newPassword;
+
+    if (pass.length < 6) {
+        toast.warning("Пароль має містити мінімум 6 символів");
+        return;
+    }
+    if (!/\d/.test(pass)) {
+        toast.warning("Пароль має містити хоча б одну цифру");
+        return;
+    }
+    if (!/[a-z]/.test(pass)) {
+        toast.warning("Пароль має містити хоча б одну маленьку літеру");
+        return;
+    }
+    if (!/[A-Z]/.test(pass)) {
+        toast.warning("Пароль має містити хоча б одну велику літеру");
+        return;
+    }
+    if (!/[^a-zA-Z0-9]/.test(pass)) {
+        toast.warning("Пароль має містити хоча б один спецсимвол (!@#)");
+        return;
+    }
+    // -----------------------------------------
+
+    const CHANGE_PASSWORD_URL = `${API_BASE_URL}/change-password`; 
+    
+    const payload = { 
+        Password: passwordForm.value.currentPassword, 
+        NewPassword: passwordForm.value.newPassword,  
+        PasswordConfirmation: passwordForm.value.confirmPassword 
+    };
+
+    try {
+      await axios.post(CHANGE_PASSWORD_URL, payload, {
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.value}` }
+      });
+      
+      toast.success(t('profile.passwordTab.toast.saveSuccess')); 
+      passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
+      
+    } catch (error) {
+       let errorMessage = t('profile.passwordTab.toast.saveFailDefault');
+       
        if (error.response) {
          if (error.response.status === 400 && typeof error.response.data === 'string') {
-             if (error.response.data.includes("Old password is incorrect")) { errorMessage = t('profile.passwordTab.toast.oldPasswordError'); } 
-             else if (error.response.data.includes("do not match")) { errorMessage = t('profile.passwordTab.toast.mismatchError'); } 
-             else { errorMessage = error.response.data; }
-         } else { errorMessage = error.response.data?.message || t('profile.errors.serverError'); }
-       } else if (error.request) { errorMessage = t('profile.errors.noResponse'); } 
-       else { errorMessage = error.message; }
+             if (error.response.data.includes("Old password is incorrect")) { 
+                 errorMessage = t('profile.passwordTab.toast.oldPasswordError'); 
+             } 
+             else { 
+                 errorMessage = error.response.data; 
+             }
+         } else { 
+             errorMessage = error.response.data?.message || t('profile.errors.serverError'); 
+         }
+       } else if (error.request) { 
+           errorMessage = t('profile.errors.noResponse'); 
+       } else { 
+           errorMessage = error.message; 
+       }
+       
        toast.error(t('profile.passwordTab.toast.saveFailPrefix', { error: errorMessage }));
-   }
+    }
 }
 
 function forgotPassword() {

@@ -1,146 +1,76 @@
 <template>
-  <div class="forgot-password-container">
-    <form @submit.prevent="requestPasswordReset">
+  <div class="auth-view">
+    <div class="form-container">
       <h3>{{ t('forgotPassword.title') }}</h3>
-
+      
       <p class="info-text">
-        {{ t('forgotPassword.infoText') }}
+        {{ t('forgotPassword.infoText') || 'Введіть email, щоб отримати посилання для скидання пароля.' }}
       </p>
 
-      <label for="email">{{ t('login.emailLabel') }}</label>
-      <input 
-        id="email" 
-        type="email" 
-        :placeholder="t('login.emailPlaceholder')" 
-        v-model="email" 
-        required 
-        :disabled="isEmailDisabled" 
-      />
+      <form @submit.prevent="sendResetLink">
+        <div class="form-group">
+          <label>Email</label>
+          <input 
+            type="email" 
+            v-model="email" 
+            placeholder="example@mail.com" 
+            required 
+          />
+        </div>
 
-      <label for="newPassword">{{ t('profile.passwordTab.new') }}</label>
-      <input 
-        id="newPassword" 
-        type="password" 
-        :placeholder="t('profile.passwordTab.new')" 
-        v-model="newPassword" 
-        required 
-      />
+        <button type="submit" class="btn-primary" :disabled="isLoading">
+          {{ isLoading ? 'Sending...' : 'Надіслати посилання' }}
+        </button>
 
-      <label for="confirmPassword">{{ t('profile.passwordTab.confirm') }}</label>
-      <input 
-        id="confirmPassword" 
-        type="password" 
-        :placeholder="t('profile.passwordTab.confirm')" 
-        v-model="confirmPassword" 
-        required 
-      />
-
-      <button type="submit" class="submit-btn" :disabled="isLoading">
-        {{ isLoading ? t('forgotPassword.submitting') : t('forgotPassword.submit') }}
-      </button>
-
-      <div class="back-to-login">
-        <router-link to="/login">{{ t('forgotPassword.backToLogin') }}</router-link>
-      </div>
-    </form>
+        <div class="back-link">
+          <router-link to="/login">Повернутися до входу</router-link>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
 <script setup>
-// --- Імпорти ---
-import { ref, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref } from 'vue';
 import { useToast } from 'vue-toastification';
-import { useI18n } from 'vue-i18n'; // 1. Імпорт локалізації
+import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 
-// --- Константи та ініціалізація ---
-const API_FORGOT_PASSWORD_URL = 'https://backend-auto-market.onrender.com/api/Auth/reset-password'; 
-const toast = useToast();
-const router = useRouter();
-const route = useRoute();
-const { t } = useI18n(); // 2. Ініціалізація функції перекладу
+const API_URL = 'https://backend-auto-market.onrender.com/api/Auth/reset-password';
 
-// --- Refs для стану ---
 const email = ref('');
-const newPassword = ref('');
-const confirmPassword = ref('');
 const isLoading = ref(false);
-const isEmailDisabled = ref(false);
+const toast = useToast();
+const { t } = useI18n();
 
-// --- Хук життєвого циклу ---
-onMounted(() => {
-  const emailFromQuery = route.query.email;
-  if (emailFromQuery && typeof emailFromQuery === 'string') {
-    email.value = emailFromQuery;
-    isEmailDisabled.value = true;
-  }
-});
-
-// --- Функція відправки запиту ---
-async function requestPasswordReset() {
-  // Валідація
-  if (!email.value || !newPassword.value || !confirmPassword.value) {
-    toast.warning(t('forgotPassword.toast.fillAll')); // Локалізована помилка
-    return;
-  }
+async function sendResetLink() {
+  if (!email.value) return;
   
-  if (newPassword.value.length < 5 || newPassword.value.length > 27) {
-    // Використовуємо існуючий ключ для довжини пароля
-    toast.warning(t('profile.passwordTab.toast.lengthError', { min: 5, max: 27 }));
-    return;
-  }
-  
-  if (newPassword.value !== confirmPassword.value) {
-    // Використовуємо існуючий ключ для неспівпадіння
-    toast.warning(t('profile.passwordTab.toast.mismatchError'));
-    return;
-  }
-
   isLoading.value = true;
-
-  const payload = {
-      Email: email.value,
-      Password: newPassword.value,
-      PasswordConfirmation: confirmPassword.value 
-  };
-
   try {
-    console.log(`Відправляємо запит на скидання для ${email.value}`);
-    
-    await axios.post(API_FORGOT_PASSWORD_URL, payload, {
-        headers: { 'Content-Type': 'application/json' }
-    });
+    const clientUrl = `${window.location.origin}/reset-password`;
 
-    toast.success(t('forgotPassword.toast.sentSuccess')); // Локалізований успіх
-    router.push('/login'); 
+    const payload = {
+      email: email.value,
+      clientUrl: clientUrl 
+    };
+
+    console.log("Відправка запиту:", payload);
+
+    await axios.post(API_URL, payload, {
+       headers: { 'Content-Type': 'application/json' }
+    });
+    
+    toast.success("Лист надіслано! Перевірте пошту.");
+    email.value = '';
 
   } catch (error) {
-    console.error('Помилка запиту на скидання пароля:', error);
-    
-    // Локалізована дефолтна помилка
-    let errorMessage = t('forgotPassword.toast.sendFail');
-    
-    if (error.response) {
-       if (error.response.status === 404) {
-           // Можна залишити це повідомлення або додати ключ
-           errorMessage = t('forgotPassword.toast.sentSuccess'); // Для безпеки часто пишуть "успіх", навіть якщо мейла немає
-           toast.info(errorMessage); 
-           return; // Щоб не показувати error знизу
-       } else if (error.response.status === 400 && typeof error.response.data === 'string') {
-           errorMessage = error.response.data; // Повідомлення з бекенду зазвичай не перекладають, або треба мапити
-           toast.error(`${t('login.errors.prefix', { error: '' })} ${errorMessage}`);
-           return;
-       } else {
-           errorMessage = error.response.data?.message || t('profile.errors.serverError');
-       }
-    } else if (error.request) {
-      errorMessage = t('profile.errors.noResponse');
+    console.error(error);
+    if (error.response && error.response.status === 404) {
+        toast.success("Лист надіслано! Перевірте пошту."); 
     } else {
-      errorMessage = error.message;
+        toast.error("Помилка сервера. Спробуйте пізніше.");
     }
-    
-    toast.error(t('profile.errors.prefix', { error: errorMessage }));
   } finally {
     isLoading.value = false;
   }
@@ -148,135 +78,44 @@ async function requestPasswordReset() {
 </script>
 
 <style scoped>
-/* ВАШІ СТИЛІ ЗАЛИШАЮТЬСЯ БЕЗ ЗМІН */
-.forgot-password-container {
-  background-image: url('@/assets/car-header1.jpg'); 
+/* Використовуємо ті ж стилі, що і в Login/Register для краси */
+.auth-view {
+  min-height: 100vh;
+  background-image: url('@/assets/car-header1.jpg');
   background-size: cover;
   background-position: center;
-  min-height: 100vh;
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: center;
   position: relative;
-  overflow: hidden;
-  padding: 40px 20px;
 }
-
-.forgot-password-container::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4); 
+.auth-view::before {
+  content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 0;
 }
-
-form {
-  width: 100%;
-  max-width: 400px;
-  background-color: rgba(30, 30, 30, 0.7);
-  position: relative;
-  border-radius: 12px;
+.form-container {
+  position: relative; z-index: 1;
+  background: rgba(30, 30, 30, 0.75);
   backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 40px rgba(8,7,16,0.6);
-  padding: 40px 30px;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: 'Open Sans', sans-serif;
-  color: #fff;
+  padding: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  width: 100%; max-width: 400px;
+  color: #fff; text-align: center;
 }
-
-form h3 {
-  font-size: 28px;
-  font-weight: 500;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.info-text {
-    font-size: 14px;
-    color: #ccc;
-    text-align: center;
-    margin-bottom: 25px;
-    line-height: 1.5;
-}
-
-label {
-  width: 100%;
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  margin-top: 15px;
-  margin-bottom: 5px;
-}
-
+h3 { margin-top: 0; font-size: 24px; margin-bottom: 15px; }
+.info-text { color: #ccc; font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
+.form-group { text-align: left; margin-bottom: 20px; }
+label { display: block; margin-bottom: 5px; font-size: 13px; color: #aaa; }
 input {
-  display: block;
-  width: 100%;
-  height: 45px;
-  padding: 0 10px;
-  border-radius: 3px;
-  background-color: rgba(255,255,255,0.1); 
-  border: 1px solid #555;
-  box-shadow: none;
-  font-size: 14px;
-  font-weight: 300;
-  margin-top: 8px;
-  color: #fff;
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  width: 100%; height: 45px; padding: 0 10px;
+  background: rgba(255,255,255,0.1); border: 1px solid #555;
+  border-radius: 5px; color: #fff; box-sizing: border-box;
 }
-input:focus {
-  border-color: #ffd700;
-  box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
-  outline: none;
+.btn-primary {
+  width: 100%; padding: 12px; background: #cc0000; color: #fff;
+  border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s;
 }
-
-::placeholder {
-  color: #e5e5e5;
-}
-
-.submit-btn {
-  width: 100%;
-  padding: 12px 0;
-  border-radius: 6px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 30px;
-  transition: 0.3s;
-  font-family: 'Open Sans', sans-serif;
-  background-color: #cc0000;
-  color: #fff;
-}
-.submit-btn:hover:not(:disabled) {
-  background-color: #aa0000;
-}
-.submit-btn:disabled {
-  background-color: #555;
-  cursor: not-allowed;
-}
-
-.back-to-login {
-  margin-top: 20px;
-  font-size: 14px;
-}
-.back-to-login a {
-  color: #ccc;
-  text-decoration: none;
-}
-.back-to-login a:hover {
-  color: #fff;
-  text-decoration: underline;
-}
-input:disabled {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: #aaa;
-  cursor: not-allowed; 
-  border-color: #444; 
-}
-input:disabled:focus {
-    border-color: #444; 
-    box-shadow: none;
-}
+.btn-primary:hover { background: #ff0000; }
+.back-link { margin-top: 20px; font-size: 14px; }
+.back-link a { color: #ffd700; text-decoration: none; }
 </style>

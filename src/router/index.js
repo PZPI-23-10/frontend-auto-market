@@ -9,6 +9,7 @@ import CreateListingView from '@/views/CreateListingView.vue'
 import ListingsView from '@/views/ListingsView.vue'
 import ListingDetailView from '@/views/ListingDetailView.vue'
 import ForgotPasswordView from '@/components/ForgotPasswordView.vue'
+import ResetPasswordView from '@/components/ResetPasswordView.vue'
 import NewsView from '../views/NewsView.vue'
 import AboutView from '../views/AboutView.vue'
 import AdminView from '../views/AdminView.vue'
@@ -36,6 +37,7 @@ const routes = [
   { path: '/about', name: 'about', component: AboutView },
   { path: '/news', name: 'news', component: NewsView },
   { path: '/forgot-password', name: 'forgot-password', component: ForgotPasswordView },
+  { path: '/reset-password', name: 'reset-password', component: ResetPasswordView },
   
   { 
     path: '/admin', 
