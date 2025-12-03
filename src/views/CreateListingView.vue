@@ -82,6 +82,23 @@
 
               <div class="form-row">
                 <div class="form-group">
+                  <label for="licensePlate">{{ t('createListing.step1.licensePlate') }}</label>
+                  <input 
+                    type="text" 
+                    id="licensePlate" 
+                    :value="listing.licensePlate"
+                    @input="formatLicensePlate"
+                    placeholder="AA1234BB" 
+                    maxlength="8"
+                  >
+                  <small style="color: #aaa; font-size: 11px; margin-top: 4px; display: block;">
+                    Тільки літери та цифри, без пробілів (напр. KA0001BC)
+                  </small>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
                   <label for="region">{{ t('createListing.step1.region') }} *</label>
                   <select id="region" v-model="listing.regionId" required>
                     <option :value="null" disabled>{{ t('createListing.select') }}</option>
@@ -306,6 +323,7 @@ const listing = ref({
   price: '',
   currency: 'USD', 
   description: '',
+  licensePlate: '',
   photosToDelete: [] 
 });
 const listingPhotos = ref([]); 
@@ -393,6 +411,7 @@ function getLabel(category, serverName) {
         listing.value.conditionId = data.condition?.id ?? data.conditionId ?? null;
 
         listing.value.price = data.price;
+        listing.value.licensePlate = data.licensePlate || '';
         listing.value.currency = data.currency;
         listing.value.description = data.description;
         
@@ -570,6 +589,7 @@ function nextStep() {
   formData.append('Description', listing.value.description || '');
   formData.append('ColorHex', listing.value.colorHex || '#000000'); 
   formData.append('HasAccident', listing.value.inAccident);
+  formData.append('LicensePlate', listing.value.licensePlate || '');
   
   const userPhone = user?.value?.phoneNumber || '0000000000';
   formData.append('Number', userPhone);
@@ -614,6 +634,11 @@ async function handleSubmit() {
   if (isSubmitting.value) return;
   if (listingPhotos.value.length === 0) {
       toast.warning(t('createListing.toast.addPhoto'));
+      return;
+  }
+
+  if (listing.value.licensePlate && listing.value.licensePlate.length < 3) {
+      toast.warning("Номер авто занадто короткий (мінімум 3 символи)");
       return;
   }
 
@@ -686,6 +711,19 @@ async function handleDraft() {
   } finally {
     isSubmitting.value = false;
   }
+}
+
+// Функція для форматування номера (тільки A-Z, 0-9, без пробілів)
+function formatLicensePlate(event) {
+  let value = event.target.value;
+  
+  value = value.toUpperCase();
+  value = value.replace(/[^A-Z0-9А-ЯІЇЄ]/g, '');
+  if (value.length > 8) {
+    value = value.slice(0, 8);
+  }
+  listing.value.licensePlate = value;
+  event.target.value = value;
 }
 
 // Вспомогательная функция для красивого вывода ошибок

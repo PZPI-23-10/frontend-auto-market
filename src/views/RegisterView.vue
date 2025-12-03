@@ -136,41 +136,64 @@ async function nextStep() {
         toast.warning(t('register.validation.invalidEmail'));
         return;
     }
-    if (password.value.length < 5 || password.value.length > 27) {
-        toast.warning(t('register.validation.passwordLength', { min: 5, max: 27 }));
+
+    // --- НОВА ВАЛІДАЦІЯ ПАРОЛЯ ---
+    const pass = password.value;
+    
+    // 1. Довжина (мінімум 6)
+    if (pass.length < 6) {
+        toast.warning(t('register.validation.passMinLength', { min: 6 }));
         return;
     }
+    // 2. Хоча б одна цифра
+    if (!/\d/.test(pass)) {
+        toast.warning(t('register.validation.passDigit'));
+        return;
+    }
+    // 3. Хоча б одна маленька літера
+    if (!/[a-z]/.test(pass)) {
+        toast.warning(t('register.validation.passLowercase'));
+        return;
+    }
+    // 4. Хоча б одна велика літера
+    if (!/[A-Z]/.test(pass)) {
+        toast.warning(t('register.validation.passUppercase'));
+        return;
+    }
+    // 5. Хоча б один спецсимвол (все, що не буква і не цифра)
+    if (!/[^a-zA-Z0-9]/.test(pass)) {
+        toast.warning(t('register.validation.passSpecial'));
+        return;
+    }
+
     if (password.value !== confirmPassword.value) {
         toast.warning(t('register.validation.passwordMismatch'));
         return;
     }
+    // -----------------------------
 
-    // 5. ЛОКАЛІЗАЦІЯ ПОМИЛОК API
+    // 5. ЛОКАЛІЗАЦІЯ ПОМИЛОК API (Перевірка Email)
     try {
-      console.log(`Перевіряємо email: ${email.value} на ${API_URL_CHECK_EMAIL}`);
+      console.log(`Перевіряємо email: ${email.value}`);
       const response = await axios.get(API_URL_CHECK_EMAIL, {
         params: { email: email.value }
       });
-      const emailExists = response.data;
-
-      if (emailExists === true) {
+      
+      if (response.data === true) {
         toast.error(t('register.errors.emailExists'));
         return;
       }
     } catch (error) {
       console.error('Помилка перевірки email:', error);
       let errorMessage = t('register.errors.emailCheckFailed');
-      if (error.response) { 
-        errorMessage = error.response.data?.message || t('register.errors.serverError');
-      }
-      else if (error.request) {
-        errorMessage = t('register.errors.noConnection');
-      }
+      if (error.response) errorMessage = error.response.data?.message || t('register.errors.serverError');
+      else if (error.request) errorMessage = t('register.errors.noConnection');
       toast.error(errorMessage);
       return; 
     }
   }
 
+  // Перехід на наступний крок (якщо це не останній)
   if (currentStep.value === 2) {
     if (!firstName.value || !lastName.value || !dateOfBirth.value || !phone.value) {
         toast.warning(t('register.validation.step2Required'));

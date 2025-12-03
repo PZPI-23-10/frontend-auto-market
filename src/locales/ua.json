@@ -63,7 +63,8 @@
     "paintwork": "Лакофарбове покриття",
     "technicalCondition": "Технічний стан",
     "inAccident": "Участь в ДТП",
-    "metallic": "Металік"
+    "metallic": "Металік",
+    "licensePlate": "Держ. номер"
   },
   "home": {
     "hero": {
@@ -296,7 +297,12 @@
       "passwordLength": "Пароль має містити від {min} до {max} символів.",
       "passwordMismatch": "Паролі не співпадають.",
       "step2Required": "Будь ласка, заповніть ім'я, прізвище, дату народження та телефон.",
-      "dateRequired": "Будь ласка, вкажіть дату народження."
+      "dateRequired": "Будь ласка, вкажіть дату народження.",
+      "passMinLength": "Пароль має містити мінімум {min} символів.",
+      "passDigit": "Пароль має містити хоча б одну цифру.",
+      "passLowercase": "Пароль має містити хоча б одну маленьку літеру.",
+      "passUppercase": "Пароль має містити хоча б одну велику літеру.",
+      "passSpecial": "Пароль має містити хоча б один спецсимвол (!@#$%)."
     },
     "errors": {
       "emailExists": "Користувач з таким email вже існує.",
@@ -358,6 +364,8 @@
       "mileage": "Пробіг (тис. км)",
       "mileagePlaceholder": "тільки цифри",
       "bodyType": "Тип кузова",
+      "licensePlate": "Держ. номер",
+      "licensePlatePlaceholder": "AA 1234 BB",
       "region": "Регіон",
       "city": "Місто",
       "cityPlaceholder": "Наприклад, Київ"

@@ -154,6 +154,13 @@
                     </span>
                     <strong>{{ listing.inAccident ? t('common.yes') : t('common.no') }}</strong>
                   </li>
+                  <li>  
+                    <span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="12" r="1"/><circle cx="18" cy="12" r="1"/><path d="M10 12h4"/></svg>
+                      {{ t('fields.licensePlate') }}
+                    </span>
+                    <strong class="license-plate-badge">{{ listing.licensePlate }}</strong>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -296,6 +303,7 @@ function mapApiToDetail(apiItem) {
     price: apiItem.price,
     currency: apiItem.currency || 'USD',
     location: apiItem.city?.name || apiItem.region?.name || 'Україна',
+    licensePlate: apiItem.licensePlate || 'Приховано',
     
     fuel: (apiItem.fuelType?.name || '').toLowerCase(),
     transmission: (apiItem.gearType?.name || '').toLowerCase(),
@@ -550,7 +558,21 @@ function closeModal() {
 .contact-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 14px; }
 .contact-item span { color: #aaa; }
 .contact-item a { color: #ffd700; text-decoration: none; font-weight: 600; }
-
+.license-plate-badge {
+  background: #fff;
+  color: #000;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-family: monospace; 
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: inline-block;
+  box-shadow: 0 0 5px rgba(255,255,255,0.2);
+}
+.license-plate-badge {
+  border-left: 4px solid #0057b8; 
+}
 .message-btn {
   width: 100%; padding: 14px 0; border-radius: 6px; border: none; font-weight: 700;
   cursor: pointer; margin-top: 20px; background-color: #cc0000; color: #fff;

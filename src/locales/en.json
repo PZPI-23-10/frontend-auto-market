@@ -63,7 +63,8 @@
     "paintwork": "Paint Condition",
     "technicalCondition": "Technical Condition",
     "inAccident": "In accident",
-    "metallic": "Metallic"
+    "metallic": "Metallic",
+    "licensePlate": "License Plate"
   },
   "home": {
     "hero": {
@@ -287,7 +288,12 @@
       "passwordLength": "Password must be between {min} and {max} characters.",
       "passwordMismatch": "Passwords do not match.",
       "step2Required": "Please fill in first name, last name, date of birth, and phone.",
-      "dateRequired": "Please specify your date of birth."
+      "dateRequired": "Please specify your date of birth.",
+      "passMinLength": "Password must be at least {min} characters long.",
+      "passDigit": "Password must contain at least one digit.",
+      "passLowercase": "Password must contain at least one lowercase letter.",
+      "passUppercase": "Password must contain at least one uppercase letter.",
+      "passSpecial": "Password must contain at least one special character (!@#$%)."
     },
     "errors": {
       "emailExists": "A user with this email already exists.",
@@ -349,6 +355,8 @@
       "mileage": "Mileage (ths. km)",
       "mileagePlaceholder": "numbers only",
       "bodyType": "Body Type",
+      "licensePlate": "License Plate",
+      "licensePlatePlaceholder": "AA 1234 BB",
       "region": "Region",
       "city": "City",
       "cityPlaceholder": "E.g., Kyiv"
