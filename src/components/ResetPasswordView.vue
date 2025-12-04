@@ -28,7 +28,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import axios from 'axios';
 
-const API_URL = 'https://backend-auto-market.onrender.com/api/Auth/confirm-password-change';
+// URL для підтвердження зміни
+const API_URL = 'https://backend-auto-market.onrender.com/api/Auth/confirm-password-change'; 
 
 const route = useRoute();
 const router = useRouter();
@@ -38,41 +39,78 @@ const password = ref('');
 const confirmPassword = ref('');
 const isLoading = ref(false);
 
-// Дані з URL (посилання з пошти)
 const token = ref('');
 const email = ref('');
 
+// --- 1. ОТРИМАННЯ ДАНИХ З ПОСИЛАННЯ ---
 onMounted(() => {
-  token.value = route.query.token || '';
-  email.value = route.query.email || '';
+  const rawEmail = route.query.email || '';
+  const rawToken = route.query.token || '';
+
+  email.value = rawEmail.trim();
+
+  if (rawToken) {
+      token.value = rawToken.replace(/ /g, '+');
+  }
 
   if (!token.value || !email.value) {
-    toast.error("Невірне посилання для скидання (немає токена).");
+    toast.error("Невірне посилання: відсутній токен або email.");
+  } else {
+    console.log("Дані з URL отримано:", { email: email.value, token: token.value });
   }
 });
 
+// --- 2. ЗМІНА ПАРОЛЯ ---
 async function resetPassword() {
-  if (password.value.length < 6) { toast.warning("Пароль занадто короткий."); return; }
-  if (!/\d/.test(password.value)) { toast.warning("Потрібна цифра."); return; }
+  if (password.value.length < 6) { toast.warning("Пароль занадто короткий (мін 6)."); return; }
+  if (!/\d/.test(password.value)) { toast.warning("Потрібна хоча б одна цифра."); return; }
+  if (!/[a-z]/.test(password.value)) { toast.warning("Потрібна маленька літера."); return; }
   if (!/[A-Z]/.test(password.value)) { toast.warning("Потрібна велика літера."); return; }
-  if (password.value !== confirmPassword.value) { toast.warning("Паролі не співпадають."); return; }
+  if (!/[^a-zA-Z0-9]/.test(password.value)) { toast.warning("Потрібен спецсимвол (!@#)."); return; }
+  
+  if (password.value !== confirmPassword.value) { 
+      toast.warning("Паролі не співпадають."); 
+      return; 
+  }
 
   isLoading.value = true;
   try {
+    // Формуємо JSON, як вимагає бекенд
     const payload = {
       email: email.value,
       token: token.value,
       newPassword: password.value
     };
 
-    await axios.post(API_URL, payload);
+    console.log("Відправка JSON:", JSON.stringify(payload));
+
+    // Відправляємо запит
+    await axios.post(API_URL, payload, {
+       headers: { 'Content-Type': 'application/json' }
+    });
     
     toast.success("Пароль успішно змінено!");
-    router.push('/login');
+    
+    setTimeout(() => {
+        router.push('/login');
+    }, 2000);
 
   } catch (error) {
-    console.error(error);
-    const msg = error.response?.data?.message || error.response?.data || "Помилка зміни пароля";
+    console.error("Помилка API:", error);
+    
+    let msg = "Помилка зміни пароля";
+    
+    if (error.response) {
+        // Якщо сервер повернув текст помилки (наприклад "User not found")
+        if (typeof error.response.data === 'string') {
+            msg = error.response.data;
+        } 
+        // Якщо сервер повернув JSON з помилкою
+        else if (error.response.data?.message) {
+            msg = error.response.data.message;
+        }
+    }
+    
     toast.error(msg);
   } finally {
     isLoading.value = false;
@@ -81,7 +119,6 @@ async function resetPassword() {
 </script>
 
 <style scoped>
-/* Ті ж самі стилі, що і вище */
 .auth-view {
   min-height: 100vh;
   background-image: url('@/assets/car-header1.jpg');
