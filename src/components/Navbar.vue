@@ -177,10 +177,13 @@ function changeLanguage(lang) {
 <style scoped>
 
 .logo-img {
-  width: 140px; 
-  margin-top:20px ; 
-  height: auto; 
-}
+  width: auto;      
+  
+  height: 80px;    
+  object-fit: contain; 
+  
+  margin-top: 5px;    
+} 
 .world-img {
   width: 30px; 
   margin-right:10px ; 
