@@ -411,12 +411,10 @@ function getLabel(category, serverName) {
         listing.value.conditionId = data.condition?.id ?? data.conditionId ?? null;
 
         listing.value.price = data.price;
-        listing.value.licensePlate = data.licensePlate || '';
+        listing.value.licensePlate = data.number  || '';
         listing.value.currency = data.currency;
         listing.value.description = data.description;
         
-        // --- ЛОГИКА ФОТО (СОРТИРОВКА) ---
-        // Проверяем photos (новый формат) или photoUrls (старый)
         let rawPhotos = data.photos || data.photoUrls || [];
         
         if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
@@ -589,12 +587,8 @@ function nextStep() {
   formData.append('Description', listing.value.description || '');
   formData.append('ColorHex', listing.value.colorHex || '#000000'); 
   formData.append('HasAccident', listing.value.inAccident);
-  formData.append('LicensePlate', listing.value.licensePlate || '');
   
-  const userPhone = user?.value?.phoneNumber || '0000000000';
-  formData.append('Number', userPhone);
-
-  // --- 1. Удаление фото (PhotosToRemove) ---
+  formData.append('Number', listing.value.licensePlate || ''); 
   if (listing.value.photosToDelete && Array.isArray(listing.value.photosToDelete)) {
     listing.value.photosToDelete.forEach(id => {
         if (Number.isInteger(id) && id > 0) {
@@ -603,26 +597,19 @@ function nextStep() {
     });
   }
 
-  // --- 2. Сортировка и Новые фото ---
   let newPhotoIndex = 0;    
   let updatePhotoIndex = 0; 
 
   listingPhotos.value.forEach((photoItem, index) => {
-      
-      // === ВАЖНОЕ ИСПРАВЛЕНИЕ ===
-      // PhotoUploader возвращает объект { file: File, ... }, а не сам File.
-      // Мы берем .file, если он есть.
       const actualFile = photoItem.file; 
 
-      // СЦЕНАРИЙ А: Это НОВОЕ фото (есть файл)
       if (actualFile instanceof File) {
           formData.append(`NewPhotos[${newPhotoIndex}].File`, actualFile);
           formData.append(`NewPhotos[${newPhotoIndex}].SortOrder`, index);
           newPhotoIndex++;
       }
-      
       else if (photoItem.isExisting && photoItem.id > 0) {
-          formData.append(`UpdatedPhotoSortOrder[${updatePhotoIndex}].Id`, photoItem.id);
+          formData.append(`UpdatedPhotoSortOrder[${updatePhotoIndex}].PhotoId`, photoItem.id);
           formData.append(`UpdatedPhotoSortOrder[${updatePhotoIndex}].SortOrder`, index);
           updatePhotoIndex++;
       }
@@ -630,13 +617,17 @@ function nextStep() {
   
   return formData;
 }
+
 async function handleSubmit() {
   if (isSubmitting.value) return;
+  
+  // Валидация: фото обязательны
   if (listingPhotos.value.length === 0) {
       toast.warning(t('createListing.toast.addPhoto'));
       return;
   }
 
+  // Валидация: номер авто (если введен, то мин 3 символа)
   if (listing.value.licensePlate && listing.value.licensePlate.length < 3) {
       toast.warning("Номер авто занадто короткий (мінімум 3 символи)");
       return;
@@ -648,15 +639,18 @@ async function handleSubmit() {
   let method = '';
   
   if (isEditMode.value) {
+      // Логика публикации черновика
       if (listing.value.isPublished === false) {
           url = `${API_HOST}/Listing/draft/${listingId.value}/publish`;
           method = 'post';
       } 
+      // Логика обновления уже опубликованного
       else {
           url = `${API_HOST}/Listing/${listingId.value}`;
           method = 'put';
       }
   } else {
+      // Логика создания нового
       url = `${API_HOST}/Listing`;
       method = 'post';
   }
@@ -664,11 +658,12 @@ async function handleSubmit() {
   try {
     const formData = getFormData();
     
-await axios[method](url, formData, {
-  headers: {
-    'Authorization': `Bearer ${token.value}`
-  }
-});
+    await axios[method](url, formData, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     
     toast.success(t('createListing.toast.submitSuccess'));
     localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -681,7 +676,6 @@ await axios[method](url, formData, {
     isSubmitting.value = false;
   }
 }
-// --- ВІДПРАВКА ЧЕРНЕТКИ (DRAFT) ---
 async function handleDraft() {
   if (isSubmitting.value) return;
   isSubmitting.value = true;

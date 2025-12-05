@@ -84,85 +84,98 @@
                     </span>
                     <strong>{{ t('carCard.mileage', { km: listing.mileage }) }}</strong>
                   </li>
-                  <li>
+
+                  <li v-if="listing.fuel">
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 11h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1Z"/><path d="M18 11V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"/><path d="M6 11h4"/><path d="M6 15h2"/></svg>
                       {{ t('fields.fuel') }}
                     </span>
                     <strong>{{ t('options.fuel.' + listing.fuel) }}</strong>
                   </li>
-                  <li>
+
+                  <li v-if="listing.transmission">
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM5 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM15 16a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM9 11v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M12 9v6m-3 2v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
                       {{ t('fields.transmission') }}
                     </span>
                     <strong>{{ t('options.transmission.' + listing.transmission) }}</strong>
                   </li>
-                  <li>
+
+                  <li v-if="listing.bodyType">
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 18.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-4.37c0-.3-.1-.59-.28-.84l-1.44-2A.5.5 0 0 1 4.5 10.5h15a.5.5 0 0 1 .22.49l-1.44 2c-.18.25-.28.54-.28.84Z"/><path d="M4 14.13V10.5a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 20 10.5v3.63"/><circle cx="6.5" cy="18.5" r="0.5"/><circle cx="17.5" cy="18.5" r="0.5"/></svg>
                       {{ t('fields.bodyType') }}
                     </span>
                     <strong>{{ t('options.bodyType.' + listing.bodyType) }}</strong>
                   </li>
-                  <li>
+
+                  <li v-if="listing.driveTrain">
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 15v-4.32a2 2 0 0 1 1.18-1.83l6-3.46a2 2 0 0 1 1.64 0l6 3.46A2 2 0 0 1 21 10.68V15"/><path d="M5 18v-5h14v5"/></svg>
                       {{ t('fields.driveTrain') }}
                     </span>
                     <strong>{{ t('options.driveTrain.' + listing.driveTrain) }}</strong>
                   </li>
-                  <li>
+
+                  <li v-if="listing.engineSize > 0">
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8"/><path d="M18 22V10"/><path d="M14 22V10"/><path d="M6 14H4"/><path d="M6 10H4"/><path d="M10 6H8"/><path d="M16 6h-2"/></svg>
                       {{ t('fields.engineSize') }}
                     </span>
                     <strong>{{ t('carCard.engineSize', { size: listing.engineSize }) }}</strong>
                   </li>
-                  <li>
+
+                  <li v-if="listing.color">
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 14 6-6"/><path d="M12 14c-1.88 1.88-5.12 1.88-7 0 1.88-1.88 1.88-5.12 0-7 1.88 1.88 5.12 1.88 7 0 1.88 1.88 1.88 5.12 0 7Z"/><path d="m14 12-6 6"/><path d="M14 12c1.88-1.88 5.12-1.88 7 0-1.88 1.88-1.88 5.12 0 7-1.88-1.88-5.12-1.88-7 0-1.88-1.88-1.88-5.12 0-7Z"/></svg>
                       {{ t('fields.color') }}
                     </span>
                     <strong>{{ t('options.color.' + listing.color) }}</strong>
                   </li>
-                  <li>
+
+                  <li v-if="listing.metallic !== null">
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 3 8 21"/><path d="M16 3l-2.2 1.8"/><path d="m14 21 2-18"/><path d="M3 10h18"/><path d="M3 14h18"/></svg>
                       {{ t('fields.metallic') }}
                     </span>
                     <strong>{{ listing.metallic ? t('common.yes') : t('common.no') }}</strong>
                   </li>
-                  <li>
+
+                  <li v-if="listing.paintwork">
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.2 0 .5 0 .7 0 1.4-1.2 2.1-2.8 2.1-4.4 0-3-2.5-5.4-5.5-5.4-1.6 0-3.1.7-4.1 1.9"/><path d="M22 12c0-1.6-.7-3.1-1.9-4.1-1.1-1-2.6-1.6-4.1-1.6-3 0-5.4 2.4-5.4 5.4 0 1.6.7 3.1 1.9 4.1.1 0 .3.1.5.1 5.5 0 10-4.5 10-10Z"/></svg>
                       {{ t('fields.paintwork') }}
                     </span>
                     <strong>{{ t('options.paint.' + listing.paintwork) }}</strong>
                   </li>
-                  <li>
+
+                  <li v-if="listing.technicalCondition">
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                       {{ t('fields.technicalCondition') }}
                     </span>
                     <strong>{{ t('options.techState.' + listing.technicalCondition) }}</strong>
                   </li>
-                  <li>
+
+                  <li v-if="listing.inAccident !== null">
                     <span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 2.2 14 10.9c.4 1 .1 2.2-.7 3l-2.4 2.4c-.8.8-2 1.2-3.2 1.2H3"/><path d="m3 11 8 8"/><path d="M5 19h1"/><path d="M14 11h-4"/><path d="m18 15-4-4"/><path d="M18 11 14 7"/><path d="M18 19h-1.3c-1.2 0-2.4-.4-3.2-1.2L11 15.3c-.7-.8-1-1.9-.7-3l3.7-8.7"/><path d="M17 3 14 7"/><path d="M21 3l-1.6 1.6"/></svg>
                       {{ t('fields.inAccident') }}
                     </span>
                     <strong>{{ listing.inAccident ? t('common.yes') : t('common.no') }}</strong>
                   </li>
-                  <li>  
+
+                  <li v-if="listing.licensePlate && listing.licensePlate !== 'Приховано'"> 
                     <span>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="12" r="1"/><circle cx="18" cy="12" r="1"/><path d="M10 12h4"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="12" r="1"/><circle cx="18" cy="12" r="1"/><path d="M10 12h4"/></svg>
                       {{ t('fields.licensePlate') }}
                     </span>
                     <strong class="license-plate-badge">{{ listing.licensePlate }}</strong>
                   </li>
                 </ul>
               </div>
+
+     
             </div>
 
             <div class="desc-column">
@@ -179,7 +192,6 @@
         </main>
         
         <aside class="sidebar">
-          
           <div class="filter-card">
             <h2 class="price">{{ formattedPrice }}</h2>
             <p class="location">{{ listing.location }}</p>
@@ -198,7 +210,7 @@
                 <span>{{ t('listingDetail.email') }}:</span>
                 <a :href="`mailto:${seller.email}`">{{ seller.email }}</a>
               </div>
-              <div class="contact-item">
+              <div class="contact-item" v-if="seller.phone">
                 <span>{{ t('listingDetail.phone') }}:</span>
                 <a :href="`tel:${seller.phone}`">{{ seller.phone }}</a>
               </div>
@@ -207,7 +219,6 @@
               {{ t('listingDetail.sendMessage') }}
             </button>
           </div>
-          
         </aside>
       </div>
     </div>
@@ -233,7 +244,7 @@ import placeholderImage from '@/assets/no-photo.png';
 
 const route = useRoute();
 const toast = useToast();
-const { t, locale } = useI18n();
+const { t, te, locale } = useI18n();
 
 const API_BASE = 'https://backend-auto-market.onrender.com/api';
 
@@ -247,51 +258,41 @@ const seller = ref({
   avatarUrl: null
 });
 
-function mapApiToDetail(apiItem) {
-  // 1. Логіка кольорів
-  let colorKey = apiItem.colorHex || 'other';
-  if (!colorKey.startsWith('#')) {
-      colorKey = colorKey.toLowerCase();
-  }
-
-  // 2. Логіка приводу
-  const driveTrainKey = apiItem.driveType?.name 
-    ? apiItem.driveType.name.toLowerCase() 
-    : 'unknown'; 
-
-  // 3. Логіка стану фарби
-  let paintKey = apiItem.paintwork || 'used';
-  paintKey = paintKey.charAt(0).toLowerCase() + paintKey.slice(1).replace(/\s+/g, '');
-
-  // === 4. ВИПРАВЛЕННЯ ФОТО З СОРТУВАННЯМ (sortOrder) ===
-  let processedImages = [placeholderImage]; 
+// Helper для перекладу ключів (BENSIN -> bensin)
+function getLabel(category, serverName) {
+  if (!serverName) return '';
   
-  // Перевіряємо і 'photos' (новий стандарт), і 'photoUrls' (старий)
+  if (category === 'color' && serverName.startsWith('#')) {
+      return serverName.toLowerCase(); 
+  }
+  const keyRaw = serverName.toLowerCase()
+    .replace(/\s+/g, '_')     
+    .replace(/\//g, '_')      
+    .replace(/,/g, '')        
+    .replace(/\./g, '');      
+  return keyRaw;
+}
+function mapApiToDetail(apiItem) {
+  // --- 1. ФОТО ---
+  let processedImages = [placeholderImage]; 
   const rawPhotos = apiItem.photos || apiItem.photoUrls;
 
   if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
-    // А) Сортуємо масив за полем sortOrder (0, 1, 2...)
     const sortedPhotos = [...rawPhotos].sort((a, b) => {
-        // Якщо sortOrder немає, вважаємо 0
-        const orderA = (a && typeof a === 'object' && a.sortOrder !== undefined) ? a.sortOrder : 0;
-        const orderB = (b && typeof b === 'object' && b.sortOrder !== undefined) ? b.sortOrder : 0;
+        const orderA = (a?.sortOrder ?? 0);
+        const orderB = (b?.sortOrder ?? 0);
         return orderA - orderB;
     });
-
-    // Б) Витягуємо тільки URL
-    const urls = sortedPhotos.map(item => {
-        // Якщо об'єкт { id, url, sortOrder } -> беремо url
-        if (typeof item === 'object' && item !== null) {
-           return item.url;
-        }
-        // Якщо це просто рядок URL -> залишаємо як є
-        return item;
-    }).filter(url => url); // Прибираємо пусті
-
-    if (urls.length > 0) {
-        processedImages = urls;
-    }
+    const urls = sortedPhotos.map(item => (typeof item === 'object' && item !== null) ? item.url : item).filter(u => u);
+    if (urls.length > 0) processedImages = urls;
   }
+
+  // --- 2. НОМЕР МАШИНИ ---
+  let licensePlate = apiItem.licensePlate || apiItem.number || 'Приховано';
+  if (licensePlate === '0000000000') licensePlate = 'Приховано';
+
+  // --- 3. ЛОКАЦІЯ ---
+  const location = apiItem.city?.name || apiItem.region?.name || 'Україна';
 
   return {
     id: apiItem.id,
@@ -302,23 +303,42 @@ function mapApiToDetail(apiItem) {
     mileage: apiItem.mileage,
     price: apiItem.price,
     currency: apiItem.currency || 'USD',
-    location: apiItem.city?.name || apiItem.region?.name || 'Україна',
-    licensePlate: apiItem.licensePlate || 'Приховано',
+    location: location,
+    licensePlate: licensePlate,
     
-    fuel: (apiItem.fuelType?.name || '').toLowerCase(),
-    transmission: (apiItem.gearType?.name || '').toLowerCase(),
-    bodyType: (apiItem.bodyType?.name || '').toLowerCase(),
-    driveTrain: driveTrainKey,
-    engineSize: apiItem.engineSize || 0,
-    color: colorKey,
+    fuel: apiItem.fuelType?.name ? getLabel('fuel', apiItem.fuelType.name) : null,
+    transmission: apiItem.gearType?.name ? getLabel('transmission', apiItem.gearType.name) : null,
+    bodyType: apiItem.bodyType?.name ? getLabel('bodyType', apiItem.bodyType.name) : null,
     
-    metallic: apiItem.isMetallic || false,
-    inAccident: apiItem.hasAccident || false, 
-    paintwork: paintKey, 
-    technicalCondition: (apiItem.condition?.name || 'undamaged').toLowerCase().replace(/\s+/g, '_'),
+    driveTrain: apiItem.driveType?.name ? getLabel('driveTrain', apiItem.driveType.name) : null,
+    
+    // === ИСПРАВЛЕНИЕ ЗДЕСЬ ===
+    // Было: apiItem.colorHex.startsWith('#') ? 'other' : apiItem.colorHex
+    // Стало: Передаем HEX как есть. getLabel превратит его в нижний регистр (#000000) 
+    // и найдет перевод в options.color.#000000
+    color: apiItem.colorHex ? getLabel('color', apiItem.colorHex) : null,
+    
+    // Дополнительно можно сохранить сам код цвета, чтобы нарисовать кружочек (опционально)
+    colorHex: apiItem.colorHex, 
 
-    images: processedImages, // Вже відсортовані
+    paintwork: apiItem.paintwork ? getLabel('paint', apiItem.paintwork) : null, 
+    technicalCondition: apiItem.condition?.name ? getLabel('techState', apiItem.condition.name) : null,
+    engineSize: apiItem.engineSize || 0,
+    
+    metallic: apiItem.isMetallic ?? null, 
+    inAccident: apiItem.hasAccident ?? null, 
+    
+    images: processedImages, 
     description: apiItem.description || '',
+
+    comfort: {
+      airConditioning: apiItem.comfort?.airConditioning || false,
+      climateControl: apiItem.comfort?.climateControl || false,
+      heatedSeats: apiItem.comfort?.heatedSeats || false,
+      rearCamera: apiItem.comfort?.rearCamera || false,
+      parkingSensors: apiItem.comfort?.parkingSensors || false,
+      sunroof: apiItem.comfort?.sunroof || false
+    }
   };
 }
 onMounted(async () => {
@@ -331,9 +351,6 @@ onMounted(async () => {
     if (response.data) {
       listing.value = mapApiToDetail(response.data);
       
-      if (response.data.number) seller.value.phone = response.data.number;
-
-      // Отримуємо продавця
       if (listing.value.userId) {
         try {
           const profileRes = await axios.get(`${API_BASE}/Profile`, { 
@@ -350,10 +367,9 @@ onMounted(async () => {
              seller.value.avatarUrl = p.avatarUrl || null;
           }
         } catch (profileError) {
-          console.warn("Дефолтний профіль:", profileError);
+          console.warn("Помилка профілю продавця:", profileError);
         }
       }
-      // toast.success(t('listingDetail.loadSuccess'));
     } 
   } catch (error) {
     console.error("API Error:", error);
@@ -369,7 +385,11 @@ const formattedPrice = computed(() => {
   return `${listing.value.price.toLocaleString(locale.value)} ${listing.value.currency}`;
 });
 
-// Галерея
+const hasComfortOptions = computed(() => {
+  if (!listing.value || !listing.value.comfort) return false;
+  return Object.values(listing.value.comfort).some(value => value === true);
+});
+
 const selectedImageIndex = ref(0);
 const galleryImages = computed(() => {
   if (listing.value && listing.value.images && listing.value.images.length > 0) {
@@ -380,7 +400,6 @@ const galleryImages = computed(() => {
 const selectedImageUrl = computed(() => galleryImages.value[selectedImageIndex.value]);
 function selectImage(index) { selectedImageIndex.value = index; }
 
-// Модалка
 const isModalOpen = ref(false);
 const currentImageInModal = ref(''); 
 function openModal(imageSrc) {
@@ -558,20 +577,28 @@ function closeModal() {
 .contact-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 14px; }
 .contact-item span { color: #aaa; }
 .contact-item a { color: #ffd700; text-decoration: none; font-weight: 600; }
+/* Добавьте это в конец <style scoped> */
+
 .license-plate-badge {
-  background: #fff;
-  color: #000;
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-family: monospace; 
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  display: inline-block;
-  box-shadow: 0 0 5px rgba(255,255,255,0.2);
-}
-.license-plate-badge {
-  border-left: 4px solid #0057b8; 
+  background-color: #ffffff; /* Белый фон */
+  color: #000000 !important; /* Черный текст (ОБЯЗАТЕЛЬНО) */
+  
+  border: 1px solid #999;    /* Серая рамка */
+  border-radius: 4px;        /* Скругление */
+  padding: 2px 8px;          /* Отступы внутри */
+  
+  font-family: 'Consolas', 'Monaco', monospace; /* Шрифт как на номерах */
+  font-weight: 700;          /* Жирный */
+  text-transform: uppercase; /* Большие буквы */
+  letter-spacing: 1px;       /* Расстояние между буквами */
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;          /* Минимальная ширина */
+  
+  /* Эффект "номера" (синяя полоска слева) */
+  border-left: 5px solid #003399; 
 }
 .message-btn {
   width: 100%; padding: 14px 0; border-radius: 6px; border: none; font-weight: 700;
