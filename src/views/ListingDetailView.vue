@@ -164,13 +164,17 @@
                     </span>
                     <strong>{{ listing.inAccident ? t('common.yes') : t('common.no') }}</strong>
                   </li>
-
-                  <li v-if="listing.licensePlate && listing.licensePlate !== 'Приховано'"> 
-                    <span>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="12" r="1"/><circle cx="18" cy="12" r="1"/><path d="M10 12h4"/></svg>
+                  <li v-if="isValidLicensePlate(listing.licensePlate)">
+                    <span style="display: flex; align-items: center; gap: 5px;">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #aaa;">
+                        <rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="12" r="1"/><circle cx="18" cy="12" r="1"/><path d="M10 12h4"/>
+                      </svg>
                       {{ t('fields.licensePlate') }}
                     </span>
-                    <strong class="license-plate-badge">{{ listing.licensePlate }}</strong>
+                    
+                    <strong class="license-plate-style">
+                      {{ listing.licensePlate }}
+                    </strong>
                   </li>
                 </ul>
               </div>
@@ -341,6 +345,15 @@ function mapApiToDetail(apiItem) {
     }
   };
 }
+
+function isValidLicensePlate(plate) {
+  if (!plate) return false;
+  const forbiddenWords = ['Приховано', 'Hidden', 'null'];
+  if (forbiddenWords.includes(plate)) return false;
+  
+  return plate.length > 2;
+}
+
 onMounted(async () => {
   isLoading.value = true;
   const carId = route.params.id;
@@ -574,32 +587,24 @@ function closeModal() {
 .seller-info { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
 .seller-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #ffd700; }
 .seller-details strong { display: block; font-size: 18px; color: #fff; margin-bottom: 4px; }
-.contact-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 14px; }
-.contact-item span { color: #aaa; }
-.contact-item a { color: #ffd700; text-decoration: none; font-weight: 600; }
-/* Добавьте это в конец <style scoped> */
 
-.license-plate-badge {
-  background-color: #ffffff; /* Белый фон */
-  color: #000000 !important; /* Черный текст (ОБЯЗАТЕЛЬНО) */
+.license-plate-style {
+  font-family: 'Consolas', 'Monaco', monospace; 
+  font-weight: 700;
+  font-size: 16px;
   
-  border: 1px solid #999;    /* Серая рамка */
-  border-radius: 4px;        /* Скругление */
-  padding: 2px 8px;          /* Отступы внутри */
+  color: #ffd700; 
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); 
   
-  font-family: 'Consolas', 'Monaco', monospace; /* Шрифт как на номерах */
-  font-weight: 700;          /* Жирный */
-  text-transform: uppercase; /* Большие буквы */
-  letter-spacing: 1px;       /* Расстояние между буквами */
+  letter-spacing: 2px;
+  text-transform: uppercase;
   
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 100px;          /* Минимальная ширина */
-  
-  /* Эффект "номера" (синяя полоска слева) */
-  border-left: 5px solid #003399; 
+  background: transparent; 
+  border: none;           
+  padding: 0;              
 }
+
+
 .message-btn {
   width: 100%; padding: 14px 0; border-radius: 6px; border: none; font-weight: 700;
   cursor: pointer; margin-top: 20px; background-color: #cc0000; color: #fff;

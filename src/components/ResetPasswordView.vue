@@ -1,21 +1,21 @@
 <template>
   <div class="auth-view">
     <div class="form-container">
-      <h3>Встановлення пароля</h3>
+      <h3>{{ t('auth.resetPassword.title') }}</h3>
       
       <form @submit.prevent="resetPassword">
         <div class="form-group">
-          <label>Новий пароль</label>
+          <label>{{ t('auth.resetPassword.newPasswordLabel') }}</label>
           <input type="password" v-model="password" required placeholder="••••••"/>
         </div>
 
         <div class="form-group">
-          <label>Підтвердіть пароль</label>
+          <label>{{ t('auth.resetPassword.confirmPasswordLabel') }}</label>
           <input type="password" v-model="confirmPassword" required placeholder="••••••"/>
         </div>
 
         <button type="submit" class="btn-primary" :disabled="isLoading">
-          {{ isLoading ? 'Updating...' : 'Змінити пароль' }}
+          {{ isLoading ? t('auth.resetPassword.updating') : t('auth.resetPassword.submitBtn') }}
         </button>
       </form>
     </div>
@@ -23,6 +23,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
@@ -31,6 +32,7 @@ import axios from 'axios';
 // URL для підтвердження зміни
 const API_URL = 'https://backend-auto-market.onrender.com/api/Auth/confirm-password-change'; 
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();

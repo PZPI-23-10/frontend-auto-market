@@ -3,10 +3,10 @@
     <div class="container">
       <div class="header-row">
         <a :class="{ active: activeTab === 'dashboard' }" @click.prevent="activeTab = 'dashboard'">
-          <h1>Admin Panel</h1>
+          <h1>{{ t('admin.header.title') }}</h1>
         </a>
         <a :class="{ active: activeTab === 'dashboard' }" @click.prevent="activeTab = 'dashboard'">
-          <span class="admin-badge">SUPER ADMIN</span>
+          <span class="admin-badge">{{ t('admin.header.superAdmin') }}</span>
         </a>
       </div>
 
@@ -14,10 +14,10 @@
         <aside class="admin-sidebar">
           <nav class="admin-nav">
             <ul>
-              <li><a :class="{ active: activeTab === 'dashboard' }" @click.prevent="activeTab = 'dashboard'">Dashboard</a></li>
-              <li><a :class="{ active: activeTab === 'users' }" @click.prevent="activeTab = 'users'">Manage Users</a></li>
-              <li><a :class="{ active: activeTab === 'cars' }" @click.prevent="activeTab = 'cars'">Car Data</a></li>
-              <li><a :class="{ active: activeTab === 'reports' }" @click.prevent="activeTab = 'reports'">Reports</a></li>
+              <li><a :class="{ active: activeTab === 'dashboard' }" @click.prevent="activeTab = 'dashboard'">{{ t('admin.nav.dashboard') }}</a></li>
+              <li><a :class="{ active: activeTab === 'users' }" @click.prevent="activeTab = 'users'">{{ t('admin.nav.users') }}</a></li>
+              <li><a :class="{ active: activeTab === 'cars' }" @click.prevent="activeTab = 'cars'">{{ t('admin.nav.cars') }}</a></li>
+              <li><a :class="{ active: activeTab === 'reports' }" @click.prevent="activeTab = 'reports'">{{ t('admin.nav.reports') }}</a></li>
             </ul>
           </nav>
         </aside>
@@ -26,15 +26,15 @@
 
           <div v-if="activeTab === 'dashboard'" class="tab-pane fade-in">
             <div class="header-flex">
-              <h2>System Overview</h2>
+              <h2>{{ t('admin.dashboard.overview') }}</h2>
               <div v-if="!dashboardLoading" class="last-updated">
-                Updated: {{ new Date().toLocaleTimeString() }}
+                {{ t('admin.dashboard.updated') }}: {{ new Date().toLocaleTimeString() }}
               </div>
             </div>
 
             <div v-if="dashboardLoading" class="loading-state">
               <div class="spinner"></div>
-              <p>Analyzing system data...</p>
+              <p>{{ t('admin.dashboard.analyzing') }}</p>
             </div>
 
             <div v-else>
@@ -42,13 +42,13 @@
                 <div class="stat-card blue">
                   <div class="stat-icon">👥</div>
                   <div class="stat-info">
-                    <h3>Total Users</h3>
+                    <h3>{{ t('admin.dashboard.stats.totalUsers') }}</h3>
                     <p class="stat-number">{{ stats.totalUsers }}</p>
                     <small v-if="stats.newIn24h > 0" style="color: #2ecc71; font-weight: bold;">
-                      +{{ stats.newIn24h }} in last 24h
+                      +{{ stats.newIn24h }} {{ t('admin.dashboard.stats.newIn24h') }}
                     </small>
                     <small v-else style="color: rgba(255,255,255,0.5);">
-                      No growth in 24h
+                      {{ t('admin.dashboard.stats.noGrowth') }}
                     </small>
                   </div>
                 </div>
@@ -56,18 +56,18 @@
                 <div class="stat-card green">
                   <div class="stat-icon">🚗</div>
                   <div class="stat-info">
-                    <h3>Active Listings</h3>
+                    <h3>{{ t('admin.dashboard.stats.activeListings') }}</h3>
                     <p class="stat-number">{{ stats.totalCars }}</p>
-                    <small>Avg Price: {{ stats.avgPrice }}</small>
+                    <small>{{ t('admin.dashboard.stats.avgPrice') }}: {{ stats.avgPrice }}</small>
                   </div>
                 </div>
 
                 <div class="stat-card gold">
                   <div class="stat-icon">💰</div>
                   <div class="stat-info">
-                    <h3>Market Cap</h3>
+                    <h3>{{ t('admin.dashboard.stats.marketCap') }}</h3>
                     <p class="stat-number">{{ stats.totalValue }}</p>
-                    <small>Total inventory value</small>
+                    <small>{{ t('admin.dashboard.stats.inventoryValue') }}</small>
                   </div>
                 </div>
               </div>
@@ -76,25 +76,25 @@
                 <div class="dashboard-column">
                   <div class="dashboard-box alert-box" v-if="stats.alerts.length > 0">
                     <div class="box-header">
-                      <h3>⚠️ Security Alerts</h3>
-                      <span class="badge-danger">{{ stats.alerts.length }} issues</span>
+                      <h3>⚠️ {{ t('admin.dashboard.alerts.title') }}</h3>
+                      <span class="badge-danger">{{ stats.alerts.length }} {{ t('admin.dashboard.alerts.issues') }}</span>
                     </div>
                     <ul class="alert-list">
                       <li v-for="(alert, index) in stats.alerts" :key="index">
                         <div class="alert-content">
                           <strong>{{ alert.type }}:</strong> {{ alert.message }}
                         </div>
-                        <button class="btn-xs" @click="resolveAlert(alert)">Check</button>
+                        <button class="btn-xs" @click="resolveAlert(alert)">{{ t('admin.dashboard.alerts.checkBtn') }}</button>
                       </li>
                     </ul>
                   </div>
                   <div class="dashboard-box ok-box" v-else>
-                    <h3>✅ System Status</h3>
-                    <p style="color: #2ecc71; margin: 0;">No security alerts. System is healthy.</p>
+                    <h3>✅ {{ t('admin.dashboard.alerts.systemHealthy') }}</h3>
+                    <p style="color: #2ecc71; margin: 0;">{{ t('admin.dashboard.alerts.noAlerts') }}</p>
                   </div>
 
                   <div class="dashboard-box">
-                    <h3>New Members (Last 24h)</h3>
+                    <h3>{{ t('admin.dashboard.newMembers.title') }}</h3>
                     <table class="simple-table">
                       <tbody>
                         <tr v-for="u in stats.newUsersList" :key="u.id">
@@ -105,18 +105,18 @@
                                 <div class="u-name">{{ getFullName(u) }}</div>
                                 <div class="u-email">{{ u.email }}</div>
                                 <small style="color: #777; font-size: 10px;">
-                                  Registered: {{ formatTime(u.dateCreated) }}
+                                  {{ t('admin.dashboard.newMembers.registered') }}: {{ formatTime(u.dateCreated) }}
                                 </small>
                               </div>
                             </div>
                           </td>
                           <td class="text-right">
-                            <span class="role-badge" v-if="isAdmin(u)">Admin</span>
-                            <span class="role-text" v-else>User</span>
+                            <span class="role-badge" v-if="isAdmin(u)">{{ t('admin.users.table.admin') }}</span>
+                            <span class="role-text" v-else>{{ t('admin.users.table.simpleUser') }}</span>
                           </td>
                         </tr>
                         <tr v-if="stats.newUsersList.length === 0">
-                          <td colspan="2" class="no-data-text">No new registrations in the last 24h.</td>
+                          <td colspan="2" class="no-data-text">{{ t('admin.dashboard.newMembers.noNew') }}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -125,18 +125,18 @@
 
                 <div class="dashboard-column small-col">
                   <div class="dashboard-box">
-                    <h3>Quick Actions</h3>
+                    <h3>{{ t('admin.dashboard.quickActions.title') }}</h3>
                     <div class="quick-actions">
                       <button class="action-btn" @click="activeTab = 'users'">
-                        <span>🔍 Find User</span>
+                        <span>🔍 {{ t('admin.dashboard.quickActions.findUser') }}</span>
                         <span>→</span>
                       </button>
                       <button class="action-btn" @click="activeTab = 'cars'; carDataMode = 'add'">
-                        <span>➕ Add Car Brand</span>
+                        <span>➕ {{ t('admin.dashboard.quickActions.addBrand') }}</span>
                         <span>→</span>
                       </button>
                       <button class="action-btn" @click="activeTab = 'reports'">
-                        <span>📄 View Reports</span>
+                        <span>📄 {{ t('admin.dashboard.quickActions.viewReports') }}</span>
                         <span>→</span>
                       </button>
                     </div>
@@ -156,7 +156,7 @@
                         </div>
                       </div>
                       <div v-if="stats.newUsersList.length === 0" class="no-data-text-small">
-                        No registrations in last 24h.
+                        {{ t('admin.dashboard.newMembers.noNew') }}
                       </div>
                     </div>
                   </div>
@@ -167,40 +167,40 @@
 
           <div v-if="activeTab === 'users'" class="tab-pane">
             <div class="header-flex">
-              <h2>User Management</h2>
-              <button class="btn-refresh" @click="fetchUsers" title="Оновити список">🔄</button>
+              <h2>{{ t('admin.users.title') }}</h2>
+              <button class="btn-refresh" @click="fetchUsers" title="Refresh">🔄</button>
             </div>
 
             <div class="filter-controls">
               <button class="filter-pill" :class="{ active: userFilterStatus === 'all' }" @click="userFilterStatus = 'all'">
-                All Users
+                {{ t('admin.users.filter.all') }}
               </button>
               <button class="filter-pill verified" :class="{ active: userFilterStatus === 'verified' }" @click="userFilterStatus = 'verified'">
-                Verified
+                {{ t('admin.users.filter.verified') }}
               </button>
               <button class="filter-pill unverified" :class="{ active: userFilterStatus === 'unverified' }" @click="userFilterStatus = 'unverified'">
-                ⚠️ Unverified
+                ⚠️ {{ t('admin.users.filter.unverified') }}
               </button>
             </div>
 
             <div class="search-bar">
-              <input type="text" placeholder="Search by ID, Name, Email or Phone..." v-model="searchQuery">
+              <input type="text" :placeholder="t('admin.users.searchPlaceholder')" v-model="searchQuery">
             </div>
 
             <div v-if="isLoading" class="loading-state">
               <div class="spinner"></div>
-              <p>Завантаження користувачів...</p>
+              <p>{{ t('admin.users.loading') }}</p>
             </div>
 
             <table v-else class="data-table">
               <thead>
                 <tr>
-                  <th width="50">ID</th>
-                  <th>User</th>
-                  <th>Email</th>
-                  <th>Status</th>
-                  <th>Phone</th>
-                  <th style="text-align: right;">Action</th>
+                  <th width="50">{{ t('admin.users.table.id') }}</th>
+                  <th>{{ t('admin.users.table.user') }}</th>
+                  <th>{{ t('admin.users.table.email') }}</th>
+                  <th>{{ t('admin.users.table.status') }}</th>
+                  <th>{{ t('admin.users.table.phone') }}</th>
+                  <th style="text-align: right;">{{ t('admin.users.table.action') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -210,18 +210,18 @@
                     <div class="user-cell clickable" @click="openProfile(u)">
                       <div class="avatar-wrapper">
                         <img :src="u.avatarUrl || defaultAvatar" class="mini-avatar" alt="avatar" @error="$event.target.src = defaultAvatar">
-                        <span class="status-indicator" :class="{ verified: u.isVerified }" :title="u.isVerified ? 'Verified' : 'Unverified'"></span>
+                        <span class="status-indicator" :class="{ verified: u.isVerified }"></span>
                       </div>
                       <div class="user-info-col">
                         <span class="user-name">{{ getFullName(u) }}</span>
-                        <span v-if="isAdmin(u)" class="role-badge">Admin</span>
+                        <span v-if="isAdmin(u)" class="role-badge">{{ t('admin.users.table.admin') }}</span>
                       </div>
                     </div>
                   </td>
                   <td>{{ u.email }}</td>
                   <td>
-                    <span v-if="u.isVerified" style="color: #2ecc71; font-size: 11px;">Verified</span>
-                    <span v-else style="color: #e74c3c; font-size: 11px; font-weight: bold;">Unverified</span>
+                    <span v-if="u.isVerified" style="color: #2ecc71; font-size: 11px;">{{ t('admin.users.table.verified') }}</span>
+                    <span v-else style="color: #e74c3c; font-size: 11px; font-weight: bold;">{{ t('admin.users.table.unverified') }}</span>
                   </td>
                   <td>{{ u.phoneNumber || '-' }}</td>
                   <td class="actions-cell">
@@ -232,7 +232,7 @@
                 </tr>
                 <tr v-if="filteredUsers.length === 0">
                   <td colspan="6" class="no-data">
-                    {{ users.length === 0 ? 'Список користувачів порожній.' : 'Нічого не знайдено.' }}
+                    {{ users.length === 0 ? t('admin.users.empty') : t('admin.users.notFound') }}
                   </td>
                 </tr>
               </tbody>
@@ -240,135 +240,150 @@
           </div>
 
           <div v-if="activeTab === 'cars'" class="tab-pane">
-            <h2>Manage Vehicle Data</h2>
+            <h2>{{ t('admin.cars.title') }}</h2>
             <div class="mode-switch-container">
               <button class="mode-btn add-mode" :class="{ active: carDataMode === 'add' }" @click="carDataMode = 'add'">
-                ➕ ADD NEW DATA
+                ➕ {{ t('admin.cars.tabs.add') }}
               </button>
               <button class="mode-btn delete-mode" :class="{ active: carDataMode === 'delete' }" @click="carDataMode = 'delete'">
-                🗑️ MANAGE / DELETE
+                🗑️ {{ t('admin.cars.tabs.manage') }}
               </button>
             </div>
 
             <div v-if="carDataMode === 'add'" class="add-dashboard-grid">
               <div class="admin-form-card small-card">
-                <h3>Add Vehicle Type</h3>
+                <h3>{{ t('admin.cars.forms.addType') }}</h3>
                 <form @submit.prevent="addSimple('VehicleType', forms.type)">
-                  <input type="text" v-model="forms.type" placeholder="e.g. Passenger Car" required>
-                  <button class="btn-primary full-width" :disabled="isSubmitting">Add Type</button>
+                  <input type="text" v-model="forms.type" :placeholder="t('admin.cars.forms.placeholders.type')" required>
+                  <button class="btn-primary full-width" :disabled="isSubmitting">{{ t('admin.cars.forms.buttons.add') }}</button>
                 </form>
               </div>
               <div class="admin-form-card small-card">
-                <h3>Add Fuel Type</h3>
+                <h3>{{ t('admin.cars.forms.addFuel') }}</h3>
                 <form @submit.prevent="addSimple('FuelType', forms.fuel)">
-                  <input type="text" v-model="forms.fuel" placeholder="e.g. Electric" required>
-                  <button class="btn-primary full-width" :disabled="isSubmitting">Add Fuel</button>
+                  <input type="text" v-model="forms.fuel" :placeholder="t('admin.cars.forms.placeholders.fuel')" required>
+                  <button class="btn-primary full-width" :disabled="isSubmitting">{{ t('admin.cars.forms.buttons.add') }}</button>
                 </form>
               </div>
               <div class="admin-form-card small-card">
-                <h3>Add Gearbox</h3>
+                <h3>{{ t('admin.cars.forms.addGear') }}</h3>
                 <form @submit.prevent="addSimple('GearType', forms.gear)">
-                  <input type="text" v-model="forms.gear" placeholder="e.g. Automatic" required>
-                  <button class="btn-primary full-width" :disabled="isSubmitting">Add Gearbox</button>
+                  <input type="text" v-model="forms.gear" :placeholder="t('admin.cars.forms.placeholders.gear')" required>
+                  <button class="btn-primary full-width" :disabled="isSubmitting">{{ t('admin.cars.forms.buttons.add') }}</button>
                 </form>
               </div>
               <div class="admin-form-card small-card">
-                <h3>Add Condition</h3>
+                <h3>{{ t('admin.cars.forms.addCondition') }}</h3>
                 <form @submit.prevent="addSimple('VehicleCondition', forms.condition)">
-                  <input type="text" v-model="forms.condition" placeholder="e.g. New" required>
-                  <button class="btn-primary full-width" :disabled="isSubmitting">Add Condition</button>
+                  <input type="text" v-model="forms.condition" :placeholder="t('admin.cars.forms.placeholders.condition')" required>
+                  <button class="btn-primary full-width" :disabled="isSubmitting">{{ t('admin.cars.forms.buttons.add') }}</button>
                 </form>
               </div>
+
               <div class="admin-form-card medium-card">
-                <h3>Add Brand</h3>
+                <h3>{{ t('admin.cars.forms.addBrand') }}</h3>
                 <form @submit.prevent="addSimple('VehicleBrand', forms.brand)">
-                  <label>Brand Name</label>
-                  <input type="text" v-model="forms.brand" placeholder="e.g. Toyota" required>
-                  <button class="btn-primary full-width" :disabled="isSubmitting">Create Brand</button>
+                  <input type="text" v-model="forms.brand" :placeholder="t('admin.cars.forms.placeholders.brand')" required>
+                  <button class="btn-primary full-width" :disabled="isSubmitting">{{ t('admin.cars.forms.buttons.create') }}</button>
                 </form>
               </div>
+
               <div class="admin-form-card large-card">
-                <h3>Add Model (Complex)</h3>
+                <h3>{{ t('admin.cars.forms.addModel') }}</h3>
                 <form @submit.prevent="createModel">
                   <div class="form-row">
                     <div class="form-group">
-                      <label>Type *</label>
-                      <SearchableSelect v-model="newModelForm.vehicleTypeId" :options="carLists.types" placeholder="Select Type" />
+                      <label>{{ t('admin.cars.forms.labels.type') }} *</label>
+                      <SearchableSelect v-model="newModelForm.vehicleTypeId" :options="carLists.types" :placeholder="t('admin.cars.forms.placeholders.selectType')" />
                     </div>
                     <div class="form-group">
-                      <label>Brand *</label>
-                      <SearchableSelect v-model="newModelForm.vehicleBrandId" :options="carLists.allBrands" placeholder="Select Brand" />
+                      <label>{{ t('admin.cars.forms.labels.brand') }} *</label>
+                      <SearchableSelect v-model="newModelForm.vehicleBrandId" :options="carLists.allBrands" :placeholder="t('admin.cars.forms.placeholders.selectBrand')" />
                     </div>
                   </div>
                   <div class="form-group">
-                    <label>Model Name *</label>
-                    <input type="text" v-model="newModelForm.name" placeholder="e.g. Camry" required>
+                    <label>{{ t('admin.cars.forms.labels.modelName') }} *</label>
+                    <input type="text" v-model="newModelForm.name" :placeholder="t('admin.cars.forms.placeholders.model')" required>
                   </div>
-                  <div class="form-group">
-                    <label>Compatible Body Types *</label>
-                    <div class="checkbox-grid">
-                      <div v-for="bt in carLists.bodyTypes" :key="bt.id" class="checkbox-item">
-                        <input type="checkbox" :id="`bt-${bt.id}`" :value="bt.id" v-model="newModelForm.vehicleBodyTypesIds">
-                        <label :for="`bt-${bt.id}`">{{ bt.name }}</label>
+                    <div class="form-group">
+                      <label>{{ t('admin.cars.forms.labels.compatibleBody') }} *</label>
+                      <div class="checkbox-grid">
+                        <div v-for="bt in carLists.bodyTypes" :key="bt.id" class="checkbox-item">
+                          <input 
+                            type="checkbox" 
+                            :id="`bt-${bt.id}`" 
+                            :value="bt.id" 
+                            v-model="newModelForm.vehicleBodyTypesIds"
+                          >
+                          <label :for="`bt-${bt.id}`">
+                            {{ getAdminLabel('VehicleBodyType', bt.name) }}
+                          </label>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <button class="btn-primary full-width" :disabled="isSubmitting">Create Model</button>
+                  <button class="btn-primary full-width" :disabled="isSubmitting">{{ t('admin.cars.forms.buttons.create') }}</button>
                 </form>
               </div>
             </div>
 
             <div v-if="carDataMode === 'delete'" class="delete-manager">
               <div class="delete-controls">
-                <label>Select Category:</label>
+                <label>{{ t('admin.cars.delete.selectCategory') }}</label>
                 <div class="category-pills">
-                  <button v-for="cat in deleteCategories" :key="cat.key" :class="{ active: deleteTarget === cat.key }" @click="loadDeleteList(cat.key)">
-                    {{ cat.label }}
+                  <button 
+                    v-for="cat in deleteCategories" 
+                    :key="cat.key" 
+                    :class="{ active: deleteTarget === cat.key }" 
+                    @click="loadDeleteList(cat.key)"
+                  >
+                    {{ t(`admin.cars.delete.categories.${cat.key}`) }}
                   </button>
                 </div>
               </div>
               <div class="search-bar compact">
-                <input type="text" v-model="deleteSearch" :placeholder="`Search inside ${deleteTarget}...`">
+                <input type="text" v-model="deleteSearch" :placeholder="`${t('admin.cars.delete.searchPrefix')} ${deleteTarget}...`">
               </div>
               <div class="data-list-section">
                 <div v-if="isListLoading" class="loading-state"><div class="spinner"></div></div>
                 <table v-else class="data-table sortable">
                   <thead>
                     <tr>
-                      <th width="80" @click="sortBy('id')">ID <span v-if="sortConfig.key === 'id'">{{ sortConfig.order === 'asc' ? '▲' : '▼' }}</span></th>
-                      <th @click="sortBy('name')">Name <span v-if="sortConfig.key === 'name'">{{ sortConfig.order === 'asc' ? '▲' : '▼' }}</span></th>
-                      <th v-if="deleteTarget === 'VehicleModel'">Details</th>
-                      <th style="text-align: right;">Delete</th>
+                      <th width="80" @click="sortBy('id')">ID</th>
+                      <th @click="sortBy('name')">{{ t('admin.cars.delete.table.name') }}</th>
+                      <th v-if="deleteTarget === 'VehicleModel'">{{ t('admin.cars.delete.table.details') }}</th>
+                      <th style="text-align: right;">{{ t('admin.cars.delete.table.delete') }}</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="item in processedDeleteList" :key="item.id">
                       <td>#{{ item.id }}</td>
-                      <td><strong>{{ item.name }}</strong></td>
-                      <td v-if="deleteTarget === 'VehicleModel'">{{ item.brand?.name }} / {{ item.vehicleType?.name }}</td>
+                      
+                      <td>
+                        <strong>{{ getAdminLabel(deleteTarget, item.name) }}</strong>
+                      </td>
+                      
+                      <td v-if="deleteTarget === 'VehicleModel'">
+                        {{ item.brand?.name }} / {{ getAdminLabel('VehicleType', item.vehicleType?.name) }}
+                      </td>
+                      
                       <td class="actions-cell">
                         <button class="btn-icon danger" @click="deleteItem(item.id)">🗑</button>
                       </td>
                     </tr>
-                    <tr v-if="processedDeleteList.length === 0">
-                      <td :colspan="deleteTarget === 'VehicleModel' ? 4 : 3" class="no-data">
-                        {{ deleteList.length === 0 ? 'List is empty.' : 'No matches found.' }}
-                      </td>
-                    </tr>
-                  </tbody>
+                    </tbody>
                 </table>
               </div>
             </div>
           </div>
 
           <div v-if="activeTab === 'reports'" class="tab-pane">
-            <h2>Reports</h2>
+            <h2>{{ t('admin.reports.title') }}</h2>
             <div class="report-controls">
               <div class="form-group">
-                <label>Report Type</label>
-                <select><option>User Activity</option></select>
+                <label>{{ t('admin.reports.typeLabel') }}</label>
+                <select><option>{{ t('admin.reports.types.userActivity') }}</option></select>
               </div>
-              <button class="btn-primary">Generate PDF</button>
+              <button class="btn-primary">{{ t('admin.reports.generateBtn') }}</button>
             </div>
           </div>
 
@@ -378,13 +393,13 @@
       <div v-if="showProfileModal" class="modal-backdrop" @click.self="showProfileModal = false">
         <div class="modal-window profile-modal">
           <div class="modal-header">
-            <h3>User Profile & Listings</h3>
+            <h3>{{ t('admin.modals.profile.title') }}</h3>
             <button class="close-btn" @click="showProfileModal = false">×</button>
           </div>
           <div class="modal-body">
             <div v-if="isProfileLoading" class="loading-state" style="padding: 30px;">
               <div class="spinner"></div>
-              <p style="font-size: 12px;">Loading data...</p>
+              <p style="font-size: 12px;">{{ t('admin.modals.profile.loading') }}</p>
             </div>
             <div v-else-if="selectedUserProfile">
               <div class="profile-header-section">
@@ -392,9 +407,9 @@
                 <div class="profile-main-info">
                   <h2>{{ getFullName(selectedUserProfile) }}</h2>
                   <div class="profile-badges">
-                    <span class="p-badge role" v-if="isAdmin(selectedUserProfile)">Admin</span>
+                    <span class="p-badge role" v-if="isAdmin(selectedUserProfile)">{{ t('admin.users.table.admin') }}</span>
                     <span class="p-badge status" :class="{ verified: selectedUserProfile.isVerified }">
-                      {{ selectedUserProfile.isVerified ? 'Verified' : 'Unverified' }}
+                      {{ selectedUserProfile.isVerified ? t('admin.users.table.verified') : t('admin.users.table.unverified') }}
                     </span>
                     <span class="p-badge" style="background: #555;">ID: {{ selectedUserProfile.id }}</span>
                   </div>
@@ -407,23 +422,23 @@
               <hr class="divider">
               <div class="profile-details-grid">
                 <div class="detail-item">
-                  <label>Country / Region</label>
+                  <label>{{ t('admin.modals.profile.country') }}</label>
                   <span>{{ selectedUserProfile.country || '-' }}</span>
                 </div>
                 <div class="detail-item">
-                  <label>Registered</label>
+                  <label>{{ t('admin.modals.profile.registered') }}</label>
                   <span>{{ new Date(selectedUserProfile.dateCreated).toLocaleDateString() }}</span>
                 </div>
                 <div class="detail-item full-width">
-                  <label>Address</label>
-                  <span>{{ selectedUserProfile.address || 'Not provided' }}</span>
+                  <label>{{ t('admin.modals.profile.address') }}</label>
+                  <span>{{ selectedUserProfile.address || t('admin.modals.profile.noAddress') }}</span>
                 </div>
               </div>
               <hr class="divider">
               <div class="listings-section">
-                <h4 class="section-title">User Listings ({{ userListings.length }})</h4>
+                <h4 class="section-title">{{ t('admin.modals.profile.listingsTitle') }} ({{ userListings.length }})</h4>
                 <div v-if="userListings.length === 0" class="no-data-text-small">
-                  This user has no car listings.
+                  {{ t('admin.modals.profile.noListings') }}
                 </div>
                 <div class="listings-list">
                   <div v-for="car in userListings" :key="car.id" class="listing-card-row">
@@ -441,8 +456,8 @@
                       </div>
                     </div>
                     <div class="car-status">
-                      <span v-if="car.isPublished" class="status-pill published">Active</span>
-                      <span v-else class="status-pill hidden">Hidden</span>
+                      <span v-if="car.isPublished" class="status-pill published">{{ t('admin.modals.profile.status.active') }}</span>
+                      <span v-else class="status-pill hidden">{{ t('admin.modals.profile.status.hidden') }}</span>
                     </div>
                   </div>
                 </div>
@@ -450,7 +465,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn-primary small" @click="showProfileModal = false">Close</button>
+            <button class="btn-primary small" @click="showProfileModal = false">{{ t('admin.modals.close') }}</button>
           </div>
         </div>
       </div>
@@ -458,16 +473,16 @@
       <div v-if="showUnverifiedModal" class="modal-backdrop" @click.self="showUnverifiedModal = false">
         <div class="modal-window">
           <div class="modal-header">
-            <h3>Unverified Users</h3>
+            <h3>{{ t('admin.modals.unverified.title') }}</h3>
             <button class="close-btn" @click="showUnverifiedModal = false">×</button>
           </div>
           <div class="modal-body">
             <table class="simple-table">
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Email</th>
-                  <th>Registered</th>
+                  <th>{{ t('admin.users.table.user') }}</th>
+                  <th>{{ t('admin.users.table.email') }}</th>
+                  <th>{{ t('admin.modals.profile.registered') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -482,13 +497,13 @@
                   <td style="color: #888; font-size: 11px;">{{ formatTime(u.dateCreated) }}</td>
                 </tr>
                 <tr v-if="unverifiedUsersList.length === 0">
-                  <td colspan="3" class="no-data-text-small">No unverified users found.</td>
+                  <td colspan="3" class="no-data-text-small">{{ t('admin.modals.unverified.empty') }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div class="modal-footer">
-            <button class="btn-primary small" @click="showUnverifiedModal = false">Close</button>
+            <button class="btn-primary small" @click="showUnverifiedModal = false">{{ t('admin.modals.close') }}</button>
           </div>
         </div>
       </div>
@@ -496,24 +511,24 @@
       <div v-if="showDeleteModal" class="modal-backdrop" @click.self="showDeleteModal = false">
         <div class="modal-window delete-modal">
           <div class="modal-header">
-            <h3>Confirm Deletion</h3>
+            <h3>{{ t('admin.modals.delete.title') }}</h3>
             <button class="close-btn" @click="showDeleteModal = false">×</button>
           </div>
           <div class="modal-body text-center">
             <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
-            <p>Are you sure you want to delete user:</p>
+            <p>{{ t('admin.modals.delete.confirmText') }}</p>
             <div class="user-preview" v-if="userToDelete">
               <img :src="userToDelete.avatarUrl || defaultAvatar" class="mini-avatar">
               <strong>{{ getFullName(userToDelete) }}</strong>
               <span>(ID: {{ userToDelete.id }})</span>
             </div>
             <p style="color: #e74c3c; font-size: 13px; margin-top: 10px;">
-              This action cannot be undone.
+              {{ t('admin.modals.delete.warning') }}
             </p>
           </div>
           <div class="modal-footer" style="justify-content: space-between; display: flex;">
-            <button class="btn-secondary" @click="showDeleteModal = false">Cancel</button>
-            <button class="btn-danger" @click="confirmDelete">Yes, Delete User</button>
+            <button class="btn-secondary" @click="showDeleteModal = false">{{ t('admin.modals.delete.cancel') }}</button>
+            <button class="btn-danger" @click="confirmDelete">{{ t('admin.modals.delete.confirm') }}</button>
           </div>
         </div>
       </div>
@@ -523,6 +538,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n';
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
@@ -531,7 +547,7 @@ import { useAuth } from '@/store/auth';
 import defaultAvatar from '@/assets/default-avatar.png';
 import SearchableSelect from '@/components/SearchableSelect.vue'; 
 
-const toast = useToast();
+const { t, te } = useI18n();
 const router = useRouter();
 const { token } = useAuth(); 
 
@@ -562,13 +578,14 @@ const sortConfig = ref({ key: 'id', order: 'asc' });
 const carLists = ref({ types: [], allBrands: [], filteredBrands: [], bodyTypes: [] });
 const deleteTarget = ref('VehicleBrand');
 const deleteList = ref([]);
+// Тут поки залишаємо лейбли як є, як ви і просили (об'єкти обговоримо пізніше)
 const deleteCategories = [
-  { key: 'VehicleBrand', label: 'Brands' },
-  { key: 'VehicleModel', label: 'Models' },
-  { key: 'VehicleType', label: 'Types' },
-  { key: 'FuelType', label: 'Fuels' },
-  { key: 'GearType', label: 'Gearboxes' },
-  { key: 'VehicleCondition', label: 'Conditions' },
+  { key: 'VehicleBrand' },
+  { key: 'VehicleModel' },
+  { key: 'VehicleType' },
+  { key: 'FuelType' },
+  { key: 'GearType' },
+  { key: 'VehicleCondition' },
 ];
 
 // --- MODALS STATE ---
@@ -604,10 +621,11 @@ const stats = computed(() => {
   
   const alerts = [];
   const unverifiedCount = users.value.filter(u => !u.isVerified).length;
+  
   if (unverifiedCount > 0) {
       alerts.push({ 
           type: 'Verification', 
-          message: `${unverifiedCount} users pending email verification.` 
+          message: t('admin.dashboard.alerts.verificationMessage', { count: unverifiedCount }) 
       });
   }
   
@@ -622,6 +640,53 @@ const stats = computed(() => {
     alerts
   };
 });
+
+function getLabel(category, serverName) {
+  if (!serverName) return '';
+  // Нормалізація рядка з БД у ключ (напр. "Passenger Car" -> "passenger_car")
+  const keyRaw = serverName.toLowerCase()
+    .replace(/'/g, '')      
+    .replace(/’/g, '')
+    .replace(/\s+/g, '_')    
+    .replace(/\//g, '_')      
+    .replace(/,/g, '')        
+    .replace(/\./g, '');      
+    
+  const fullKey = `options.${category}.${keyRaw}`;
+  
+  // Перевіряємо, чи є такий переклад
+  if (te(fullKey)) {
+    return t(fullKey); 
+  }
+  return serverName; // Якщо немає - повертаємо оригінал
+}
+
+function getAdminLabel(targetTable, itemName) {
+  let category = '';
+
+  switch (targetTable) {
+    case 'FuelType': 
+      category = 'fuel'; 
+      break;
+    case 'GearType': 
+      category = 'transmission'; 
+      break;
+    case 'VehicleCondition': 
+      category = 'techState'; // У вас в прикладі це techState
+      break;
+    case 'VehicleType': 
+      category = 'vehicleType'; 
+      break;
+    case 'VehicleBodyType': 
+      category = 'bodyType'; 
+      break;
+    default:
+      // Для Брендів та Моделей переклад не потрібен
+      return itemName;
+  }
+
+  return getLabel(category, itemName);
+}
 
 // Список для модалки неверифікованих
 const unverifiedUsersList = computed(() => {
@@ -1075,9 +1140,53 @@ input, select { width: 100%; height: 42px; padding: 0 12px; background: rgba(0, 
 .full-width { width: 100%; margin-top: 15px; }
 .form-row { display: flex; gap: 20px; }
 .form-row .form-group { flex: 1; }
-.checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; max-height: 200px; overflow-y: auto; border: 1px solid #444; }
-.checkbox-item { display: flex; align-items: center; gap: 8px; }
-.checkbox-item label { margin: 0; cursor: pointer; font-size: 13px; }
+
+.checkbox-grid input[type="checkbox"] {
+  width: 18px !important;  
+  height: 18px !important;
+  margin: 0 !important;    
+  flex-shrink: 0;          
+  cursor: pointer;
+  appearance: auto;        /* Повертаємо стандартний вигляд галочки (або кастомний нижче) */
+  accent-color: #3498db;   /* Колір галочки */
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Контейнер сітки */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.2); /* Темна підкладка, як на скріні */
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: 250px;
+  overflow-y: auto; 
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px; 
+  padding: 4px;
+  transition: background 0.2s;
+  border-radius: 4px;
+}
+
+.checkbox-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.checkbox-item label {
+  margin-bottom: 0 !important; 
+  cursor: pointer;
+  font-size: 13px;
+  color: #ecf0f1;
+  user-select: none; 
+  text-transform: capitalize; 
+}
 
 /* Category Switcher */
 .category-pills { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; margin-bottom: 25px; }

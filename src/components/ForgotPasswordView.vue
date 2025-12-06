@@ -1,15 +1,15 @@
 <template>
   <div class="auth-view">
     <div class="form-container">
-      <h3>{{ t('forgotPassword.title') }}</h3>
+      <h3>{{ t('auth.forgotPassword.title') }}</h3>
       
       <p class="info-text">
-        {{ t('forgotPassword.infoText') || 'Введіть email, щоб отримати посилання для скидання пароля.' }}
+        {{ t('auth.forgotPassword.infoText') }}
       </p>
 
       <form @submit.prevent="sendResetLink">
         <div class="form-group">
-          <label>Email</label>
+          <label>{{ t('auth.forgotPassword.emailLabel') }}</label>
           <input 
             type="email" 
             v-model="email" 
@@ -19,11 +19,13 @@
         </div>
 
         <button type="submit" class="btn-primary" :disabled="isLoading">
-          {{ isLoading ? 'Sending...' : 'Надіслати посилання' }}
+          {{ isLoading ? t('auth.forgotPassword.sending') : t('auth.forgotPassword.submitBtn') }}
         </button>
 
         <div class="back-link">
-          <router-link to="/login">Повернутися до входу</router-link>
+          <router-link to="/login">
+            {{ t('auth.forgotPassword.backToLogin') }}
+          </router-link>
         </div>
       </form>
     </div>

@@ -46,6 +46,23 @@
     "yes": "Так",
     "no": "Ні"
   },
+  "auth": {
+    "resetPassword": {
+      "title": "Встановлення пароля",
+      "newPasswordLabel": "Новий пароль",
+      "confirmPasswordLabel": "Підтвердіть пароль",
+      "submitBtn": "Змінити пароль",
+      "updating": "Оновлення..."
+    },
+    "forgotPassword": {
+      "title": "Відновлення пароля",
+      "infoText": "Введіть email, щоб отримати посилання для скидання пароля.",
+      "emailLabel": "Email",
+      "submitBtn": "Надіслати посилання",
+      "sending": "Надсилання...",
+      "backToLogin": "Повернутися до входу"
+    }
+  },
   "fields": {
     "brand": "Бренд",
     "model": "Модель",
@@ -365,6 +382,7 @@
       "mileagePlaceholder": "тільки цифри",
       "bodyType": "Тип кузова",
       "licensePlate": "Держ. номер",
+      "licensePlateHelp": "Тільки літери та цифри, без пробілів (напр. KA0001BC)",
       "licensePlatePlaceholder": "AA 1234 BB",
       "region": "Регіон",
       "city": "Місто",
@@ -498,10 +516,12 @@
       "other": "Інший"
     },
     "techState": {
-      "undamaged": "Непошкоджене / Справне",
-      "repaired": "Відремонтоване (після ДТП)",
-      "unrepaired": "Не відремонтоване / Потребує ремонту",
-      "for_parts": "На запчастини"
+      "undamaged": "Непошкоджене",
+      "repaired": "Відремонтоване",
+      "unrepaired": "Не відремонтоване",
+      "for_parts": "На запчастини",   
+      "new": "Нове",
+      "used": "Вживане"
     },
     "paint": {
       "asNew": "Як нове",
@@ -779,5 +799,166 @@
     "continueEdit": "Продовжити редагувати",
     "draftLabel": "Чернетка", 
     "delete": "Видалити"
+  },
+
+  "admin": {
+    "header": {
+      "title": "Адмін Панель",
+      "superAdmin": "СУПЕР АДМІН"
+    },
+    "nav": {
+      "dashboard": "Дашборд",
+      "users": "Керування користувачами",
+      "cars": "Дані авто",
+      "reports": "Звіти"
+    },
+    "dashboard": {
+      "overview": "Огляд системи",
+      "updated": "Оновлено",
+      "analyzing": "Аналіз системних даних...",
+      "stats": {
+        "totalUsers": "Всього користувачів",
+        "newIn24h": "за останні 24г",
+        "noGrowth": "Без змін за 24г",
+        "activeListings": "Активні оголошення",
+        "avgPrice": "Сер. ціна",
+        "marketCap": "Ринкова вартість",
+        "inventoryValue": "Загальна вартість інвентарю"
+      },
+      "alerts": {
+        "title": "Сповіщення безпеки",
+        "issues": "проблем",
+        "systemHealthy": "Система працює справно.",
+        "noAlerts": "Сповіщень немає.",
+        "checkBtn": "Перевірити",
+        "verificationMessage": "{count} користувачів очікують підтвердження пошти."
+      },
+      "newMembers": {
+        "title": "Нові учасники (24г)",
+        "registered": "Зареєстровано",
+        "noNew": "Немає нових реєстрацій за 24г."
+      },
+      "quickActions": {
+        "title": "Швидкі дії",
+        "findUser": "Знайти користувача",
+        "addBrand": "Додати бренд",
+        "viewReports": "Дивитися звіти"
+      }
+    },
+    "users": {
+      "title": "Керування користувачами",
+      "filter": {
+        "all": "Всі",
+        "verified": "Перевірені",
+        "unverified": "Неперевірені"
+      },
+      "searchPlaceholder": "Пошук за ID, Ім'ям, Email...",
+      "loading": "Завантаження користувачів...",
+      "table": {
+        "id": "ID",
+        "user": "Користувач",
+        "email": "Email",
+        "status": "Статус",
+        "phone": "Телефон",
+        "action": "Дія",
+        "admin": "Адмін",
+        "simpleUser": "Юзер",
+        "verified": "Верифіковано",
+        "unverified": "Не перевірено"
+      },
+      "empty": "Список користувачів порожній.",
+      "notFound": "Нічого не знайдено."
+    },
+    "cars": {
+      "title": "Керування даними авто",
+      "tabs": {
+        "add": "ДОДАТИ ДАНІ",
+        "manage": "КЕРУВАННЯ / ВИДАЛЕННЯ"
+      },
+      "forms": {
+        "addType": "Додати тип авто",
+        "addFuel": "Додати тип пального",
+        "addGear": "Додати КПП",
+        "addCondition": "Додати стан",
+        "addBrand": "Додати бренд",
+        "addModel": "Додати модель (складно)",
+        "placeholders": {
+          "type": "напр. Легковий",
+          "fuel": "напр. Електро",
+          "gear": "напр. Автомат",
+          "condition": "напр. Новий",
+          "brand": "напр. Toyota",
+          "model": "напр. Camry",
+          "selectType": "Оберіть тип",
+          "selectBrand": "Оберіть бренд"
+        },
+        "labels": {
+          "brandName": "Назва бренду",
+          "type": "Тип",
+          "brand": "Бренд",
+          "modelName": "Назва моделі",
+          "compatibleBody": "Сумісні кузови"
+        },
+        "buttons": {
+          "add": "Додати",
+          "create": "Створити"
+        }
+      },
+      "delete": {
+        "selectCategory": "Оберіть категорію:",
+        "searchPrefix": "Пошук у",
+        "categories": {
+          "VehicleBrand": "Бренди",
+          "VehicleModel": "Моделі",
+          "VehicleType": "Типи кузова",
+          "FuelType": "Пальне",
+          "GearType": "КПП",
+          "VehicleCondition": "Стан"
+        },
+        "table": {
+          "name": "Назва",
+          "details": "Деталі",
+          "delete": "Видалити",
+          "empty": "Список порожній.",
+          "notFound": "Збігів не знайдено."
+        }
+      }
+    },
+    "reports": {
+      "title": "Звіти",
+      "typeLabel": "Тип звіту",
+      "types": {
+        "userActivity": "Активність користувачів"
+      },
+      "generateBtn": "Згенерувати PDF"
+    },
+    "modals": {
+      "profile": {
+        "title": "Профіль та оголошення",
+        "loading": "Завантаження даних...",
+        "country": "Країна / Регіон",
+        "registered": "Зареєстровано",
+        "address": "Адреса",
+        "noAddress": "Не вказано",
+        "listingsTitle": "Оголошення користувача",
+        "noListings": "У цього користувача немає оголошень.",
+        "status": {
+          "active": "Активне",
+          "hidden": "Приховане"
+        }
+      },
+      "unverified": {
+        "title": "Неперевірені користувачі",
+        "empty": "Неперевірених користувачів не знайдено."
+      },
+      "delete": {
+        "title": "Підтвердження видалення",
+        "confirmText": "Ви впевнені, що хочете видалити користувача:",
+        "warning": "Цю дію неможливо скасувати.",
+        "cancel": "Скасувати",
+        "confirm": "Так, видалити"
+      },
+      "close": "Закрити"
+    }
   }
 }

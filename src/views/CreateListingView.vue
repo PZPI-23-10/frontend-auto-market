@@ -80,21 +80,19 @@
                 </div>
               </div>
 
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="licensePlate">{{ t('createListing.step1.licensePlate') }}</label>
-                  <input 
-                    type="text" 
-                    id="licensePlate" 
-                    :value="listing.licensePlate"
-                    @input="formatLicensePlate"
-                    placeholder="AA1234BB" 
-                    maxlength="8"
-                  >
-                  <small style="color: #aaa; font-size: 11px; margin-top: 4px; display: block;">
-                    Тільки літери та цифри, без пробілів (напр. KA0001BC)
-                  </small>
-                </div>
+              <div class="form-group">
+                <label for="licensePlate">{{ t('createListing.step1.licensePlate') }}</label>
+                <input 
+                  type="text" 
+                  id="licensePlate" 
+                  :value="listing.licensePlate"
+                  @input="formatLicensePlate"
+                  placeholder="AA1234BB" 
+                  maxlength="8"
+                >
+                <small style="color: #aaa; font-size: 11px; margin-top: 4px; display: block;">
+                  {{ t('createListing.step1.licensePlateHelp') }}
+                </small>
               </div>
 
               <div class="form-row">

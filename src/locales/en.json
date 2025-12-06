@@ -46,6 +46,23 @@
     "yes": "Yes",
     "no": "No"
   },
+  "auth": {
+    "resetPassword": {
+      "title": "Set Password",
+      "newPasswordLabel": "New Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "submitBtn": "Change Password",
+      "updating": "Updating..."
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "infoText": "Enter your email to receive a password reset link.",
+      "emailLabel": "Email",
+      "submitBtn": "Send Link",
+      "sending": "Sending...",
+      "backToLogin": "Back to login"
+    }
+  },
   "fields": {
     "brand": "Brand",
     "model": "Model",
@@ -356,6 +373,7 @@
       "mileagePlaceholder": "numbers only",
       "bodyType": "Body Type",
       "licensePlate": "License Plate",
+      "licensePlateHelp": "Only letters and numbers, no spaces (e.g. KA0001BC)",
       "licensePlatePlaceholder": "AA 1234 BB",
       "region": "Region",
       "city": "City",
@@ -492,7 +510,9 @@
       "undamaged": "Undamaged",
       "repaired": "Repaired",
       "unrepaired": "Unrepaired / Needs repair",
-      "for_parts": "For parts"
+      "for_parts": "For parts",
+      "new": "New",
+      "used": "Used"
     },
     "paint": {
       "asNew": "As new",
@@ -775,6 +795,165 @@
       "sentSuccess": "Password reset confirmation email sent.",
       "sendFail": "Failed to send request."
     }
+  },
+  "admin": {
+    "header": {
+      "title": "Admin Panel",
+      "superAdmin": "SUPER ADMIN"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "users": "Manage Users",
+      "cars": "Car Data",
+      "reports": "Reports"
+    },
+    "dashboard": {
+      "overview": "System Overview",
+      "updated": "Updated",
+      "analyzing": "Analyzing system data...",
+      "stats": {
+        "totalUsers": "Total Users",
+        "newIn24h": "in last 24h",
+        "noGrowth": "No growth in 24h",
+        "activeListings": "Active Listings",
+        "avgPrice": "Avg Price",
+        "marketCap": "Market Cap",
+        "inventoryValue": "Total inventory value"
+      },
+      "alerts": {
+        "title": "Security Alerts",
+        "issues": "issues",
+        "systemHealthy": "System Status",
+        "noAlerts": "No security alerts. System is healthy.",
+        "checkBtn": "Check",
+        "verificationMessage": "{count} користувачів очікують підтвердження пошти."
+      },
+      "newMembers": {
+        "title": "New Members (Last 24h)",
+        "registered": "Registered",
+        "noNew": "No registrations in last 24h."
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "findUser": "Find User",
+        "addBrand": "Add Car Brand",
+        "viewReports": "View Reports"
+      }
+    },
+    "users": {
+      "title": "User Management",
+      "filter": {
+        "all": "All Users",
+        "verified": "Verified",
+        "unverified": "Unverified"
+      },
+      "searchPlaceholder": "Search by ID, Name, Email or Phone...",
+      "loading": "Loading users...",
+      "table": {
+        "id": "ID",
+        "user": "User",
+        "email": "Email",
+        "status": "Status",
+        "phone": "Phone",
+        "action": "Action",
+        "admin": "Admin",
+        "simpleUser": "User",
+        "verified": "Verified",
+        "unverified": "Unverified"
+      },
+      "empty": "User list is empty.",
+      "notFound": "No matches found."
+    },
+    "cars": {
+      "title": "Manage Vehicle Data",
+      "tabs": {
+        "add": "ADD NEW DATA",
+        "manage": "MANAGE / DELETE"
+      },
+      "forms": {
+        "addType": "Add Vehicle Type",
+        "addFuel": "Add Fuel Type",
+        "addGear": "Add Gearbox",
+        "addCondition": "Add Condition",
+        "addBrand": "Add Brand",
+        "addModel": "Add Model (Complex)",
+        "placeholders": {
+          "type": "e.g. Passenger Car",
+          "fuel": "e.g. Electric",
+          "gear": "e.g. Automatic",
+          "condition": "e.g. New",
+          "brand": "e.g. Toyota",
+          "model": "e.g. Camry",
+          "selectType": "Select Type",
+          "selectBrand": "Select Brand"
+        },
+        "labels": {
+          "brandName": "Brand Name",
+          "type": "Type",
+          "brand": "Brand",
+          "modelName": "Model Name",
+          "compatibleBody": "Compatible Body Types"
+        },
+        "buttons": {
+          "add": "Add Type",
+          "create": "Create"
+        }
+      },
+      "delete": {
+        "selectCategory": "Select Category:",
+        "searchPrefix": "Search inside",
+        "categories": {
+          "VehicleBrand": "Brand",
+          "VehicleModel": "Model",
+          "VehicleType": "Body Type",
+          "FuelType": "Fuel",
+          "GearType": "Transmission",
+          "VehicleCondition": "Condition"
+        },
+        "table": {
+          "name": "Name",
+          "details": "Details",
+          "delete": "Delete",
+          "empty": "List is empty.",
+          "notFound": "No matches found."
+        }
+      }
+    },
+    "reports": {
+      "title": "Reports",
+      "typeLabel": "Report Type",
+      "types": {
+        "userActivity": "User Activity"
+      },
+      "generateBtn": "Generate PDF"
+    },
+    "modals": {
+      "profile": {
+        "title": "User Profile & Listings",
+        "loading": "Loading data...",
+        "country": "Country / Region",
+        "registered": "Registered",
+        "address": "Address",
+        "noAddress": "Not provided",
+        "listingsTitle": "User Listings",
+        "noListings": "This user has no car listings.",
+        "status": {
+          "active": "Active",
+          "hidden": "Hidden"
+        }
+      },
+      "unverified": {
+        "title": "Unverified Users",
+        "empty": "No unverified users found."
+      },
+      "delete": {
+        "title": "Confirm Deletion",
+        "confirmText": "Are you sure you want to delete user:",
+        "warning": "This action cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Yes, Delete User"
+      },
+      "close": "Close"
+    }
   }
-
 }
