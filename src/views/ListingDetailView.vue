@@ -179,6 +179,10 @@
                 </ul>
               </div>
 
+<VehicleCheck 
+  v-if="listing.licensePlate && listing.licensePlate !== 'Приховано'"
+  :licensePlate="listing.licensePlate" 
+/>
      
             </div>
 
@@ -238,6 +242,7 @@
 </template>
 
 <script setup>
+  import VehicleCheck from '@/components/VehicleCheck.vue';
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router'; 
 import { useToast } from 'vue-toastification';
