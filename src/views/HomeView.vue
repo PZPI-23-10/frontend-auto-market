@@ -82,7 +82,7 @@ import SearchableSelect from '@/components/SearchableSelect.vue';
 const { t } = useI18n();
 const router = useRouter();
 
-const API_BASE = 'https://backend-auto-market.onrender.com/api';
+const API_BASE = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
 const bgImage = ref('https://images.unsplash.com/photo-1493238792000-8113da705763?q=80&w=1920');
 
 // Зберігаємо "Всі бренди" окремо, щоб можна було до них повернутися
@@ -125,28 +125,21 @@ onMounted(async () => {
   }
 });
 
-// --- 2. ЛОГІКА ---
-
-// A) Зміна ТИПУ -> Фільтруємо БРЕНДИ через API (або повертаємо всі)
 watch(() => filters.value.vehicleTypeId, async (newTypeId) => {
-  // Скидаємо вибір бренду/моделі при зміні типу, щоб не було конфліктів
   filters.value.brandId = null;
   filters.value.modelId = null;
   lists.value.models = [];
 
   if (!newTypeId) {
-    // Якщо "Всі типи" (скинуто) -> показуємо повний список брендів з пам'яті
     lists.value.brands = fullBrands.value;
     return;
   }
 
-  // Якщо обрано тип -> вантажимо бренди ТІЛЬКИ для цього типу з сервера
   try {
     const res = await axios.get(`${API_BASE}/VehicleBrand/for-type/${newTypeId}`);
     lists.value.brands = res.data;
   } catch (e) { 
     console.error(e); 
-    // Якщо помилка, залишаємо пустий список або повертаємо повний
     lists.value.brands = []; 
   }
 });

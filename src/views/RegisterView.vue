@@ -90,7 +90,7 @@ import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
 import axios from 'axios';
 
 const { setAuthData } = useAuth();
-const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Auth';
+const API_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Auth';
 const API_URL_REGISTER = `${API_BASE_URL}/register`;
 const API_URL_CHECK_EMAIL = `${API_BASE_URL}/email-exists`;
 const toast = useToast(); 

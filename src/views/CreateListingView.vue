@@ -272,7 +272,7 @@ const { t, te } = useI18n();
 const { token, user } = useAuth();
 const DRAFT_STORAGE_KEY = 'newListingDraft';
 
-const API_HOST = 'https://backend-auto-market.onrender.com/api';
+const API_HOST = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
 
 // --- РЕЖИМ РЕДАКТИРОВАНИЯ ---
 const listingId = ref(route.params.id); 
@@ -678,9 +678,6 @@ async function handleDraft() {
   if (isSubmitting.value) return;
   isSubmitting.value = true;
   
-  // Логика выбора URL для черновика:
-  // Редактирование черновика: PUT api/Listing/draft/{id}
-  // Создание нового черновика: POST api/Listing/draft
   const url = isEditMode.value 
       ? `${API_HOST}/Listing/draft/${listingId.value}` 
       : `${API_HOST}/Listing/draft`; 

@@ -35,7 +35,7 @@ import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n'; // 1. ІМПОРТ I18N
 import axios from 'axios';
 
-const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Auth'; 
+const API_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Auth'; 
 const VERIFY_EMAIL_URL = `${API_BASE_URL}/verify-email`;
 
 // 2. ОНОВЛЕНО: Отримуємо clearAuthData

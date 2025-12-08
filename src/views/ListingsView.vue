@@ -125,7 +125,7 @@ const toast = useToast();
 const { t } = useI18n();
 const route = useRoute();
 
-const API_BASE = 'https://backend-auto-market.onrender.com/api';
+const API_BASE = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
 const API_LISTING_URL = `${API_BASE}/Listing`;
 
 const isLoading = ref(false);

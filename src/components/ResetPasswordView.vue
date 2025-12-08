@@ -30,7 +30,7 @@ import { useToast } from 'vue-toastification';
 import axios from 'axios';
 
 // URL для підтвердження зміни
-const API_URL = 'https://backend-auto-market.onrender.com/api/Auth/confirm-password-change'; 
+const API_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Auth/confirm-password-change'; 
 
 const { t } = useI18n();
 const route = useRoute();

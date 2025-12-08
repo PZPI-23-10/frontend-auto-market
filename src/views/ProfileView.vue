@@ -255,11 +255,11 @@ import CarCard from '@/components/CarCard.vue';
 
 const toast = useToast();
 const { t } = useI18n(); 
-const API_BASE_URL = 'https://backend-auto-market.onrender.com/api/Auth';
-const API_PROFILE_BASE_URL = 'https://backend-auto-market.onrender.com/api/Profile';
+const API_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Auth';
+const API_PROFILE_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Profile';
 const VERIFY_EMAIL_URL = `${API_BASE_URL}/verify-email`;
 const SEND_VERIFICATION_URL = `${API_BASE_URL}/send-verification-email`;
-const API_LISTING_BASE_URL = 'https://backend-auto-market.onrender.com/api/Listing'; 
+const API_LISTING_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Listing'; 
 const router = useRouter(); 
 const isLoadingListings = ref(false); 
 const userListings = ref([]);

@@ -41,8 +41,8 @@ import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 
-const API_LOGIN_URL = 'https://backend-auto-market.onrender.com/api/Auth/login';
-const API_GOOGLE_LOGIN_URL = 'https://backend-auto-market.onrender.com/api/Auth/web/google';
+const API_LOGIN_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Auth/login';
+const API_GOOGLE_LOGIN_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Auth/web/google';
 const GOOGLE_CLIENT_ID = '71975591740-1ikt0qhpb1g570oogv7pomahcr09hqf8.apps.googleusercontent.com';
 
 const { setAuthData, checkVerificationStatus } = useAuth(); 

@@ -38,7 +38,7 @@ import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 
-const API_URL = 'https://backend-auto-market.onrender.com/api/Auth/reset-password';
+const API_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Auth/reset-password';
 
 const email = ref('');
 const isLoading = ref(false);

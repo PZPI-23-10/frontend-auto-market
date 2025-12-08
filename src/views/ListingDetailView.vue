@@ -250,7 +250,7 @@ const route = useRoute();
 const toast = useToast();
 const { t, te, locale } = useI18n();
 
-const API_BASE = 'https://backend-auto-market.onrender.com/api';
+const API_BASE = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
 
 const isLoading = ref(true);
 const listing = ref(null); 

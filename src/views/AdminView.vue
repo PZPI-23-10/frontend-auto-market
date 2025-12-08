@@ -551,7 +551,7 @@ const { t, te } = useI18n();
 const router = useRouter();
 const { token } = useAuth(); 
 
-const API_BASE = 'https://backend-auto-market.onrender.com/api';
+const API_BASE = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
 const activeTab = ref('dashboard');
 const carDataMode = ref('add'); 
 

@@ -7,7 +7,7 @@ const token = ref(localStorage.getItem('token') || null);
 const userRoles = ref(JSON.parse(localStorage.getItem('userRoles') || '[]'));
 const isVerified = ref(JSON.parse(localStorage.getItem('isVerified') || 'false')); 
 
-const PROFILE_BASE_URL = 'https://backend-auto-market.onrender.com/api/Profile';
+const PROFILE_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Profile';
 
 export function useAuth() {
 
