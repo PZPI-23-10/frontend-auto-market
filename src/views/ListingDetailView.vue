@@ -242,7 +242,7 @@
 </template>
 
 <script setup>
-  import VehicleCheck from '@/components/VehicleCheck.vue';
+import VehicleCheck from '@/components/VehicleCheck.vue';
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router'; 
 import { useToast } from 'vue-toastification';

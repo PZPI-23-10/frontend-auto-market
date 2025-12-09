@@ -104,6 +104,21 @@
     "sellWarning": "Please log in to sell a car."
   },
   "listingDetail": {
+    "checkTitle": "Official Vehicle Report",
+    "checkLoading": "Checking license plate...",
+    "legalClean": "Legally Clean",
+    "stolen": "STOLEN VEHICLE",
+    "notFoundDB": "Vehicle not found in database.",
+    "serviceUnavailable": "Service temporarily unavailable.",
+    "fields": {
+      "makeModel": "Make/Model",
+      "year": "Year",
+      "color": "Color",
+      "engine": "Engine Capacity",
+      "fuel": "Fuel Type",
+      "registered": "Registration Date",
+      "lastOp": "Last Operation"
+    },
     "loading": "Loading data...",
     "notFound": "Error. Listing not found.",
     "mainPhotoAlt": "Main car photo",
@@ -429,10 +444,25 @@
   },
   "options": {
     "fuel": {
+      "petrol": "Petrol",
       "bensin": "Petrol",
+      "benzin": "Petrol",
+      "gasoline": "Petrol",
+      
       "diesel": "Diesel",
-      "gas": "Gas",
-      "electric": "Electric"
+      "diesel_fuel": "Diesel",
+      
+      "gas": "Gas/LPG",
+      "lpg": "Gas/LPG",
+      
+      "gas_petrol": "Gas/Petrol",
+      
+      "hybrid": "Hybrid",
+      
+      "electric": "Electric",
+      "electro": "Electric",
+      
+      "other": "Other"
     },
     "transmission": {
       "manual": "Manual",
@@ -499,11 +529,17 @@
     "color": {
       "#000000": "Black",
       "#ffffff": "White",
+      "#808080": "Gray",
+      "#c0c0c0": "Silver",
       "#0000ff": "Blue",
       "#ff0000": "Red",
-      "#808080": "Gray",
       "#008000": "Green",
-      "#cccccc": "Silver",
+      "#ffff00": "Yellow",
+      "#a52a2a": "Brown",
+      "#f5f5dc": "Beige",
+      "#ffa500": "Orange",
+      "#800080": "Purple",
+      "#ccc": "Not specified",
       "other": "Other"
     },
     "techState": {
@@ -525,6 +561,12 @@
       "rwd": "Rear-wheel Drive",
       "awd": "All-wheel Drive",
       "unknown": "Unknown"
+    },
+    "operations": {
+      "registration": "First registration",
+      "re_registration": "Re-registration",
+      "re_registration_owner": "Re-registration due to change of owner",
+      "installation_gas": "LPG installation"
     },
     "city": {
       "kyiv": "Kyiv",

@@ -2,22 +2,27 @@
   <div class="vehicle-check-card">
     <div class="check-header">
       <div class="header-title">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-        <h3>{{ t('listingDetail.checkTitle') || 'Звіт по базі МВС' }}</h3>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+        <h3>{{ t('listingDetail.checkTitle') }}</h3>
       </div>
       
       <div v-if="!loading && !error && report" class="check-status" :class="report.isStolen ? 'danger' : 'success'">
-        {{ report.isStolen ? 'У РОЗШУКУ' : 'Юридично чиста' }}
+        {{ report.isStolen ? t('listingDetail.stolen') : t('listingDetail.legalClean') }}
       </div>
     </div>
 
     <div v-if="loading" class="check-loading">
       <div class="spinner-small"></div>
-      <span>Перевірка держ. номера...</span>
+      <span>{{ t('listingDetail.checkLoading') }}</span>
     </div>
 
     <div v-else-if="error" class="check-error">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
       {{ error }}
     </div>
 
@@ -25,50 +30,50 @@
       <div class="check-grid">
         
         <div class="check-item">
-          <span class="label">Марка/Модель:</span>
+          <span class="label">{{ t('listingDetail.fields.makeModel') }}:</span>
           <span class="value">{{ report.brand }} {{ report.model }}</span>
         </div>
         
         <div class="check-item">
-          <span class="label">Рік випуску:</span>
+          <span class="label">{{ t('listingDetail.fields.year') }}:</span>
           <span class="value">{{ report.year }}</span>
         </div>
         
-          <div class="check-item">
-    <span class="label">Колір:</span>
-    <span class="value">
-      <span class="color-dot" :style="{ background: report.colorHex }"></span>
-      
-      {{ t('options.color.' + getLabelKey(report.color)) }}
-    </span>
-  </div>
-
-
-        
         <div class="check-item">
-          <span class="label">Об'єм двигуна:</span>
+          <span class="label">{{ t('listingDetail.fields.color') }}:</span>
+          <span class="value">
+            <span class="color-dot" :style="{ background: report.colorHex }"></span>
+            {{ t('options.color.' + report.colorHex) }}
+          </span>
+        </div>
+
+        <div class="check-item">
+          <span class="label">{{ t('listingDetail.fields.engine') }}:</span>
           <span class="value">
             {{ formatEngine(report.engineCapacity) }} 
             <span class="sub-text">({{ report.engineCapacity }} см³)</span>
           </span>
         </div>
         
- <div class="check-item">
-  <span class="label">Тип палива:</span>
-  <span class="value">
-    {{ t('options.fuel.' + getLabelKey(report.fuel)) }}
-  </span>
-</div>
+        <div class="check-item">
+          <span class="label">{{ t('listingDetail.fields.fuel') }}:</span>
+          <span class="value">
+            {{ t('options.fuel.' + getLabel('fuel', report.fuel)) }}
+          </span>
+        </div>
         
         <div class="check-item">
-          <span class="label">Дата реєстрації:</span>
+          <span class="label">{{ t('listingDetail.fields.registered') }}:</span>
           <span class="value">{{ report.lastOperationDate }}</span>
         </div>
         
       </div>
       
       <div class="check-footer">
-        <p>Остання операція: <strong>{{ report.lastOperationName }}</strong></p>
+        <p>
+          {{ t('listingDetail.fields.lastOp') }}: 
+          <strong>{{ getOperationName(report.lastOperationName) }}</strong>
+        </p>
       </div>
     </div>
   </div>
@@ -80,31 +85,55 @@ import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
-  licensePlate: {
-    type: String,
-    required: true
-  }
+  licensePlate: { type: String, required: true }
 });
 
-const { t, locale } = useI18n();
+const { t, locale, te } = useI18n();
 const API_HOST = 'https://backend-auto-market-wih5h.ondigitalocean.app/api'; 
 
 const loading = ref(true);
 const report = ref(null);
 const error = ref(null);
-function getLabelKey(key) {
-  if (!key) return 'other'; // Если пусто, вернем 'other'
-  return key.toLowerCase()
-    .replace(/\s+/g, '_')
-    .replace(/\//g, '_')
-    .replace(/,/g, '')
-    .replace(/\./g, '');
+
+// === УНІВЕРСАЛЬНА ФУНКЦІЯ (СИНХРОНІЗОВАНА) ===
+function getLabel(category, serverName) {
+  if (!serverName) return '';
+  
+  // Якщо це колір HEX
+  if (category === 'color' && serverName.startsWith('#')) {
+      return serverName.toLowerCase(); 
+  }
+
+  return serverName.toLowerCase()
+    .replace(/\s+/g, '_')     
+    .replace(/\//g, '_')      
+    .replace(/,/g, '')        
+    .replace(/\./g, '');      
 }
-// Хелпер для кольорів (Українські назви -> HEX)
+
+// === ЛОГІКА ДЛЯ ОПЕРАЦІЙ ===
+function getOperationName(originalName) {
+  if (!originalName) return '';
+
+  const lowerName = originalName.toLowerCase();
+  
+  let key = '';
+  if (lowerName.includes('реєстрація') && lowerName.includes('тз придбаного')) key = 'registration';
+  else if (lowerName.includes('перереєстрація') && lowerName.includes('зміні власника')) key = 're_registration_owner';
+  else if (lowerName.includes('перереєстрація')) key = 're_registration';
+  else if (lowerName.includes('газ') || lowerName.includes('гбо')) key = 'installation_gas';
+
+  if (key && te(`options.operations.${key}`)) {
+    return t(`options.operations.${key}`);
+  }
+
+  return originalName;
+}
+
+// Хелпер для кольорів (Текст -> HEX)
 function getColorHex(colorName) {
   if (!colorName) return '#ccc';
   const c = colorName.toLowerCase();
-  
   const map = {
     'чорний': '#000000', 'black': '#000000',
     'білий': '#ffffff', 'white': '#ffffff',
@@ -119,7 +148,6 @@ function getColorHex(colorName) {
     'помаранчевий': '#ffa500', 'orange': '#ffa500',
     'фіолетовий': '#800080', 'purple': '#800080'
   };
-  
   return map[c] || '#ccc';
 }
 
@@ -131,10 +159,9 @@ function formatEngine(cc) {
 async function fetchOfficialData() {
   loading.value = true;
   error.value = null;
-  report.value = null; // Скидаємо попередні дані
+  report.value = null;
 
   if (!props.licensePlate || props.licensePlate === 'Приховано' || props.licensePlate.length < 3) {
-      // Якщо номер приховано, просто не вантажимо нічого, компонент сховається через v-if у батька
       loading.value = false;
       return;
   }
@@ -143,59 +170,48 @@ async function fetchOfficialData() {
     const res = await axios.get(`${API_HOST}/VehicleCheck/${props.licensePlate}`, {
         params: { lang: locale.value } 
     });
-    
     const data = res.data;
 
     report.value = {
       brand: data.brand,
       model: data.model,
       year: data.year,
-      
-      color: data.color,
-      colorHex: getColorHex(data.color), // Конвертуємо назву в HEX для точки
-      
+      color: data.color, 
+      colorHex: getColorHex(data.color), // Отримуємо HEX
       engineCapacity: data.engineCapacity,
-      fuel: data.fuel,
+      fuel: data.fuel, 
       isStolen: data.isStolen,
-      
       lastOperationDate: data.lastOperationDate,
       lastOperationName: data.lastOperationName
     };
 
   } catch (err) {
-    console.error("Помилка VehicleCheck:", err);
     if (err.response && err.response.status === 404) {
-       error.value = "Авто не знайдено в базі МВС.";
+       error.value = t('listingDetail.notFound');
     } else {
-       error.value = "Сервіс перевірки тимчасово недоступний.";
+       error.value = t('listingDetail.serviceUnavailable');
     }
   } finally {
     loading.value = false;
   }
 }
 
-// Слідкуємо за зміною номера (коли завантажиться лістинг)
 watch(() => props.licensePlate, (newVal) => {
-    if (newVal && newVal !== 'Приховано') {
-        fetchOfficialData();
-    }
+    if (newVal && newVal !== 'Приховано') fetchOfficialData();
 });
 
-// Слідкуємо за мовою (щоб перезапитати дані, якщо API підтримує переклад)
 watch(locale, () => {
    if (report.value) fetchOfficialData();
 });
 
 onMounted(() => {
-  if (props.licensePlate && props.licensePlate !== 'Приховано') {
-      fetchOfficialData();
-  }
+  if (props.licensePlate && props.licensePlate !== 'Приховано') fetchOfficialData();
 });
 </script>
 
 <style scoped>
+/* Ваші стилі залишаються без змін */
 .vehicle-check-card {
-  /* Гарний напівпрозорий фон */
   background: rgba(40, 167, 69, 0.08); 
   border: 1px solid rgba(40, 167, 69, 0.3);
   border-radius: 12px;
@@ -286,7 +302,6 @@ onMounted(() => {
   gap: 15px;
 }
 
-/* На мобільному в одну колонку */
 @media (max-width: 500px) {
   .check-grid {
     grid-template-columns: 1fr;
