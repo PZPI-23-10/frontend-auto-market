@@ -972,7 +972,7 @@
       "types": {
         "userActivity": "Активність користувачів"
       },
-      "generateBtn": "Згенерувати PDF"
+      "generateBtn": "Згенерувати Графік"
     },
     "modals": {
       "profile": {

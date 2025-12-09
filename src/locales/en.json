@@ -967,7 +967,7 @@
       "types": {
         "userActivity": "User Activity"
       },
-      "generateBtn": "Generate PDF"
+      "generateBtn": "Generate schedule"
     },
     "modals": {
       "profile": {

@@ -1,6 +1,7 @@
 <template>
   <div class="admin-view">
     <div class="container">
+      
       <div class="header-row">
         <a :class="{ active: activeTab === 'dashboard' }" @click.prevent="activeTab = 'dashboard'">
           <h1>{{ t('admin.header.title') }}</h1>
@@ -11,6 +12,7 @@
       </div>
 
       <div class="admin-layout">
+        
         <aside class="admin-sidebar">
           <nav class="admin-nav">
             <ul>
@@ -141,25 +143,6 @@
                       </button>
                     </div>
                   </div>
-
-                  <div class="dashboard-box">
-                    <h3>New in 24h <small style="color:#777; font-size: 11px;">({{ stats.newIn24h }})</small></h3>
-                    <div class="new-users-list">
-                      <div v-for="u in stats.newUsersList" :key="u.id" class="new-user-item">
-                        <img :src="u.avatarUrl || defaultAvatar" class="mini-avatar-small" @error="$event.target.src = defaultAvatar">
-                        <div class="new-user-info">
-                          <span class="nu-name">{{ getFullName(u) }}</span>
-                          <span class="nu-time">{{ formatTime(u.dateCreated) }}</span>
-                        </div>
-                        <div class="nu-status">
-                          <span class="status-dot" :class="{ verified: u.isVerified }" title="Email Status"></span>
-                        </div>
-                      </div>
-                      <div v-if="stats.newUsersList.length === 0" class="no-data-text-small">
-                        {{ t('admin.dashboard.newMembers.noNew') }}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -251,31 +234,12 @@
             </div>
 
             <div v-if="carDataMode === 'add'" class="add-dashboard-grid">
-              <div class="admin-form-card small-card">
-                <h3>{{ t('admin.cars.forms.addType') }}</h3>
-                <form @submit.prevent="addSimple('VehicleType', forms.type)">
-                  <input type="text" v-model="forms.type" :placeholder="t('admin.cars.forms.placeholders.type')" required>
-                  <button class="btn-primary full-width" :disabled="isSubmitting">{{ t('admin.cars.forms.buttons.add') }}</button>
-                </form>
-              </div>
-              <div class="admin-form-card small-card">
-                <h3>{{ t('admin.cars.forms.addFuel') }}</h3>
-                <form @submit.prevent="addSimple('FuelType', forms.fuel)">
-                  <input type="text" v-model="forms.fuel" :placeholder="t('admin.cars.forms.placeholders.fuel')" required>
-                  <button class="btn-primary full-width" :disabled="isSubmitting">{{ t('admin.cars.forms.buttons.add') }}</button>
-                </form>
-              </div>
-              <div class="admin-form-card small-card">
-                <h3>{{ t('admin.cars.forms.addGear') }}</h3>
-                <form @submit.prevent="addSimple('GearType', forms.gear)">
-                  <input type="text" v-model="forms.gear" :placeholder="t('admin.cars.forms.placeholders.gear')" required>
-                  <button class="btn-primary full-width" :disabled="isSubmitting">{{ t('admin.cars.forms.buttons.add') }}</button>
-                </form>
-              </div>
-              <div class="admin-form-card small-card">
-                <h3>{{ t('admin.cars.forms.addCondition') }}</h3>
-                <form @submit.prevent="addSimple('VehicleCondition', forms.condition)">
-                  <input type="text" v-model="forms.condition" :placeholder="t('admin.cars.forms.placeholders.condition')" required>
+              <div class="admin-form-card small-card" v-for="(val, key) in {VehicleType: forms.type, FuelType: forms.fuel, GearType: forms.gear, VehicleCondition: forms.condition}" :key="key">
+                <h3>{{ t(`admin.cars.forms.add${key.replace('Vehicle', '')}`) }}</h3>
+                <form @submit.prevent="addSimple(key, key === 'VehicleType' ? forms.type : key === 'FuelType' ? forms.fuel : key === 'GearType' ? forms.gear : forms.condition)">
+                  <input type="text" 
+                    v-model="forms[key === 'VehicleType' ? 'type' : key === 'FuelType' ? 'fuel' : key === 'GearType' ? 'gear' : 'condition']" 
+                    :placeholder="t(`admin.cars.forms.placeholders.${key.toLowerCase().replace('vehicle', '')}`)" required>
                   <button class="btn-primary full-width" :disabled="isSubmitting">{{ t('admin.cars.forms.buttons.add') }}</button>
                 </form>
               </div>
@@ -305,22 +269,15 @@
                     <label>{{ t('admin.cars.forms.labels.modelName') }} *</label>
                     <input type="text" v-model="newModelForm.name" :placeholder="t('admin.cars.forms.placeholders.model')" required>
                   </div>
-                    <div class="form-group">
-                      <label>{{ t('admin.cars.forms.labels.compatibleBody') }} *</label>
-                      <div class="checkbox-grid">
-                        <div v-for="bt in carLists.bodyTypes" :key="bt.id" class="checkbox-item">
-                          <input 
-                            type="checkbox" 
-                            :id="`bt-${bt.id}`" 
-                            :value="bt.id" 
-                            v-model="newModelForm.vehicleBodyTypesIds"
-                          >
-                          <label :for="`bt-${bt.id}`">
-                            {{ getAdminLabel('VehicleBodyType', bt.name) }}
-                          </label>
-                        </div>
+                  <div class="form-group">
+                    <label>{{ t('admin.cars.forms.labels.compatibleBody') }} *</label>
+                    <div class="checkbox-grid">
+                      <div v-for="bt in carLists.bodyTypes" :key="bt.id" class="checkbox-item">
+                        <input type="checkbox" :id="`bt-${bt.id}`" :value="bt.id" v-model="newModelForm.vehicleBodyTypesIds">
+                        <label :for="`bt-${bt.id}`">{{ getAdminLabel('VehicleBodyType', bt.name) }}</label>
                       </div>
                     </div>
+                  </div>
                   <button class="btn-primary full-width" :disabled="isSubmitting">{{ t('admin.cars.forms.buttons.create') }}</button>
                 </form>
               </div>
@@ -330,12 +287,7 @@
               <div class="delete-controls">
                 <label>{{ t('admin.cars.delete.selectCategory') }}</label>
                 <div class="category-pills">
-                  <button 
-                    v-for="cat in deleteCategories" 
-                    :key="cat.key" 
-                    :class="{ active: deleteTarget === cat.key }" 
-                    @click="loadDeleteList(cat.key)"
-                  >
+                  <button v-for="cat in deleteCategories" :key="cat.key" :class="{ active: deleteTarget === cat.key }" @click="loadDeleteList(cat.key)">
                     {{ t(`admin.cars.delete.categories.${cat.key}`) }}
                   </button>
                 </div>
@@ -357,33 +309,54 @@
                   <tbody>
                     <tr v-for="item in processedDeleteList" :key="item.id">
                       <td>#{{ item.id }}</td>
-                      
-                      <td>
-                        <strong>{{ getAdminLabel(deleteTarget, item.name) }}</strong>
-                      </td>
-                      
-                      <td v-if="deleteTarget === 'VehicleModel'">
-                        {{ item.brand?.name }} / {{ getAdminLabel('VehicleType', item.vehicleType?.name) }}
-                      </td>
-                      
+                      <td><strong>{{ getAdminLabel(deleteTarget, item.name) }}</strong></td>
+                      <td v-if="deleteTarget === 'VehicleModel'">{{ item.brand?.name }} / {{ getAdminLabel('VehicleType', item.vehicleType?.name) }}</td>
                       <td class="actions-cell">
                         <button class="btn-icon danger" @click="deleteItem(item.id)">🗑</button>
                       </td>
                     </tr>
-                    </tbody>
+                  </tbody>
                 </table>
               </div>
             </div>
           </div>
 
-          <div v-if="activeTab === 'reports'" class="tab-pane">
+         <div v-if="activeTab === 'reports'" class="tab-pane">
             <h2>{{ t('admin.reports.title') }}</h2>
-            <div class="report-controls">
-              <div class="form-group">
-                <label>{{ t('admin.reports.typeLabel') }}</label>
-                <select><option>{{ t('admin.reports.types.userActivity') }}</option></select>
+            
+            <div class="report-controls-card">
+              <div class="report-form-row">
+                <div class="form-group">
+                  <label>{{ t('admin.reports.startDate') || 'Start Date' }}</label>
+                  <input type="date" v-model="reportParams.startDate" class="date-input">
+                </div>
+                <div class="form-group">
+                  <label>{{ t('admin.reports.endDate') || 'End Date' }}</label>
+                  <input type="date" v-model="reportParams.endDate" class="date-input">
+                </div>
+                <div class="form-group" style="align-self: flex-end;">
+                  <button class="btn-primary" @click="generateReport" :disabled="isGeneratingReport">
+                    <span v-if="isGeneratingReport" class="spinner-mini"></span>
+                    {{ t('admin.reports.generateBtn') }}
+                  </button>
+                </div>
               </div>
-              <button class="btn-primary">{{ t('admin.reports.generateBtn') }}</button>
+            </div>
+
+            <div v-if="chartData" class="chart-wrapper fade-in">
+              <div class="chart-header">
+                <h3>{{ t('admin.reports.chartTitle') || 'Activity Overview' }}</h3>
+                <div class="chart-legend">
+                  <span class="dot users"></span> New Users
+                  <span class="dot listings"></span> New Listings
+                </div>
+              </div>
+              
+              <ActivityChart :data="chartData" />
+            </div>
+
+            <div v-else-if="!isGeneratingReport" class="no-data-text">
+                {{ t('admin.reports.placeholder') || 'Select dates and click Generate to view statistics.' }}
             </div>
           </div>
 
@@ -451,9 +424,7 @@
                       <div class="car-meta">
                         {{ car.fuelType?.name }} • {{ car.gearType?.name }} • {{ (car.mileage / 1000).toFixed(0) }}k km
                       </div>
-                      <div class="car-price">
-                        ${{ car.price.toLocaleString() }}
-                      </div>
+                      <div class="car-price">${{ car.price.toLocaleString() }}</div>
                     </div>
                     <div class="car-status">
                       <span v-if="car.isPublished" class="status-pill published">{{ t('admin.modals.profile.status.active') }}</span>
@@ -543,10 +514,12 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import axios from 'axios';
+import html2pdf from 'html2pdf.js';
 import { useAuth } from '@/store/auth'; 
 import defaultAvatar from '@/assets/default-avatar.png';
 import SearchableSelect from '@/components/SearchableSelect.vue'; 
-
+import ActivityChart from '@/components/admin/ActivityChart.vue';
+const reportContainer = ref(null);
 const { t, te } = useI18n();
 const router = useRouter();
 const { token } = useAuth(); 
@@ -556,18 +529,14 @@ const activeTab = ref('dashboard');
 const carDataMode = ref('add'); 
 
 // --- STATE VARIABLES ---
-
-// Users State
 const users = ref([]);
+const listings = ref([]); 
 const searchQuery = ref('');
 const isLoading = ref(false);
-const userFilterStatus = ref('all'); // 'all', 'verified', 'unverified'
+const userFilterStatus = ref('all');
 
-// Dashboard State
-const listings = ref([]); 
 const dashboardLoading = ref(false);
 
-// Car Data State
 const isSubmitting = ref(false);
 const isListLoading = ref(false);
 const forms = ref({ type: '', fuel: '', gear: '', body: '', brand: '', condition: '' });
@@ -578,26 +547,87 @@ const sortConfig = ref({ key: 'id', order: 'asc' });
 const carLists = ref({ types: [], allBrands: [], filteredBrands: [], bodyTypes: [] });
 const deleteTarget = ref('VehicleBrand');
 const deleteList = ref([]);
-// Тут поки залишаємо лейбли як є, як ви і просили (об'єкти обговоримо пізніше)
 const deleteCategories = [
-  { key: 'VehicleBrand' },
-  { key: 'VehicleModel' },
-  { key: 'VehicleType' },
-  { key: 'FuelType' },
-  { key: 'GearType' },
-  { key: 'VehicleCondition' },
+  { key: 'VehicleBrand' }, { key: 'VehicleModel' }, { key: 'VehicleType' },
+  { key: 'FuelType' }, { key: 'GearType' }, { key: 'VehicleCondition' },
 ];
 
-// --- MODALS STATE ---
 const showUnverifiedModal = ref(false);
 const showDeleteModal = ref(false);
 const userToDelete = ref(null);
-
-// Profile Modal State
 const showProfileModal = ref(false);
 const selectedUserProfile = ref(null);
 const userListings = ref([]);
 const isProfileLoading = ref(false);
+
+// --- REPORTS STATE ---
+const isGeneratingReport = ref(false);
+const chartData = ref(null);
+const reportParams = ref({
+  startDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+  endDate: new Date().toISOString().split('T')[0]
+});
+
+// --- HELPER FUNCTIONS ---
+
+function getDaysArray(start, end) {
+    const arr = [];
+    for(let dt=new Date(start); dt<=new Date(end); dt.setDate(dt.getDate()+1)){
+        arr.push(new Date(dt).toISOString().split('T')[0]);
+    }
+    return arr;
+}
+function downloadPdf() {
+  const element = reportContainer.value; 
+  const opt = {
+    margin:       10,
+    filename:     `report_${new Date().toISOString().split('T')[0]}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' } 
+  };
+
+  html2pdf().set(opt).from(element).save();
+}
+function getLabel(category, serverName) {
+  if (!serverName) return '';
+  const keyRaw = serverName.toLowerCase().replace(/'/g, '').replace(/’/g, '').replace(/\s+/g, '_').replace(/\//g, '_').replace(/,/g, '').replace(/\./g, '');
+  const fullKey = `options.${category}.${keyRaw}`;
+  if (te(fullKey)) return t(fullKey);
+  return serverName;
+}
+
+function getAdminLabel(targetTable, itemName) {
+  let category = '';
+  switch (targetTable) {
+    case 'FuelType': category = 'fuel'; break;
+    case 'GearType': category = 'transmission'; break;
+    case 'VehicleCondition': category = 'techState'; break;
+    case 'VehicleType': category = 'vehicleType'; break;
+    case 'VehicleBodyType': category = 'bodyType'; break;
+    default: return itemName;
+  }
+  return getLabel(category, itemName);
+}
+
+function formatTime(dateString) {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function getFullName(u) {
+  return `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.userName || 'User';
+}
+
+function isAdmin(user) {
+  if (Array.isArray(user.roles)) return user.roles.includes('Admin');
+  return user.role === 'Admin';
+}
+
+function getCarImage(car) {
+  if (car.photoUrls && car.photoUrls.length > 0) return car.photoUrls[0].url;
+  return 'https://via.placeholder.com/150?text=No+Image';
+}
 
 // --- COMPUTED ---
 
@@ -621,272 +651,30 @@ const stats = computed(() => {
   
   const alerts = [];
   const unverifiedCount = users.value.filter(u => !u.isVerified).length;
-  
   if (unverifiedCount > 0) {
-      alerts.push({ 
-          type: 'Verification', 
-          message: t('admin.dashboard.alerts.verificationMessage', { count: unverifiedCount }) 
-      });
+      alerts.push({ type: 'Verification', message: t('admin.dashboard.alerts.verificationMessage', { count: unverifiedCount }) });
   }
   
   return {
-    totalUsers,
-    totalCars,
-    avgPrice: avgPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
-    totalValue: totalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
-    recentUsers,
-    newUsersList, 
-    newIn24h: newUsersList.length, 
-    alerts
+    totalUsers, totalCars, 
+    avgPrice: avgPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }), 
+    totalValue: totalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }), 
+    recentUsers, newUsersList, newIn24h: newUsersList.length, alerts
   };
 });
 
-function getLabel(category, serverName) {
-  if (!serverName) return '';
-  // Нормалізація рядка з БД у ключ (напр. "Passenger Car" -> "passenger_car")
-  const keyRaw = serverName.toLowerCase()
-    .replace(/'/g, '')      
-    .replace(/’/g, '')
-    .replace(/\s+/g, '_')    
-    .replace(/\//g, '_')      
-    .replace(/,/g, '')        
-    .replace(/\./g, '');      
-    
-  const fullKey = `options.${category}.${keyRaw}`;
-  
-  // Перевіряємо, чи є такий переклад
-  if (te(fullKey)) {
-    return t(fullKey); 
-  }
-  return serverName; // Якщо немає - повертаємо оригінал
-}
+const unverifiedUsersList = computed(() => users.value.filter(u => !u.isVerified));
 
-function getAdminLabel(targetTable, itemName) {
-  let category = '';
-
-  switch (targetTable) {
-    case 'FuelType': 
-      category = 'fuel'; 
-      break;
-    case 'GearType': 
-      category = 'transmission'; 
-      break;
-    case 'VehicleCondition': 
-      category = 'techState'; // У вас в прикладі це techState
-      break;
-    case 'VehicleType': 
-      category = 'vehicleType'; 
-      break;
-    case 'VehicleBodyType': 
-      category = 'bodyType'; 
-      break;
-    default:
-      // Для Брендів та Моделей переклад не потрібен
-      return itemName;
-  }
-
-  return getLabel(category, itemName);
-}
-
-// Список для модалки неверифікованих
-const unverifiedUsersList = computed(() => {
-  return users.value.filter(u => !u.isVerified);
-});
-
-// Фільтр для таблиці Users
 const filteredUsers = computed(() => {
   let res = users.value;
-
-  // 1. Фільтр статусу
-  if (userFilterStatus.value === 'verified') {
-     res = res.filter(u => u.isVerified);
-  } else if (userFilterStatus.value === 'unverified') {
-     res = res.filter(u => !u.isVerified);
-  }
-
-  // 2. Пошук
+  if (userFilterStatus.value === 'verified') res = res.filter(u => u.isVerified);
+  else if (userFilterStatus.value === 'unverified') res = res.filter(u => !u.isVerified);
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
-    res = res.filter(u => 
-      u.id?.toString().includes(q) ||
-      u.email?.toLowerCase().includes(q) || 
-      u.firstName?.toLowerCase().includes(q) || 
-      u.lastName?.toLowerCase().includes(q) ||
-      u.phoneNumber?.includes(q)
-    );
+    res = res.filter(u => u.id?.toString().includes(q) || u.email?.toLowerCase().includes(q) || u.firstName?.toLowerCase().includes(q));
   }
   return res.sort((a, b) => b.id - a.id);
 });
-
-// --- HELPER FUNCTIONS ---
-
-function formatTime(dateString) {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-function getFullName(u) {
-  return `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.userName || 'User';
-}
-
-function isAdmin(user) {
-    if (Array.isArray(user.roles)) return user.roles.includes('Admin');
-    return user.role === 'Admin';
-}
-
-// Отримання головного фото авто
-function getCarImage(car) {
-    if (car.photoUrls && car.photoUrls.length > 0) {
-        return car.photoUrls[0].url; 
-    }
-    return 'https://via.placeholder.com/150?text=No+Image'; 
-}
-
-// --- API ACTIONS ---
-
-async function fetchListings() {
-  try {
-    const response = await axios.get(`${API_BASE}/Listing`);
-    listings.value = response.data;
-  } catch (e) { console.error("Error loading listings", e); }
-}
-
-async function fetchUsers() {
-  if (activeTab.value === 'users') isLoading.value = true;
-  try {
-    const response = await axios.get(`${API_BASE}/Profile/all`, {
-      headers: { 'Authorization': `Bearer ${token.value}` }
-    });
-    users.value = response.data;
-  } catch (error) {
-    console.error(error);
-    if (error.response?.status === 401) {
-       toast.error("Session expired.");
-       router.push('/login');
-    }
-  } finally {
-    isLoading.value = false;
-  }
-}
-
-async function loadDashboardData() {
-  dashboardLoading.value = true;
-  await Promise.all([fetchUsers(), fetchListings()]);
-  dashboardLoading.value = false;
-}
-
-// PROFILE ACTION (API Fetch)
-async function openProfile(user) {
-  selectedUserProfile.value = user;
-  showProfileModal.value = true;
-  isProfileLoading.value = true;
-  userListings.value = [];
-
-  try {
-    const config = { headers: { 'Authorization': `Bearer ${token.value}` } };
-
-    const [profileRes, listingsRes] = await Promise.all([
-        axios.get(`${API_BASE}/Profile`, { params: { userId: user.id }, ...config }),
-        axios.get(`${API_BASE}/Listing/user`, { params: { userId: user.id }, ...config })
-    ]);
-
-    selectedUserProfile.value = profileRes.data;
-    userListings.value = listingsRes.data;
-
-  } catch (e) {
-    console.error("Error loading profile details:", e);
-    toast.error("Failed to load full profile data");
-  } finally {
-    isProfileLoading.value = false;
-  }
-}
-
-function resolveAlert(alert) {
-    if (alert.type === 'Verification') {
-        showUnverifiedModal.value = true;
-    } else {
-        toast.info("Alert checked.");
-    }
-}
-
-// DELETE USER ACTION
-function askToDelete(user) {
-  userToDelete.value = user;
-  showDeleteModal.value = true;
-}
-
-async function confirmDelete() {
-  if (!userToDelete.value) return;
-  const id = userToDelete.value.id;
-  
-  try {
-    await axios.delete(`${API_BASE}/Profile`, {
-       headers: { 'Authorization': `Bearer ${token.value}` },
-       params: { userId: id }
-    });
-    toast.success("User deleted successfully");
-    users.value = users.value.filter(u => u.id !== id);
-  } catch (e) {
-    if(e.response?.status === 404) {
-       users.value = users.value.filter(u => u.id !== id);
-       toast.info("User already deleted.");
-    } else {
-       toast.error("Failed to delete user.");
-    }
-  } finally {
-    showDeleteModal.value = false;
-    userToDelete.value = null;
-  }
-}
-
-// CAR DATA ACTIONS
-async function loadBaseData() {
-  try {
-    const [tRes, bRes, btRes] = await Promise.all([
-      axios.get(`${API_BASE}/VehicleType`),
-      axios.get(`${API_BASE}/VehicleBrand`),
-      axios.get(`${API_BASE}/VehicleBodyType`)
-    ]);
-    carLists.value.types = tRes.data;
-    carLists.value.allBrands = bRes.data;
-    carLists.value.bodyTypes = btRes.data;
-  } catch (e) { console.error(e); }
-}
-
-async function addSimple(endpoint, value) {
-  if (!value.trim()) return;
-  isSubmitting.value = true;
-  try {
-    await axios.post(`${API_BASE}/${endpoint}`, JSON.stringify(value), {
-      headers: { 'Authorization': `Bearer ${token.value}`, 'Content-Type': 'application/json' }
-    });
-    toast.success("Added!");
-    if (endpoint === 'VehicleType') forms.value.type = '';
-    if (endpoint === 'FuelType') forms.value.fuel = '';
-    if (endpoint === 'GearType') forms.value.gear = '';
-    if (endpoint === 'VehicleBrand') forms.value.brand = '';
-    if (endpoint === 'VehicleCondition') forms.value.condition = '';
-    await loadBaseData();
-  } catch (e) { toast.error("Failed to add"); } 
-  finally { isSubmitting.value = false; }
-}
-
-async function createModel() {
-  const f = newModelForm.value;
-  if (!f.name || !f.vehicleBrandId || !f.vehicleTypeId || f.vehicleBodyTypesIds.length === 0) {
-    toast.warning("Fill all fields"); return;
-  }
-  isSubmitting.value = true;
-  try {
-    await axios.post(`${API_BASE}/VehicleModel`, f, {
-       headers: { 'Authorization': `Bearer ${token.value}` }
-    });
-    toast.success("Model created!");
-    newModelForm.value.name = '';
-    newModelForm.value.vehicleBodyTypesIds = [];
-  } catch (e) { toast.error("Error creating model"); } 
-  finally { isSubmitting.value = false; }
-}
 
 const processedDeleteList = computed(() => {
   let result = [...deleteList.value]; 
@@ -912,62 +700,137 @@ const processedDeleteList = computed(() => {
   return result;
 });
 
-async function loadDeleteList(category) {
-  deleteTarget.value = category;
-  isListLoading.value = true;
+// --- API ACTIONS ---
+
+async function fetchListings() {
   try {
-    const res = await axios.get(`${API_BASE}/${category}`);
-    deleteList.value = res.data;
-  } catch (e) { toast.error(`Error loading ${category}`); } 
-  finally { isListLoading.value = false; }
+    const response = await axios.get(`${API_BASE}/Listing`);
+    listings.value = response.data;
+  } catch (e) { console.error("Error loading listings", e); }
 }
 
-async function deleteItem(id) {
-  if(!confirm("Delete this item?")) return;
+async function fetchUsers() {
+  if (activeTab.value === 'users') isLoading.value = true;
   try {
-    await axios.delete(`${API_BASE}/${deleteTarget.value}`, {
-      headers: { 'Authorization': `Bearer ${token.value}` },
-      params: { id: id } 
+    const response = await axios.get(`${API_BASE}/Profile/all`, {
+      headers: { 'Authorization': `Bearer ${token.value}` }
     });
-    toast.success("Deleted.");
-    deleteList.value = deleteList.value.filter(i => i.id !== id);
-    loadBaseData(); 
-  } catch (e) {
-    if (e.response?.status === 404) {
-       deleteList.value = deleteList.value.filter(i => i.id !== id);
-    } else {
-       toast.error(`Delete failed`);
-    }
+    users.value = response.data;
+  } catch (error) { 
+    console.error(error); 
+    if (error.response?.status === 401) { toast.error("Session expired."); router.push('/login'); } 
+  } finally { 
+    isLoading.value = false; 
   }
 }
 
-function sortBy(key) {
-  if (sortConfig.value.key === key) {
-    sortConfig.value.order = sortConfig.value.order === 'asc' ? 'desc' : 'asc';
-  } else {
-    sortConfig.value.key = key;
-    sortConfig.value.order = 'asc';
+async function loadDashboardData() {
+  dashboardLoading.value = true;
+  await Promise.all([fetchUsers(), fetchListings()]);
+  dashboardLoading.value = false;
+}
+
+// Generate Report
+async function generateReport() {
+  isGeneratingReport.value = true;
+  try {
+    if (users.value.length === 0 || listings.value.length === 0) {
+       await loadDashboardData();
+    }
+    const start = reportParams.value.startDate;
+    const end = reportParams.value.endDate;
+    const allDates = getDaysArray(start, end);
+
+    const usersByDate = {};
+    users.value.forEach(u => {
+      if(!u.dateCreated) return;
+      const dateKey = new Date(u.dateCreated).toISOString().split('T')[0];
+      if (dateKey >= start && dateKey <= end) usersByDate[dateKey] = (usersByDate[dateKey] || 0) + 1;
+    });
+
+    const listingsByDate = {};
+    listings.value.forEach(car => {
+      const dateField = car.createdAt; // Assuming 'createdAt' exists
+      if(!dateField) return;
+      const dateKey = new Date(dateField).toISOString().split('T')[0];
+      if (dateKey >= start && dateKey <= end) listingsByDate[dateKey] = (listingsByDate[dateKey] || 0) + 1;
+    });
+
+    const userDataset = allDates.map(date => usersByDate[date] || 0);
+    const listingDataset = allDates.map(date => listingsByDate[date] || 0);
+
+    chartData.value = {
+      labels: allDates,
+      datasets: [
+        {
+          label: t('admin.nav.users'),
+          backgroundColor: 'rgba(52, 152, 219, 0.2)',
+          borderColor: '#3498db',
+          pointBackgroundColor: '#3498db',
+          borderWidth: 2,
+          data: userDataset,
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: t('admin.nav.cars'),
+          backgroundColor: 'rgba(46, 204, 113, 0.2)',
+          borderColor: '#2ecc71',
+          pointBackgroundColor: '#2ecc71',
+          borderWidth: 2,
+          data: listingDataset,
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    };
+    toast.success("Report generated");
+  } catch (e) {
+    console.error(e);
+    toast.error("Failed to generate report");
+  } finally {
+    isGeneratingReport.value = false;
   }
 }
+
+async function openProfile(user) {
+  selectedUserProfile.value = user; showProfileModal.value = true; isProfileLoading.value = true; userListings.value = [];
+  try { const config = { headers: { 'Authorization': `Bearer ${token.value}` } }; const [profileRes, listingsRes] = await Promise.all([ axios.get(`${API_BASE}/Profile`, { params: { userId: user.id }, ...config }), axios.get(`${API_BASE}/Listing/user`, { params: { userId: user.id }, ...config }) ]); selectedUserProfile.value = profileRes.data; userListings.value = listingsRes.data; } catch (e) { console.error(e); toast.error("Failed to load profile"); } finally { isProfileLoading.value = false; }
+}
+
+function resolveAlert(alert) { if (alert.type === 'Verification') showUnverifiedModal.value = true; else toast.info("Alert checked."); }
+function askToDelete(user) { userToDelete.value = user; showDeleteModal.value = true; }
+
+async function confirmDelete() {
+  if (!userToDelete.value) return;
+  const id = userToDelete.value.id;
+  try { await axios.delete(`${API_BASE}/Profile`, { headers: { 'Authorization': `Bearer ${token.value}` }, params: { userId: id } }); toast.success("User deleted"); users.value = users.value.filter(u => u.id !== id); } catch (e) { if(e.response?.status === 404) { users.value = users.value.filter(u => u.id !== id); toast.info("Already deleted"); } else { toast.error("Failed to delete"); } } finally { showDeleteModal.value = false; userToDelete.value = null; }
+}
+
+async function loadBaseData() { try { const [tRes, bRes, btRes] = await Promise.all([ axios.get(`${API_BASE}/VehicleType`), axios.get(`${API_BASE}/VehicleBrand`), axios.get(`${API_BASE}/VehicleBodyType`) ]); carLists.value.types = tRes.data; carLists.value.allBrands = bRes.data; carLists.value.bodyTypes = btRes.data; } catch (e) { console.error(e); } }
+async function addSimple(endpoint, value) { if (!value.trim()) return; isSubmitting.value = true; try { await axios.post(`${API_BASE}/${endpoint}`, JSON.stringify(value), { headers: { 'Authorization': `Bearer ${token.value}`, 'Content-Type': 'application/json' } }); toast.success("Added!"); if (endpoint === 'VehicleType') forms.value.type = ''; if (endpoint === 'FuelType') forms.value.fuel = ''; if (endpoint === 'GearType') forms.value.gear = ''; if (endpoint === 'VehicleBrand') forms.value.brand = ''; if (endpoint === 'VehicleCondition') forms.value.condition = ''; await loadBaseData(); } catch (e) { toast.error("Failed to add"); } finally { isSubmitting.value = false; } }
+async function createModel() { const f = newModelForm.value; if (!f.name || !f.vehicleBrandId || !f.vehicleTypeId || f.vehicleBodyTypesIds.length === 0) { toast.warning("Fill all fields"); return; } isSubmitting.value = true; try { await axios.post(`${API_BASE}/VehicleModel`, f, { headers: { 'Authorization': `Bearer ${token.value}` } }); toast.success("Model created!"); newModelForm.value.name = ''; newModelForm.value.vehicleBodyTypesIds = []; } catch (e) { toast.error("Error creating model"); } finally { isSubmitting.value = false; } }
+async function loadDeleteList(category) { deleteTarget.value = category; isListLoading.value = true; try { const res = await axios.get(`${API_BASE}/${category}`); deleteList.value = res.data; } catch (e) { toast.error(`Error loading ${category}`); } finally { isListLoading.value = false; } }
+async function deleteItem(id) { if(!confirm("Delete this item?")) return; try { await axios.delete(`${API_BASE}/${deleteTarget.value}`, { headers: { 'Authorization': `Bearer ${token.value}` }, params: { id: id } }); toast.success("Deleted."); deleteList.value = deleteList.value.filter(i => i.id !== id); loadBaseData(); } catch (e) { if (e.response?.status === 404) { deleteList.value = deleteList.value.filter(i => i.id !== id); } else { toast.error(`Delete failed`); } } }
+function sortBy(key) { if (sortConfig.value.key === key) { sortConfig.value.order = sortConfig.value.order === 'asc' ? 'desc' : 'asc'; } else { sortConfig.value.key = key; sortConfig.value.order = 'asc'; } }
 
 // --- LIFECYCLE ---
-
 onMounted(() => {
   if (activeTab.value === 'dashboard') loadDashboardData();
   if (activeTab.value === 'users') fetchUsers();
   if (activeTab.value === 'cars') loadBaseData();
+  if (activeTab.value === 'reports') generateReport();
 });
 
 watch(activeTab, (newTab) => {
   if (newTab === 'dashboard') loadDashboardData();
   if (newTab === 'users' && users.value.length === 0) fetchUsers();
   if (newTab === 'cars') loadBaseData();
+  if (newTab === 'reports') generateReport();
 });
 
 watch(carDataMode, (newMode) => {
-  if (activeTab.value === 'cars' && newMode === 'delete') {
-      loadDeleteList(deleteTarget.value);
-  }
+  if (activeTab.value === 'cars' && newMode === 'delete') loadDeleteList(deleteTarget.value);
 });
 </script>
 
@@ -1277,4 +1140,78 @@ input, select { width: 100%; height: 42px; padding: 0 12px; background: rgba(0, 
 .status-pill { font-size: 10px; padding: 3px 8px; border-radius: 10px; font-weight: 600; text-transform: uppercase; }
 .status-pill.published { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); }
 .status-pill.hidden { background: rgba(255, 255, 255, 0.1); color: #aaa; }
+
+/* --- REPORT STYLES --- */
+.report-controls-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 30px;
+}
+
+.report-form-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.date-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #555;
+  color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  font-family: 'Open Sans', sans-serif;
+  color-scheme: dark; /* Makes the calendar picker dark mode */
+}
+
+.chart-wrapper {
+  background: rgba(30, 30, 30, 0.8);
+  border-radius: 12px;
+  padding: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 450px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chart-header h3 {
+  margin: 0;
+  color: #ddd;
+  font-size: 18px;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 15px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
+.dot.users { background: #3498db; }
+.dot.listings { background: #2ecc71; }
+
+.spinner-mini {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 1s infinite linear;
+  margin-right: 5px;
+}
 </style>
