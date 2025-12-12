@@ -3,7 +3,6 @@
     <div class="form-container">
       <div class="header-row">
         <h1>{{ pageTitle }}</h1>
-
       </div>
       
       <div class="progressbar-wrapper">
@@ -80,21 +79,94 @@
                 </div>
               </div>
 
-              <div class="form-group">
-                <label for="licensePlate">{{ t('createListing.step1.licensePlate') }}</label>
-                <input 
-                  type="text" 
-                  id="licensePlate" 
-                  :value="listing.licensePlate"
-                  @input="formatLicensePlate"
-                  placeholder="AA1234BB" 
-                  maxlength="8"
-                >
-                <small style="color: #aaa; font-size: 11px; margin-top: 4px; display: block;">
-                  {{ t('createListing.step1.licensePlateHelp') }}
-                </small>
-              </div>
+              <div class="identification-section">
+                <label style="margin-bottom: 10px; display: block; font-weight: 600;">Ідентифікація авто *</label>
+                
+                <div class="toggle-container">
+                  <button 
+                    type="button" 
+                    class="toggle-btn" 
+                    :class="{ active: inputType === 'plate' }" 
+                    @click="switchInputType('plate')"
+                  >
+                    🇺🇦 Держ. номер
+                  </button>
+                  <button 
+                    type="button" 
+                    class="toggle-btn" 
+                    :class="{ active: inputType === 'vin' }" 
+                    @click="switchInputType('vin')"
+                  >
+                    🌎 VIN код
+                  </button>
+                </div>
 
+                <div v-if="inputType === 'plate'" class="form-group fade-in">
+                  <input 
+                    type="text" 
+                    id="licensePlate" 
+                    v-model="listing.licensePlate"
+                    @input="formatLicensePlate"
+                    placeholder="AA1234BB" 
+                    maxlength="8"
+                    class="plate-input"
+                  >
+                  <small style="color: #aaa; margin-top: 5px; display: block;">Український номерний знак</small>
+                </div>
+
+                <div v-if="inputType === 'vin'" class="form-group fade-in">
+                  <div class="input-wrapper" :class="{ 
+                      'has-error': vinError || vinStatus === 'invalid', 
+                      'has-success': vinStatus === 'valid',
+                      'has-warning': vinStatus === 'warning'
+                  }">
+                    <input 
+                      type="text" 
+                      id="vin" 
+                      v-model="listing.vin" 
+                      @input="handleVinInput" 
+                      placeholder="WBA..." 
+                      maxlength="17"
+                      :class="{ 
+                          'input-error': vinError || vinStatus === 'invalid',
+                          'input-success': vinStatus === 'valid',
+                          'input-warning': vinStatus === 'warning'
+                      }"
+                    >
+                    
+                    <span v-if="vinStatus === 'loading'" class="status-icon">
+                      <div class="mini-spinner"></div>
+                    </span>
+
+                    <span v-if="vinStatus === 'valid'" class="status-icon valid-icon" title="Перевірено">
+                      ✅
+                    </span>
+
+                    <span v-if="vinStatus === 'warning'" class="status-icon warning-icon" title="Ручне заповнення">
+                       ⚠️
+                    </span>
+
+                    <span v-if="vinStatus === 'invalid' || vinError" class="status-icon invalid-icon" title="Помилка">
+                      ❌
+                    </span>
+                  </div>
+                  
+                  <small v-if="vinError" class="error-message">{{ vinError }}</small>
+                  <small v-else-if="vinStatus === 'invalid'" class="error-message">{{ vinStatusMsg }}</small>
+                  
+                  <small v-else-if="vinStatus === 'valid'" style="color: #2ecc71; margin-top: 5px; display: block; font-weight: 600;">
+                    {{ vinStatusMsg }} — Verified
+                  </small>
+                  
+                  <small v-else-if="vinStatus === 'warning'" style="color: #f1c40f; margin-top: 5px; display: block; font-weight: 600;">
+                     {{ vinStatusMsg }}
+                  </small>
+                  
+                  <small v-else style="color: #aaa; margin-top: 5px; display: block;">
+                    Введіть 17 символів для автоматичної перевірки.
+                  </small>
+                </div>
+              </div>
               <div class="form-row">
                 <div class="form-group">
                   <label for="region">{{ t('createListing.step1.region') }} *</label>
@@ -269,271 +341,215 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const { t, te } = useI18n();
-const { token, user } = useAuth();
+const { token } = useAuth();
 const DRAFT_STORAGE_KEY = 'newListingDraft';
 
 const API_HOST = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
 
-// --- РЕЖИМ РЕДАКТИРОВАНИЯ ---
+// --- STATE ---
 const listingId = ref(route.params.id); 
 const isEditMode = computed(() => !!listingId.value);
 const isSubmitting = ref(false);
 const isDataLoading = ref(isEditMode.value); 
-const pageTitle = computed(() => 
-  isEditMode.value ? t('editListing.title') : t('createListing.title')
-);
+
+const vinError = ref(''); 
+const inputType = ref('plate');
+const vinStatus = ref(null);
+const vinStatusMsg = ref(''); 
+
+const pageTitle = computed(() => isEditMode.value ? t('editListing.title') : t('createListing.title'));
 const submitButtonText = computed(() => {
-    if (isSubmitting.value) {
-        return t('createListing.buttons.submitting');
-    }
+    if (isSubmitting.value) return t('createListing.buttons.submitting');
     return isEditMode.value ? t('editListing.buttons.saveChanges') : t('createListing.buttons.submit');
 });
 
-// --- СПИСКИ ДАНИХ ---
-const lists = ref({
-  vehicleTypes: [],
-  brands: [],
-  models: [],
-  bodyTypes: [],
-  regions: [],
-  cities: [],
-  conditions: [], 
-  fuelTypes: [],
-  gearTypes: [],
-});
+const lists = ref({ vehicleTypes: [], brands: [], models: [], bodyTypes: [], regions: [], cities: [], conditions: [], fuelTypes: [], gearTypes: [] });
 
-// --- ДАНІ ОГОЛОШЕННЯ (ОЧИЩЕНО) ---
 const listing = ref({
-  vehicleTypeId: null,
-  brandId: null,
-  modelId: null,
-  bodyTypeId: null,
-  year: new Date().getFullYear(),
-  mileage: '',
-  regionId: null,
-  cityId: null,
-  fuelTypeId: null,
-  gearTypeId: null,
-  isPublished: false,
-  colorHex: '', 
-  inAccident: false,
-  conditionId: null, 
-  price: '',
-  currency: 'USD', 
-  description: '',
-  licensePlate: '',
+  vehicleTypeId: null, brandId: null, modelId: null, bodyTypeId: null,
+  year: new Date().getFullYear(), mileage: '',
+  regionId: null, cityId: null,
+  fuelTypeId: null, gearTypeId: null,
+  isPublished: false, colorHex: '', inAccident: false, conditionId: null, 
+  price: '', currency: 'USD', description: '',
+  licensePlate: '', vin: '', 
   photosToDelete: [] 
 });
 const listingPhotos = ref([]); 
 const currentStep = ref(1);
 const steps = ref([
-  { titleKey: 'createListing.steps.basic' },
-  { titleKey: 'createListing.steps.specs' },
-  { titleKey: 'createListing.steps.price' },      
-  { titleKey: 'createListing.steps.description' }, 
+  { titleKey: 'createListing.steps.basic' }, { titleKey: 'createListing.steps.specs' },
+  { titleKey: 'createListing.steps.price' }, { titleKey: 'createListing.steps.description' }, 
   { titleKey: 'createListing.steps.photos' }       
 ]);
 
-const colorOptions = [
-  { hex: '#000000' },
-  { hex: '#ffffff' },
-  { hex: '#808080' },
-  { hex: '#cccccc' }, 
-  { hex: '#ff0000' },
-  { hex: '#0000ff' },
-  { hex: '#008000' }
-];
+const colorOptions = [{ hex: '#000000' }, { hex: '#ffffff' }, { hex: '#808080' }, { hex: '#cccccc' }, { hex: '#ff0000' }, { hex: '#0000ff' }, { hex: '#008000' }];
+const years = computed(() => Array.from({length: new Date().getFullYear() - 1969}, (_, i) => new Date().getFullYear() - i));
 
-const years = computed(() => {
-  const currentYear = new Date().getFullYear();
-  const startYear = 1970;
-  let yearList = [];
-  for (let i = currentYear; i >= startYear; i--) {
-    yearList.push(i);
-  }
-  return yearList;
-});
+const preventInvalidInput = (e) => { if (['-', '+', 'e', 'E'].includes(e.key)) e.preventDefault(); };
 
-const preventInvalidInput = (event) => {
-  if (['-', '+', 'e', 'E'].includes(event.key)) {
-    event.preventDefault();
-  }
-};
+function getLabel(cat, name) {
+  if (!name) return '';
+  const keyRaw = name.toLowerCase().replace(/['’\s\/,.]/g, '_');
+  const fullKey = `options.${cat}.${keyRaw}`;
+  return te(fullKey) ? t(fullKey) : name; 
+}
 
-function getLabel(category, serverName) {
-  if (!serverName) return '';
-  const keyRaw = serverName.toLowerCase()
-    .replace(/'/g, '')       
-    .replace(/’/g, '')
-    .replace(/\s+/g, '_')     
-    .replace(/\//g, '_')      
-    .replace(/,/g, '')        
-    .replace(/\./g, '');      
+// --- LOGIC: Input Switch ---
+function switchInputType(type) {
+    inputType.value = type;
+    vinError.value = '';
     
-  const fullKey = `options.${category}.${keyRaw}`;
-  if (te(fullKey)) {
-    return t(fullKey); 
-  }
-  return serverName; 
-}async function fetchListingData(id) {
+}
+
+// --- LOGIC: VIN ---
+function handleVinInput(event) { 
+    let val = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (val.length > 17) val = val.slice(0, 17);
+    
+    listing.value.vin = val;
+    event.target.value = val; 
+    
+    // Скидаємо статуси
+    vinError.value = ''; 
+    vinStatus.value = null;
+    vinStatusMsg.value = '';
+    
+    if (val.length === 17) checkVinData(val);
+}const isManualMode = ref(false);
+
+async function checkVinData(vin) {
+    vinStatus.value = 'loading';
+    vinStatusMsg.value = '';
+    isManualMode.value = false; // Сброс
+
+    try {
+        const res = await axios.get(`${API_HOST}/VehicleCheck/vin/${vin}`);
+        const apiData = res.data;
+        
+        // УСПЕХ: Авто найдено (2021+)
+        vinStatus.value = 'valid';
+        vinStatusMsg.value = `${apiData.brand} ${apiData.model} (${apiData.year})`;
+        
+       if (apiData.digits) {
+            listing.value.licensePlate = apiData.digits;
+            toast.success(`Номер ${apiData.digits} знайдено!`);
+        } else if (apiData.number) {
+            // На случай, если API вернет number в другом формате
+            listing.value.licensePlate = apiData.number;
+        }
+    } catch(e) {
+       if (e.response && e.response.status === 404) {
+             vinStatus.value = 'warning'; 
+             vinStatusMsg.value = "Авто не знайдено в базі. Заповніть дані вручну.";
+             isManualMode.value = true;
+        } else {
+             vinStatus.value = 'invalid';
+             vinStatusMsg.value = "Помилка перевірки VIN";
+        }
+    }
+}
+
+// --- DATA FETCHING ---
+async function fetchListingData(id) {
     isDataLoading.value = true;
     try {
         const res = await axios.get(`${API_HOST}/Listing/${id}`);
         const data = res.data;
-        console.log("Статус с сервера:", data.isPublished);
-        const vehicleTypeId = data.vehicleType?.id ?? data.model?.brand?.vehicleTypeId ?? null;
-        const brandId = data.brand?.id ?? data.model?.brandId ?? null;
-        const modelId = data.model?.id ?? null; 
-        const regionId = data.region?.id ?? data.city?.regionId ?? null;
         
-        listing.value.isPublished = data.isPublished; // Важно для логики публикации
+        if (data.vin) inputType.value = 'vin';
+        else inputType.value = 'plate';
+
+        const vehicleTypeId = data.vehicleType?.id ?? data.model?.brand?.vehicleTypeId;
+        const brandId = data.brand?.id ?? data.model?.brandId;
+        const modelId = data.model?.id; 
+        const regionId = data.region?.id ?? data.city?.regionId;
+        
+        listing.value.isPublished = data.isPublished;
         listing.value.vehicleTypeId = vehicleTypeId;
         listing.value.brandId = brandId;
         listing.value.regionId = regionId;
         listing.value.modelId = modelId; 
 
-        await fetchBrands(vehicleTypeId);
-        await fetchModels(brandId, vehicleTypeId);
-        await fetchBodyTypes(modelId); 
-        await fetchCities(regionId);
+        await Promise.all([
+            fetchBrands(vehicleTypeId), fetchModels(brandId, vehicleTypeId),
+            fetchBodyTypes(modelId), fetchCities(regionId)
+        ]);
         
-        listing.value.cityId = data.city?.id ?? null;
-        listing.value.bodyTypeId = data.bodyType?.id ?? null; 
-        listing.value.year = data.year;
-        listing.value.mileage = data.mileage;
-        listing.value.fuelTypeId = data.fuelType?.id ?? data.fuelTypeId ?? null;
-        listing.value.gearTypeId = data.gearType?.id ?? data.gearTypeId ?? null;
+        Object.assign(listing.value, {
+            cityId: data.city?.id, bodyTypeId: data.bodyType?.id,
+            year: data.year, mileage: data.mileage,
+            fuelTypeId: data.fuelType?.id ?? data.fuelTypeId,
+            gearTypeId: data.gearType?.id ?? data.gearTypeId,
+            colorHex: data.colorHex, inAccident: data.hasAccident,
+            conditionId: data.condition?.id ?? data.conditionId,
+            price: data.price, currency: data.currency || 'USD', description: data.description,
+            licensePlate: data.number || '', 
+            vin: data.vin || ''
+        });
         
-        listing.value.colorHex = data.colorHex;
-        listing.value.inAccident = data.hasAccident;
-        listing.value.conditionId = data.condition?.id ?? data.conditionId ?? null;
-
-        listing.value.price = data.price;
-        listing.value.licensePlate = data.number  || '';
-        listing.value.currency = data.currency;
-        listing.value.description = data.description;
+        // Якщо завантажуємо існуючий VIN - перевіряємо його статус
+        if (listing.value.vin && listing.value.vin.length === 17) {
+            checkVinData(listing.value.vin);
+        }
         
         let rawPhotos = data.photos || data.photoUrls || [];
-        
         if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
-            // Если это объекты с SortOrder - сортируем их
             if (typeof rawPhotos[0] === 'object') {
                 rawPhotos.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-                
-                listingPhotos.value = rawPhotos.map(p => ({ 
-                    url: p.url,      
-                    id: p.id,        
-                    isExisting: true // Флаг: это фото уже есть на сервере
-                }));
+                listingPhotos.value = rawPhotos.map(p => ({ url: p.url, id: p.id, isExisting: true }));
             } else {
-                // Если это просто массив строк (старый формат), берем как есть
-                listingPhotos.value = rawPhotos.map((url, index) => ({ 
-                    url: url, 
-                    id: -index, // Фейковый ID
-                    isExisting: true 
-                }));
+                listingPhotos.value = rawPhotos.map((url, index) => ({ url: url, id: -index, isExisting: true }));
             }
-        } else {
-            listingPhotos.value = [];
-        }
+        } else listingPhotos.value = [];
 
     } catch (e) {
-        console.error("Помилка завантаження даних:", e);
+        console.error(e);
         toast.error(t('editListing.toast.fetchError'));
         router.push('/profile');
-    } finally {
-        isDataLoading.value = false;
-    }
+    } finally { isDataLoading.value = false; }
 }
 
+// --- HELPERS FETCH ---
 async function fetchBrands(typeId) {
     if (!typeId) return (lists.value.brands = []);
-    try {
-        const res = await axios.get(`${API_HOST}/VehicleBrand/for-type/${typeId}`);
-        lists.value.brands = res.data;
-    } catch (e) { console.error(e); lists.value.brands = []; }
+    try { lists.value.brands = (await axios.get(`${API_HOST}/VehicleBrand/for-type/${typeId}`)).data; } catch (e) { lists.value.brands = []; }
 }
 async function fetchModels(brandId, typeId) {
     if (!brandId || !typeId) return (lists.value.models = []);
-    try {
-        const res = await axios.get(`${API_HOST}/VehicleModel`, {
-            params: { brandId: brandId, vehicleTypeId: typeId }
-        });
-        lists.value.models = res.data;
-    } catch (e) { console.error(e); lists.value.models = []; }
+    try { lists.value.models = (await axios.get(`${API_HOST}/VehicleModel`, { params: { brandId, vehicleTypeId: typeId } })).data; } catch (e) { lists.value.models = []; }
 }
 async function fetchBodyTypes(modelId) {
     if (!modelId) return (lists.value.bodyTypes = []);
-    try {
-        const res = await axios.get(`${API_HOST}/VehicleBodyType/for-model/${modelId}`);
-        lists.value.bodyTypes = res.data;
-    } catch (e) { console.error(e); lists.value.bodyTypes = []; }
+    try { lists.value.bodyTypes = (await axios.get(`${API_HOST}/VehicleBodyType/for-model/${modelId}`)).data; } catch (e) { lists.value.bodyTypes = []; }
 }
 async function fetchCities(regionId) {
     if (!regionId) return (lists.value.cities = []);
-    try {
-        const res = await axios.get(`${API_HOST}/City/for-region/${regionId}`);
-        lists.value.cities = res.data;
-    } catch (e) { console.error(e); lists.value.cities = []; }
+    try { lists.value.cities = (await axios.get(`${API_HOST}/City/for-region/${regionId}`)).data; } catch (e) { lists.value.cities = []; }
 }
 
-// --- МОНТУВАННЯ ---
 onMounted(async () => {
   try {
     const [types, reg, cond, fuels, gears] = await Promise.all([
-      axios.get(`${API_HOST}/VehicleType`),
-      axios.get(`${API_HOST}/Region`),
-      axios.get(`${API_HOST}/VehicleCondition`),
-      axios.get(`${API_HOST}/FuelType`),
-      axios.get(`${API_HOST}/GearType`)
+      axios.get(`${API_HOST}/VehicleType`), axios.get(`${API_HOST}/Region`),
+      axios.get(`${API_HOST}/VehicleCondition`), axios.get(`${API_HOST}/FuelType`), axios.get(`${API_HOST}/GearType`)
     ]);
-
     lists.value.vehicleTypes = types.data;
     lists.value.regions = reg.data;
     lists.value.conditions = cond.data;
     lists.value.fuelTypes = fuels.data;
     lists.value.gearTypes = gears.data;
-    
-    if (isEditMode.value) {
-        await fetchListingData(listingId.value);
-    }
-  } catch (e) {
-    console.error("Помилка завантаження списків:", e);
-    if (isEditMode.value) {
-        toast.error(t('editListing.toast.fetchError'));
-        router.push('/profile');
-    }
-  }
+    if (isEditMode.value) await fetchListingData(listingId.value);
+  } catch (e) { console.error(e); }
 });
 
 // --- WATCHERS ---
-watch(() => listing.value.vehicleTypeId, async (newId) => {
-    if (isDataLoading.value) return; 
-    listing.value.brandId = null;
-    listing.value.modelId = null;
-    await fetchBrands(newId);
-});
-watch(() => listing.value.brandId, async (newBrandId) => {
-    if (isDataLoading.value) return; 
-    listing.value.modelId = null;
-    await fetchModels(newBrandId, listing.value.vehicleTypeId);
-});
-watch(() => listing.value.modelId, async (newId) => {
-    if (isDataLoading.value) return; 
-    listing.value.bodyTypeId = null;
-    await fetchBodyTypes(newId);
-});
-watch(() => listing.value.regionId, async (newId) => {
-    if (isDataLoading.value) return; 
-    listing.value.cityId = null;
-    await fetchCities(newId);
-});
+watch(() => listing.value.vehicleTypeId, async (newId) => { if(!isDataLoading.value) { listing.value.brandId = null; await fetchBrands(newId); } });
+watch(() => listing.value.brandId, async (newBrandId) => { if(!isDataLoading.value) { listing.value.modelId = null; await fetchModels(newBrandId, listing.value.vehicleTypeId); } });
+watch(() => listing.value.modelId, async (newId) => { if(!isDataLoading.value) { listing.value.bodyTypeId = null; await fetchBodyTypes(newId); } });
+watch(() => listing.value.regionId, async (newId) => { if(!isDataLoading.value) { listing.value.cityId = null; await fetchCities(newId); } });
 
-// --- ОБРОБКА ФОТО ---
-function updateFiles(files) {
-    listingPhotos.value = files; // Тільки НОВІ файли
-}
-
+function updateFiles(files) { listingPhotos.value = files; }
 function handlePhotoDeletion(deletedId) {
     if (!listing.value.photosToDelete.includes(deletedId)) {
         listing.value.photosToDelete.push(deletedId);
@@ -541,11 +557,8 @@ function handlePhotoDeletion(deletedId) {
     }
 }
 
-// --- НАВІГАЦІЯ ---
-function prevStep() {
-  if (currentStep.value > 1) currentStep.value--;
-}
-
+// --- NAV ---
+function prevStep() { if (currentStep.value > 1) currentStep.value--; }
 function nextStep() {
   if (currentStep.value === 1) {
     if (!listing.value.vehicleTypeId || !listing.value.brandId || !listing.value.modelId || !listing.value.regionId || !listing.value.cityId || !listing.value.bodyTypeId) {
@@ -566,47 +579,59 @@ function nextStep() {
 }function getFormData() {
   const formData = new FormData();
   
-  if (isEditMode.value && listingId.value) {
-      formData.append('Id', listingId.value);
-  }
+  // Хелпер: добавляем поле только если оно не null и не undefined
+  const appendIfVal = (key, val) => {
+    if (val !== null && val !== undefined && val !== '') {
+      formData.append(key, val);
+    }
+  };
 
-  // --- FK ---
-  if (listing.value.modelId) formData.append('ModelId', listing.value.modelId);
-  if (listing.value.bodyTypeId) formData.append('BodyTypeId', listing.value.bodyTypeId);
-  if (listing.value.conditionId) formData.append('ConditionId', listing.value.conditionId);
-  if (listing.value.cityId) formData.append('CityId', listing.value.cityId);
-  if (listing.value.fuelTypeId) formData.append('FuelTypeId', listing.value.fuelTypeId);
-  if (listing.value.gearTypeId) formData.append('GearTypeId', listing.value.gearTypeId);
+  if (isEditMode.value && listingId.value) formData.append('Id', listingId.value);
+
+  // Используем безопасное добавление для ID (чтобы не отправлять строку "null")
+  appendIfVal('ModelId', listing.value.modelId);
+  appendIfVal('BodyTypeId', listing.value.bodyTypeId);
+  appendIfVal('ConditionId', listing.value.conditionId);
+  appendIfVal('CityId', listing.value.cityId);
+  appendIfVal('FuelTypeId', listing.value.fuelTypeId);
+  appendIfVal('GearTypeId', listing.value.gearTypeId);
   
-  // --- Fields ---
+  // Числовые поля: 0 допустимо, поэтому проверяем отдельно
   formData.append('Year', listing.value.year);
   formData.append('Mileage', listing.value.mileage || 0);
   formData.append('Price', listing.value.price || 0);
+  
   formData.append('Description', listing.value.description || '');
   formData.append('ColorHex', listing.value.colorHex || '#000000'); 
   formData.append('HasAccident', listing.value.inAccident);
   
-  formData.append('Number', listing.value.licensePlate || ''); 
-  if (listing.value.photosToDelete && Array.isArray(listing.value.photosToDelete)) {
-    listing.value.photosToDelete.forEach(id => {
-        if (Number.isInteger(id) && id > 0) {
-            formData.append('PhotosToRemove', id); 
-        }
-    });
+  // --- ГЛАВНОЕ ИСПРАВЛЕНИЕ ДЛЯ VIN И НОМЕРА ---
+  
+  // Отправляем VIN, только если он полностью заполнен (17 символов)
+  if (listing.value.vin && listing.value.vin.length === 17) {
+      formData.append('Vin', listing.value.vin);
+  }
+
+  // Отправляем Номер, только если он заполнен (минимум 3 символа)
+  // Если пользователь вводит только VIN (старая машина без номера в базе), номер не отправится, и это ОК.
+  if (listing.value.licensePlate && listing.value.licensePlate.length >= 3) {
+      formData.append('Number', listing.value.licensePlate);
+  }
+
+  // ... (код для фото оставляем без изменений)
+  if (listing.value.photosToDelete) {
+    listing.value.photosToDelete.forEach(id => { if (id > 0) formData.append('PhotosToRemove', id); });
   }
 
   let newPhotoIndex = 0;    
   let updatePhotoIndex = 0; 
-
   listingPhotos.value.forEach((photoItem, index) => {
       const actualFile = photoItem.file; 
-
       if (actualFile instanceof File) {
           formData.append(`NewPhotos[${newPhotoIndex}].File`, actualFile);
           formData.append(`NewPhotos[${newPhotoIndex}].SortOrder`, index);
           newPhotoIndex++;
-      }
-      else if (photoItem.isExisting && photoItem.id > 0) {
+      } else if (photoItem.isExisting && photoItem.id > 0) {
           formData.append(`UpdatedPhotoSortOrder[${updatePhotoIndex}].PhotoId`, photoItem.id);
           formData.append(`UpdatedPhotoSortOrder[${updatePhotoIndex}].SortOrder`, index);
           updatePhotoIndex++;
@@ -615,46 +640,59 @@ function nextStep() {
   
   return formData;
 }
-
 async function handleSubmit() {
+  vinError.value = '';
+  
   if (isSubmitting.value) return;
   
-  // Валидация: фото обязательны
   if (listingPhotos.value.length === 0) {
       toast.warning(t('createListing.toast.addPhoto'));
       return;
   }
 
-  // Валидация: номер авто (если введен, то мин 3 символа)
-  if (listing.value.licensePlate && listing.value.licensePlate.length < 3) {
-      toast.warning("Номер авто занадто короткий (мінімум 3 символи)");
-      return;
+  // --- ВАЛІДАЦІЯ ТІЛЬКИ АКТИВНОГО ПОЛЯ ---
+  if (inputType.value === 'plate') {
+      if (!listing.value.licensePlate || listing.value.licensePlate.length < 3) {
+          toast.warning("Вкажіть коректний держ. номер (мінімум 3 символи)");
+          currentStep.value = 1;
+          setTimeout(() => document.getElementById('licensePlate')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+          return;
+      }
+  } 
+  else if (inputType.value === 'vin') {
+      // 1. Перевірка довжини
+      if (!listing.value.vin || listing.value.vin.length !== 17) {
+          vinError.value = "VIN код повинен містити рівно 17 символів";
+          currentStep.value = 1;
+          setTimeout(() => document.getElementById('vin')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+          return;
+      }
+      
+      // 2. БЛОКУВАННЯ ТІЛЬКИ ПРИ РЕАЛЬНІЙ ПОМИЛЦІ
+      // Якщо статус 'warning' (не знайдено в базі, але код валідний) - пропускаємо!
+      if (vinStatus.value === 'invalid') {
+          vinError.value = "Помилка перевірки VIN. Перевірте код або спробуйте ввести держ. номер.";
+          currentStep.value = 1;
+          setTimeout(() => document.getElementById('vin')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+          return;
+      }
+      
+      if (vinStatus.value === 'loading') {
+           toast.info("Зачекайте завершення перевірки VIN...");
+           return;
+      }
   }
 
   isSubmitting.value = true;
   
-  let url = '';
-  let method = '';
-  
-  if (isEditMode.value) {
-      // Логика публикации черновика
-      if (listing.value.isPublished === false) {
-          url = `${API_HOST}/Listing/draft/${listingId.value}/publish`;
-          method = 'post';
-      } 
-      // Логика обновления уже опубликованного
-      else {
-          url = `${API_HOST}/Listing/${listingId.value}`;
-          method = 'put';
-      }
-  } else {
-      // Логика создания нового
-      url = `${API_HOST}/Listing`;
-      method = 'post';
-  }
+  // ... (далі код відправки) ...
+  let url = isEditMode.value 
+      ? (listing.value.isPublished ? `${API_HOST}/Listing/${listingId.value}` : `${API_HOST}/Listing/draft/${listingId.value}/publish`)
+      : `${API_HOST}/Listing`;
+  let method = isEditMode.value && listing.value.isPublished ? 'put' : 'post';
 
   try {
-    const formData = getFormData();
+    const formData = getFormData(); // Викликаємо оновлену функцію
     
     await axios[method](url, formData, {
       headers: {
@@ -668,8 +706,29 @@ async function handleSubmit() {
     router.push('/profile');
     
   } catch (error) {
-    console.error("Помилка обробки оголошення:", error);
-    handleError(error);
+    console.error("Помилка:", error);
+    
+    const errorData = error.response?.data;
+    let serverMessage = '';
+
+    if (typeof errorData === 'string') {
+         serverMessage = errorData;
+    } else if (errorData?.title) {
+         serverMessage = errorData.title;
+    } else if (errorData?.errors) {
+         const firstKey = Object.keys(errorData.errors)[0];
+         serverMessage = errorData.errors[firstKey][0];
+    } else if (errorData?.message) {
+         serverMessage = errorData.message;
+    }
+
+    if (serverMessage && (serverMessage.includes('VIN') || inputType.value === 'vin')) {
+         vinError.value = serverMessage;
+         currentStep.value = 1;
+         setTimeout(() => document.getElementById('vin')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    } else {
+         handleError(error);
+    }
   } finally {
     isSubmitting.value = false;
   }
@@ -677,59 +736,32 @@ async function handleSubmit() {
 async function handleDraft() {
   if (isSubmitting.value) return;
   isSubmitting.value = true;
-  
-  const url = isEditMode.value 
-      ? `${API_HOST}/Listing/draft/${listingId.value}` 
-      : `${API_HOST}/Listing/draft`; 
-      
+  const url = isEditMode.value ? `${API_HOST}/Listing/draft/${listingId.value}` : `${API_HOST}/Listing/draft`; 
   const method = isEditMode.value ? 'put' : 'post';
-
   try {
-    const formData = getFormData();
-    // DraftVehicleListingRequest на бэке ждет 'NewPhotos' - тут всё совпадает идеально
-    
-    await axios[method](url, formData, {
-      headers: {
-        'Authorization': `Bearer ${token.value}`
-      }
-    });
+    await axios[method](url, getFormData(), { headers: { 'Authorization': `Bearer ${token.value}` } });
     toast.success(t('createListing.toast.draftSaved'));
-  } catch (error) {
-    console.error("Помилка чернетки:", error);
-    handleError(error);
-  } finally {
-    isSubmitting.value = false;
-  }
+  } catch (error) { handleError(error); } finally { isSubmitting.value = false; }
 }
 
-// Функція для форматування номера (тільки A-Z, 0-9, без пробілів)
 function formatLicensePlate(event) {
-  let value = event.target.value;
-  
-  value = value.toUpperCase();
-  value = value.replace(/[^A-Z0-9А-ЯІЇЄ]/g, '');
-  if (value.length > 8) {
-    value = value.slice(0, 8);
-  }
+  let value = event.target.value.toUpperCase().replace(/[^A-Z0-9А-ЯІЇЄ]/g, '');
+  if (value.length > 8) value = value.slice(0, 8);
   listing.value.licensePlate = value;
   event.target.value = value;
 }
 
-// Вспомогательная функция для красивого вывода ошибок
 function handleError(error) {
     let msg = "Сталася помилка";
-    if (error.response?.data?.title) {
-        msg = error.response.data.title;
-    } else if (typeof error.response?.data === 'string') {
-        msg = error.response.data;
-    } else if (error.response?.data?.errors) {
-        // Собираем все ошибки валидации в одну строку
-        msg = Object.values(error.response.data.errors).flat().join('\n');
-    }
+    if (error.response?.data?.title) msg = error.response.data.title;
+    else if (typeof error.response?.data === 'string') msg = error.response.data;
+    else if (error.response?.data?.errors) msg = Object.values(error.response.data.errors).flat().join('\n');
     toast.error(msg);
 }
 </script>
+
 <style scoped>
+/* Стилі ті самі, додаємо стилі для статусів VIN */
 .create-listing-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
@@ -741,358 +773,61 @@ function handleError(error) {
   font-family: 'Open Sans', sans-serif;
   color: #fff;
 }
-.create-listing-view::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 0;
-}
-.header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-.header-row h1 {
-  margin: 0;
-  text-align: left;
-}
-.btn-text {
-  background: none;
-  border: none;
-  color: #ffd700;
-  cursor: pointer;
-  font-size: 14px;
-  text-decoration: underline;
-}
-.btn-text:hover {
-  color: #fff;
-}
-.form-container {
-  max-width: 800px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-}
-.form-card {
-  background-color: rgba(30, 30, 30, 0.7);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 40px rgba(8,7,16,0.6);
-  padding: 30px;
-}
-.form-card h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding-bottom: 10px;
-  font-weight: 500;
-}
-.form-card h2 small {
-  font-size: 13px;
-  color: #ccc;
-  font-weight: 400;
-  margin-left: 10px;
-}
-.form-group {
-  margin-bottom: 20px;
-  position: relative;
-  flex: 1;
-}
-.form-group label {
-  width: 100%;
-  display: block;
-  font-size: 14px; 
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: #fff;
-  text-align: left;
-}
-.form-group input,
-.form-group textarea,
-.form-group select {
-  display: block;
-  width: 100%;
-  height: 45px;
-  padding: 0 12px;
-  border-radius: 3px;
-  background-color: rgba(255,255,255,0.1); 
-  border: 1px solid #555;
-  font-size: 14px;
-  font-weight: 300;
-  color: #fff;
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-  box-sizing: border-box;
-}
-.form-group textarea {
-  height: auto;
-  padding: 12px;
-  min-height: 120px;
-  resize: none;
-}
-.form-group select {
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px 16px;
-  padding-right: 40px; 
-  cursor: pointer;
-}
-.form-group select option {
-  background: #333;
-  color: #fff;
-}
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-  border-color: #ffd700;
-  box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
-  outline: none;
-}
-.form-row {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-@media (min-width: 768px) {
-  .form-row {
-    flex-direction: row;
-  }
-}
-.price-group .input-group {
-  display: flex;
-  gap: 10px; 
-}
-.price-group .input-group input {
-  width: 100%;
-}
-.price-group .input-group select {
-  width: 100px;
-  flex-shrink: 0;
-}
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  padding-top: 0; 
-}
-.form-row .checkbox-group {
-  padding-top: 30px; 
-}
-.checkbox-group.single-checkbox {
-  padding-top: 0; 
-}
-.checkbox-group input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  margin-right: 12px;
-  flex-shrink: 0;
-  cursor: pointer;
-  background-color: rgba(255,255,255,0.1); 
-  border: 1px solid #555;
-  border-radius: 3px;
-  appearance: none;
-  position: relative;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-.checkbox-group input[type="checkbox"]:checked {
-  background-color: #ffd700;
-  border-color: #ffd700;
-}
-.checkbox-group input[type="checkbox"]:checked::after {
-  content: '✔';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #333;
-  font-size: 12px;
-  font-weight: bold;
-}
-.checkbox-group label {
-  margin-bottom: 0;
-  font-weight: 300;
-  text-align: left;
-  cursor: pointer;
-}
-.comfort-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-}
-@media (min-width: 576px) {
-  .comfort-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-@media (min-width: 768px) {
-  .comfort-grid {
-    grid-template-columns: 1fr 1fr 1fr; 
-  }
-}
-.comfort-grid .checkbox-group {
-  padding-top: 0;
-}
-.progressbar-wrapper {
-  width: 100%;
-  margin-bottom: 30px;
-}
-.progressbar {
-  display: flex;
-  justify-content: space-between;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-.progressbar li {
-  flex: 1;
-  text-align: center;
-  position: relative;
-  color: #aaa;
-  font-size: 12px;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-.progressbar li::before {
-  content: '';
-  display: block;
-  width: 20px;
-  height: 20px;
-  background: #555;
-  border: 2px solid #555;
-  border-radius: 50%;
-  margin: 0 auto 8px auto;
-  transition: all 0.3s ease;
-}
-.progressbar li::after {
-  content: '';
-  position: absolute;
-  top: 10px;
-  left: -50%;
-  width: 100%;
-  height: 2px;
-  background: #555;
-  z-index: -1;
-  transition: all 0.3s ease;
-}
-.progressbar li:first-child::after {
-  content: none;
-}
-.progressbar li.active {
-  color: #fff;
-}
-.progressbar li.active::before {
-  background: #ffd700;
-  border-color: #ffd700;
-}
-.progressbar li.active::after {
-  background: #ffd700;
-}
-.progressbar li span {
-  display: none; 
-}
-@media (min-width: 768px) {
-  .progressbar li span {
-    display: block; 
-  }
-}
-.step-content {
-  margin-bottom: 25px; 
-}
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: all 0.3s ease-out;
-}
-.fade-slide-enter-from {
-  opacity: 0;
-  transform: translateX(20px);
-}
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-.form-actions {
-  display: flex;
-  justify-content: space-between; 
-  gap: 15px;
-}
-.btn-submit {
-  font-family: 'Open Sans', sans-serif;
-  padding: 12px 0;
-  border-radius: 6px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.3s;
-  background-color: #cc0000;
-  color: #fff;
-  font-size: 16px;
-  text-transform: uppercase;
-  flex: 2;
-}
-.btn-submit:hover {
-  background-color: #aa0000;
-}
-.btn-submit:disabled {
-  background-color: #555;
-  cursor: not-allowed;
-}
-.btn-secondary {
-  font-family: 'Open Sans', sans-serif;
-  padding: 12px 0;
-  border-radius: 6px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.3s;
-  background-color: rgba(255,255,255,0.27); 
-  color: #fff;
-  font-size: 16px;
-  text-transform: uppercase;
-  flex: 1;
-}
-.btn-secondary:hover {
-  background-color: rgba(255,255,255,0.4);
-}
-.btn-secondary:disabled {
-  background-color: #555;
-  color: #999;
-  cursor: not-allowed;
-}
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(5px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  color: white;
-  font-family: 'Open Sans', sans-serif;
-}
-.loading-overlay h2 {
-  margin-top: 20px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-}
-.spinner {
-  width: 60px;
-  height: 60px;
-  border: 5px solid #555;
-  border-top-color: #ffd700;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+.create-listing-view::before { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 0; }
+.header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.header-row h1 { margin: 0; text-align: left; }
+.form-container { max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+.form-card { background-color: rgba(30, 30, 30, 0.7); border-radius: 12px; backdrop-filter: blur(10px); border: 2px solid rgba(255, 255, 255, 0.1); box-shadow: 0 0 40px rgba(8,7,16,0.6); padding: 30px; }
+.form-card h2 { margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 10px; font-weight: 500; }
+.form-group { margin-bottom: 20px; position: relative; flex: 1; }
+.form-group label { width: 100%; display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #fff; text-align: left; }
+.form-group input, .form-group textarea, .form-group select { display: block; width: 100%; height: 45px; padding: 0 12px; border-radius: 3px; background-color: rgba(255,255,255,0.1); border: 1px solid #555; font-size: 14px; font-weight: 300; color: #fff; box-sizing: border-box; }
+.form-group textarea { height: auto; padding: 12px; min-height: 120px; resize: none; }
+.form-group select option { background: #333; color: #fff; }
+.form-row { display: flex; flex-direction: column; gap: 20px; }
+@media (min-width: 768px) { .form-row { flex-direction: row; } }
+.price-group .input-group { display: flex; gap: 10px; }
+.price-group .input-group input { width: 100%; }
+.price-group .input-group select { width: 100px; flex-shrink: 0; }
+.checkbox-group { display: flex; align-items: center; padding-top: 0; }
+.checkbox-group input[type="checkbox"] { width: 18px; height: 18px; margin-right: 12px; cursor: pointer; }
+.progressbar-wrapper { width: 100%; margin-bottom: 30px; }
+.progressbar { display: flex; justify-content: space-between; padding: 0; margin: 0; list-style: none; }
+.progressbar li { flex: 1; text-align: center; position: relative; color: #aaa; font-size: 12px; font-weight: 500; transition: color 0.3s ease; }
+.progressbar li::before { content: ''; display: block; width: 20px; height: 20px; background: #555; border: 2px solid #555; border-radius: 50%; margin: 0 auto 8px auto; transition: all 0.3s ease; }
+.progressbar li::after { content: ''; position: absolute; top: 10px; left: -50%; width: 100%; height: 2px; background: #555; z-index: -1; transition: all 0.3s ease; }
+.progressbar li:first-child::after { content: none; }
+.progressbar li.active { color: #fff; }
+.progressbar li.active::before { background: #ffd700; border-color: #ffd700; }
+.progressbar li.active::after { background: #ffd700; }
+.progressbar li span { display: none; }
+@media (min-width: 768px) { .progressbar li span { display: block; } }
+.step-content { margin-bottom: 25px; }
+.form-actions { display: flex; justify-content: space-between; gap: 15px; }
+.btn-submit { padding: 12px 0; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; background-color: #cc0000; color: #fff; font-size: 16px; text-transform: uppercase; flex: 2; }
+.btn-secondary { padding: 12px 0; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; background-color: rgba(255,255,255,0.27); color: #fff; font-size: 16px; text-transform: uppercase; flex: 1; }
+.loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; }
+.spinner { width: 60px; height: 60px; border: 5px solid #555; border-top-color: #ffd700; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --- НОВІ СТИЛІ (Tabs, VIN) --- */
+.identification-section { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px; }
+.toggle-container { display: flex; gap: 10px; margin-bottom: 15px; }
+.toggle-btn { flex: 1; padding: 10px; border: 1px solid #555; background: transparent; color: #aaa; border-radius: 6px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; }
+.toggle-btn.active { background: #ffd700; border-color: #ffd700; color: #000; }
+.plate-input { text-transform: uppercase; font-weight: bold; letter-spacing: 2px; }
+.input-wrapper { position: relative; }
+.input-wrapper input { padding-right: 35px; }
+.input-wrapper.has-error input { border-color: #e74c3c; box-shadow: 0 0 5px rgba(231, 76, 60, 0.4); }
+.input-wrapper.has-success input { border-color: #2ecc71; box-shadow: 0 0 5px rgba(46, 204, 113, 0.4); }
+.status-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; }
+.valid-icon { font-size: 14px; }
+.invalid-icon { font-size: 14px; }
+.error-message { color: #e74c3c; font-size: 12px; margin-top: 5px; display: block; font-weight: 600; animation: shake 0.3s ease-in-out; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.fade-in { animation: fadeIn 0.3s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Міні спінер */
+.mini-spinner { width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-top-color: #ffd700; border-radius: 50%; animation: spin 0.8s linear infinite; }
 </style>

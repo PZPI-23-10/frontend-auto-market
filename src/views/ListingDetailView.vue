@@ -15,7 +15,14 @@
         <main class="main-content">
           
           <section class="form-card">
-            <h2>{{ listing.brand }} {{ listing.model }} ({{ listing.year }})</h2>
+            <div class="listing-header">
+              <h2>{{ listing.brand }} {{ listing.model }} ({{ listing.year }})</h2>
+              
+              <div v-if="listing.isVerified" class="verified-badge" title="VIN перевірено">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>VERIFIED</span>
+              </div>
+            </div>
             
             <div class="photo-gallery">
               <div class="main-image">
@@ -109,44 +116,12 @@
                     <strong>{{ t('options.bodyType.' + listing.bodyType) }}</strong>
                   </li>
 
-                  <li v-if="listing.driveTrain">
-                    <span>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 15v-4.32a2 2 0 0 1 1.18-1.83l6-3.46a2 2 0 0 1 1.64 0l6 3.46A2 2 0 0 1 21 10.68V15"/><path d="M5 18v-5h14v5"/></svg>
-                      {{ t('fields.driveTrain') }}
-                    </span>
-                    <strong>{{ t('options.driveTrain.' + listing.driveTrain) }}</strong>
-                  </li>
-
-                  <li v-if="listing.engineSize > 0">
-                    <span>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8"/><path d="M18 22V10"/><path d="M14 22V10"/><path d="M6 14H4"/><path d="M6 10H4"/><path d="M10 6H8"/><path d="M16 6h-2"/></svg>
-                      {{ t('fields.engineSize') }}
-                    </span>
-                    <strong>{{ t('carCard.engineSize', { size: listing.engineSize }) }}</strong>
-                  </li>
-
                   <li v-if="listing.color">
                     <span>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 14 6-6"/><path d="M12 14c-1.88 1.88-5.12 1.88-7 0 1.88-1.88 1.88-5.12 0-7 1.88 1.88 5.12 1.88 7 0 1.88 1.88 1.88 5.12 0 7Z"/><path d="m14 12-6 6"/><path d="M14 12c1.88-1.88 5.12-1.88 7 0-1.88 1.88-1.88 5.12 0 7-1.88-1.88-5.12-1.88-7 0-1.88-1.88-1.88-5.12 0-7Z"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 14 6-6"/><path d="M12 14c-1.88 1.88-5.12 1.88-7 0 1.88-1.88 1.88-5.12 0-7 1.88 1.88 5.12 1.88 7 0 1.88 1.88 1.88 5.12 0 7Z"/><path d="m14 12-6 6"/><path d="M14 12c1.88-1.88 5.12-1.88 7 0-1.88 1.88-1.88 5.12 0 7-1.88-1.88-5.12-1.88-7 0-1.88-1.88-1.88-5.12-1.88-7 0-1.88-1.88-1.88-5.12 0-7Z"/></svg>
                       {{ t('fields.color') }}
                     </span>
                     <strong>{{ t('options.color.' + listing.color) }}</strong>
-                  </li>
-
-                  <li v-if="listing.metallic !== null">
-                    <span>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 3 8 21"/><path d="M16 3l-2.2 1.8"/><path d="m14 21 2-18"/><path d="M3 10h18"/><path d="M3 14h18"/></svg>
-                      {{ t('fields.metallic') }}
-                    </span>
-                    <strong>{{ listing.metallic ? t('common.yes') : t('common.no') }}</strong>
-                  </li>
-
-                  <li v-if="listing.paintwork">
-                    <span>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.2 0 .5 0 .7 0 1.4-1.2 2.1-2.8 2.1-4.4 0-3-2.5-5.4-5.5-5.4-1.6 0-3.1.7-4.1 1.9"/><path d="M22 12c0-1.6-.7-3.1-1.9-4.1-1.1-1-2.6-1.6-4.1-1.6-3 0-5.4 2.4-5.4 5.4 0 1.6.7 3.1 1.9 4.1.1 0 .3.1.5.1 5.5 0 10-4.5 10-10Z"/></svg>
-                      {{ t('fields.paintwork') }}
-                    </span>
-                    <strong>{{ t('options.paint.' + listing.paintwork) }}</strong>
                   </li>
 
                   <li v-if="listing.technicalCondition">
@@ -157,13 +132,6 @@
                     <strong>{{ t('options.techState.' + listing.technicalCondition) }}</strong>
                   </li>
 
-                  <li v-if="listing.inAccident !== null">
-                    <span>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 2.2 14 10.9c.4 1 .1 2.2-.7 3l-2.4 2.4c-.8.8-2 1.2-3.2 1.2H3"/><path d="m3 11 8 8"/><path d="M5 19h1"/><path d="M14 11h-4"/><path d="m18 15-4-4"/><path d="M18 11 14 7"/><path d="M18 19h-1.3c-1.2 0-2.4-.4-3.2-1.2L11 15.3c-.7-.8-1-1.9-.7-3l3.7-8.7"/><path d="M17 3 14 7"/><path d="M21 3l-1.6 1.6"/></svg>
-                      {{ t('fields.inAccident') }}
-                    </span>
-                    <strong>{{ listing.inAccident ? t('common.yes') : t('common.no') }}</strong>
-                  </li>
                   <li v-if="isValidLicensePlate(listing.licensePlate)">
                     <span style="display: flex; align-items: center; gap: 5px;">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #aaa;">
@@ -176,14 +144,27 @@
                       {{ listing.licensePlate }}
                     </strong>
                   </li>
+
+                  <li v-if="listing.vin && listing.vin.length === 17">
+                    <span style="display: flex; align-items: center; gap: 5px;">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      VIN
+                    </span>
+                    <strong style="font-family: monospace; letter-spacing: 1px;">
+                      {{ listing.vin.substring(0, 4) }}****{{ listing.vin.substring(13) }} 
+                      <span v-if="listing.isVerified" style="color: #2ecc71; font-size: 14px; margin-left: 5px;" title="Перевірено">✓</span>
+                    </strong>
+                  </li>
+
                 </ul>
               </div>
 
-<VehicleCheck 
-  v-if="listing.licensePlate && listing.licensePlate !== 'Приховано'"
-  :licensePlate="listing.licensePlate" 
-/>
-     
+              <VehicleCheck 
+                v-if="listing.vin || isValidLicensePlate(listing.licensePlate)"
+                :licensePlate="listing.licensePlate" 
+                :vin="listing.vin"
+              />
+      
             </div>
 
             <div class="desc-column">
@@ -267,40 +248,28 @@ const seller = ref({
   avatarUrl: null
 });
 
-// Helper для перекладу ключів (BENSIN -> bensin)
 function getLabel(category, serverName) {
   if (!serverName) return '';
-  
   if (category === 'color' && serverName.startsWith('#')) {
       return serverName.toLowerCase(); 
   }
-  const keyRaw = serverName.toLowerCase()
-    .replace(/\s+/g, '_')     
-    .replace(/\//g, '_')      
-    .replace(/,/g, '')        
-    .replace(/\./g, '');      
+  const keyRaw = serverName.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_').replace(/,/g, '').replace(/\./g, '');      
   return keyRaw;
 }
+
 function mapApiToDetail(apiItem) {
-  // --- 1. ФОТО ---
   let processedImages = [placeholderImage]; 
   const rawPhotos = apiItem.photos || apiItem.photoUrls;
 
   if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
-    const sortedPhotos = [...rawPhotos].sort((a, b) => {
-        const orderA = (a?.sortOrder ?? 0);
-        const orderB = (b?.sortOrder ?? 0);
-        return orderA - orderB;
-    });
+    const sortedPhotos = [...rawPhotos].sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0));
     const urls = sortedPhotos.map(item => (typeof item === 'object' && item !== null) ? item.url : item).filter(u => u);
     if (urls.length > 0) processedImages = urls;
   }
 
-  // --- 2. НОМЕР МАШИНИ ---
-  let licensePlate = apiItem.licensePlate || apiItem.number || 'Приховано';
-  if (licensePlate === '0000000000') licensePlate = 'Приховано';
+  let licensePlate = apiItem.licensePlate || apiItem.number || '';
+  if (licensePlate === '0000000000') licensePlate = '';
 
-  // --- 3. ЛОКАЦІЯ ---
   const location = apiItem.city?.name || apiItem.region?.name || 'Україна';
 
   return {
@@ -314,48 +283,29 @@ function mapApiToDetail(apiItem) {
     currency: apiItem.currency || 'USD',
     location: location,
     licensePlate: licensePlate,
+    vin: apiItem.vin, 
+    isVerified: apiItem.isVerified,
     
     fuel: apiItem.fuelType?.name ? getLabel('fuel', apiItem.fuelType.name) : null,
     transmission: apiItem.gearType?.name ? getLabel('transmission', apiItem.gearType.name) : null,
     bodyType: apiItem.bodyType?.name ? getLabel('bodyType', apiItem.bodyType.name) : null,
     
-    driveTrain: apiItem.driveType?.name ? getLabel('driveTrain', apiItem.driveType.name) : null,
-    
-    // === ИСПРАВЛЕНИЕ ЗДЕСЬ ===
-    // Было: apiItem.colorHex.startsWith('#') ? 'other' : apiItem.colorHex
-    // Стало: Передаем HEX как есть. getLabel превратит его в нижний регистр (#000000) 
-    // и найдет перевод в options.color.#000000
     color: apiItem.colorHex ? getLabel('color', apiItem.colorHex) : null,
-    
-    // Дополнительно можно сохранить сам код цвета, чтобы нарисовать кружочек (опционально)
     colorHex: apiItem.colorHex, 
 
-    paintwork: apiItem.paintwork ? getLabel('paint', apiItem.paintwork) : null, 
     technicalCondition: apiItem.condition?.name ? getLabel('techState', apiItem.condition.name) : null,
     engineSize: apiItem.engineSize || 0,
-    
-    metallic: apiItem.isMetallic ?? null, 
     inAccident: apiItem.hasAccident ?? null, 
     
     images: processedImages, 
-    description: apiItem.description || '',
-
-    comfort: {
-      airConditioning: apiItem.comfort?.airConditioning || false,
-      climateControl: apiItem.comfort?.climateControl || false,
-      heatedSeats: apiItem.comfort?.heatedSeats || false,
-      rearCamera: apiItem.comfort?.rearCamera || false,
-      parkingSensors: apiItem.comfort?.parkingSensors || false,
-      sunroof: apiItem.comfort?.sunroof || false
-    }
+    description: apiItem.description || ''
   };
 }
 
 function isValidLicensePlate(plate) {
   if (!plate) return false;
-  const forbiddenWords = ['Приховано', 'Hidden', 'null'];
+  const forbiddenWords = ['Приховано', 'Hidden', 'null', ''];
   if (forbiddenWords.includes(plate)) return false;
-  
   return plate.length > 2;
 }
 
@@ -371,15 +321,10 @@ onMounted(async () => {
       
       if (listing.value.userId) {
         try {
-          const profileRes = await axios.get(`${API_BASE}/Profile`, { 
-            params: { userId: listing.value.userId } 
-          });
-          
+          const profileRes = await axios.get(`${API_BASE}/Profile`, { params: { userId: listing.value.userId } });
           if (profileRes.data) {
              const p = profileRes.data;
-             seller.value.name = p.firstName 
-                 ? `${p.firstName} ${p.lastName || ''}` 
-                 : (p.userName || 'Продавець');
+             seller.value.name = p.firstName ? `${p.firstName} ${p.lastName || ''}` : (p.userName || 'Продавець');
              seller.value.email = p.email || 'Приховано';
              if (p.phoneNumber) seller.value.phone = p.phoneNumber;
              seller.value.avatarUrl = p.avatarUrl || null;
@@ -401,11 +346,6 @@ onMounted(async () => {
 const formattedPrice = computed(() => {
   if (!listing.value) return '';
   return `${listing.value.price.toLocaleString(locale.value)} ${listing.value.currency}`;
-});
-
-const hasComfortOptions = computed(() => {
-  if (!listing.value || !listing.value.comfort) return false;
-  return Object.values(listing.value.comfort).some(value => value === true);
 });
 
 const selectedImageIndex = ref(0);
@@ -433,7 +373,6 @@ function closeModal() {
 </script>
 
 <style scoped>
-/* Глобальні стилі сторінки */
 .detail-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
@@ -459,7 +398,37 @@ function closeModal() {
   z-index: 1;
 }
 
-/* Стилі карток */
+.listing-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.listing-header h2 {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+/* БЕЙДЖ VERIFIED */
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(46, 204, 113, 0.15); 
+  color: #2ecc71; 
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  user-select: none;
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.1);
+}
+
 .form-card, .filter-card, .loading-card {
   background-color: rgba(30, 30, 30, 0.7); 
   border-radius: 12px;
@@ -480,7 +449,6 @@ function closeModal() {
   letter-spacing: 0.5px;
 }
 
-/* Макет (Grid) */
 .page-layout {
   display: grid;
   grid-template-columns: 1fr; 
@@ -493,7 +461,6 @@ function closeModal() {
   }
 }
 
-/* --- ГАЛЕРЕЯ --- */
 .main-image {
   position: relative;
   width: 100%;
@@ -507,7 +474,6 @@ function closeModal() {
   border: 1px solid #333;
 }
 
-/* Розмитий фон під фото */
 .blur-background {
   position: absolute;
   inset: 0;
@@ -555,7 +521,6 @@ function closeModal() {
   .thumb-item { width: 80px; height: 60px; }
 }
 
-/* --- ХАРАКТЕРИСТИКИ --- */
 .specs-desc-layout {
   display: grid;
   grid-template-columns: 1fr;
@@ -583,7 +548,6 @@ function closeModal() {
 
 .description-text { font-size: 15px; line-height: 1.8; color: #e0e0e0; white-space: pre-wrap; }
 
-/* Сайдбар */
 .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 20px; }
 .price { font-size: 32px; font-weight: 800; color: #ffd700; margin: 0; text-shadow: 0 2px 10px rgba(255, 215, 0, 0.2); }
 .location { font-size: 15px; color: #ccc; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
@@ -597,18 +561,14 @@ function closeModal() {
   font-family: 'Consolas', 'Monaco', monospace; 
   font-weight: 700;
   font-size: 16px;
-  
   color: #ffd700; 
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); 
-  
   letter-spacing: 2px;
   text-transform: uppercase;
-  
   background: transparent; 
   border: none;           
-  padding: 0;              
+  padding: 0;               
 }
-
 
 .message-btn {
   width: 100%; padding: 14px 0; border-radius: 6px; border: none; font-weight: 700;
@@ -621,7 +581,6 @@ function closeModal() {
 .spinner { width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.1); border-top-color: #ffd700; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Модалка */
 .image-modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px);
