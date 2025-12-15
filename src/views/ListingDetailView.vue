@@ -18,6 +18,19 @@
             <div class="listing-header">
               <h2>{{ listing.brand }} {{ listing.model }} ({{ listing.year }})</h2>
               
+              <button 
+                  class="favorite-btn-detail" 
+                  @click.stop="toggleFavorite" 
+                  :title="isFav ? 'Видалити з улюблених' : 'Додати в улюблені'"
+                >
+                  <svg v-if="isFav" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#e74c3c" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </button>
+
               <div v-if="listing.isVerified" class="verified-badge" title="VIN перевірено">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 <span>VERIFIED</span>
@@ -243,12 +256,16 @@ const router = useRouter();
 const toast = useToast();
 const { t, locale } = useI18n();
 
+const listingId = route.params.id;
 const API_BASE = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
+const API_FAV_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Favourite';
 
-// --- АДАПТАЦИЯ ПОД ВАШ USEAUTH ---
-// Деструктурируем то, что возвращает ваш файл useAuth
-const { userId, token, isAuthenticated } = useAuth(); 
+const { token, favoriteIds, addFavoriteId, removeFavoriteId } = useAuth();
 
+const isFav = computed(() => {
+  if (!favoriteIds || !favoriteIds.value) return false;
+  return favoriteIds.value.has(Number(listingId));
+});
 const isLoading = ref(true);
 const isContacting = ref(false);
 const listing = ref(null); 
@@ -261,6 +278,62 @@ const seller = ref({
 });
 
 // --- Вспомогательные функции ---
+
+async function toggleFavorite() {
+  if (!token.value) {
+    toast.error(t('profile.favoritesTab.toast.loginRequired'));
+    router.push('/login');
+    return;
+  }
+
+  const cleanToken = String(token.value).replace(/^"|"$/g, '');
+  const payload = { vehicleListingId: Number(listingId) };
+
+  try {
+    if (isFav.value) {
+      // === DELETE ===
+      if (removeFavoriteId) removeFavoriteId(Number(listingId));
+      else favoriteIds.value.delete(Number(listingId));
+
+      await axios.delete(`${API_FAV_URL}/remove`, {
+        headers: { 
+            'Authorization': `Bearer ${cleanToken}`,
+            'Content-Type': 'application/json' 
+        },
+        data: payload
+      });
+      toast.info(t('profile.favoritesTab.toast.removed'));
+    } else {
+      // === ADD ===
+      if (addFavoriteId) addFavoriteId(Number(listingId));
+      else favoriteIds.value.add(Number(listingId)); 
+
+      await axios.post(`${API_FAV_URL}/add`, payload, {
+        headers: { 
+            'Authorization': `Bearer ${cleanToken}`,
+            'Content-Type': 'application/json'
+        }
+      });
+      toast.success(t('profile.favoritesTab.toast.added'));
+    }
+  } catch (error) {
+    console.error("Помилка favorite:", error);
+    // Відкат
+    if (isFav.value) {
+       if (removeFavoriteId) removeFavoriteId(Number(listingId));
+       else favoriteIds.value.delete(Number(listingId));
+    } else {
+       if (addFavoriteId) addFavoriteId(Number(listingId));
+       else favoriteIds.value.add(Number(listingId));
+    }
+    
+    if (error.response?.status === 401) {
+        toast.error(t('profile.favoritesTab.toast.authError'));
+    } else {
+        toast.error(t('profile.favoritesTab.toast.serverError'));
+    }
+  }
+}
 
 function getLabel(category, serverName) {
   if (!serverName) return '';
@@ -437,6 +510,33 @@ function closeModal() {
 </script>
 
 <style scoped>
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px; 
+}
+
+.favorite-btn-detail {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 50%;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.favorite-btn-detail:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.favorite-btn-detail svg {
+  transition: all 0.2s;
+}
+
 .detail-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;

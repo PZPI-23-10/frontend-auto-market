@@ -3,9 +3,11 @@ import axios from 'axios';
 
 const userId = ref(localStorage.getItem('userId') || null);
 const token = ref(localStorage.getItem('token') || null);
-// Добавляем хранение ролей (массив строк)
 const userRoles = ref(JSON.parse(localStorage.getItem('userRoles') || '[]'));
 const isVerified = ref(JSON.parse(localStorage.getItem('isVerified') || 'false')); 
+
+const favoriteIds = ref(new Set()); 
+// ======================================
 
 const PROFILE_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Profile';
 
@@ -13,7 +15,6 @@ export function useAuth() {
 
   const isAuthenticated = computed(() => !!token.value);
   
-  // Вычисляемое свойство: является ли юзер админом
   const isAdmin = computed(() => {
     return isAuthenticated.value && userRoles.value.includes('Admin');
   });
@@ -27,8 +28,6 @@ export function useAuth() {
     localStorage.setItem('token', newToken);
     localStorage.setItem('isVerified', JSON.stringify(verifiedStatus)); 
     
-    // При логине мы пока не знаем ролей, если их не передали, 
-    // но они подтянутся через checkVerificationStatus
     console.log('Auth data set:', { userId: userId.value, token: token.value });
   }
 
@@ -36,12 +35,15 @@ export function useAuth() {
     userId.value = null;
     token.value = null;
     isVerified.value = false;
-    userRoles.value = []; // Очищаем роли
+    userRoles.value = []; 
+    
+    // Очищаємо список при виході
+    favoriteIds.value.clear(); 
     
     localStorage.removeItem('userId');
     localStorage.removeItem('token');
     localStorage.removeItem('isVerified'); 
-    localStorage.removeItem('userRoles'); // Удаляем из хранилища
+    localStorage.removeItem('userRoles'); 
   }
 
   function updateVerifiedStatus(status) {
@@ -49,12 +51,21 @@ export function useAuth() {
       localStorage.setItem('isVerified', JSON.stringify(status));
   }
 
+  // === ДОДАНО: Методи для роботи зі списком ===
+  function setFavorites(items) {
+    if (Array.isArray(items)) {
+      favoriteIds.value = new Set(items.map(i => i.id));
+    }
+  }
+  function addFavoriteId(id) { favoriteIds.value.add(id); }
+  function removeFavoriteId(id) { favoriteIds.value.delete(id); }
+  function isFavorite(id) { return favoriteIds.value.has(id); }
+  // ===========================================
+
   async function checkVerificationStatus() {
-      // Проверяем, есть ли токен и ID пользователя
       if (!token.value || !userId.value) return; 
 
         try {
-            // ВАЖНО: Добавляем params с userId
             const response = await axios.get(PROFILE_BASE_URL, { 
                 headers: { 'Authorization': `Bearer ${token.value}` },
                 params: { userId: userId.value } 
@@ -75,10 +86,16 @@ export function useAuth() {
               console.log('Роли обновлены:', userRoles.value); 
           }
 
+          // === ДОДАНО: Оновлюємо список з профілю ===
+          if (data.favouriteVehicles) {
+              setFavorites(data.favouriteVehicles);
+          }
+
       } catch (error) {
           console.error("Ошибка проверки профиля:", error);
       }
   }
+  
   return {
     userId,
     token,
@@ -89,6 +106,13 @@ export function useAuth() {
     setAuthData,
     clearAuthData,
     updateVerifiedStatus, 
-    checkVerificationStatus 
+    checkVerificationStatus,
+    
+    // Експортуємо нове
+    favoriteIds,
+    setFavorites,
+    addFavoriteId,
+    removeFavoriteId,
+    isFavorite
   };
 }

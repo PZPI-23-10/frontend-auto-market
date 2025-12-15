@@ -10,7 +10,6 @@
           
           <li v-if="!isAuthPage" class="navbar-dropdown">
             <a href="#">
-             
               <span>{{ $t('nav.whoWeAre') }}</span>
             </a>
             <ul class="dropdown-content">
@@ -75,11 +74,13 @@
                 <span>{{ $t('nav.myProfile') }}</span>
               </router-link>
             </li>
+            
             <li class="login-mobile">
-              <router-link to="/favorites">
+              <router-link :to="{ path: '/profile', query: { tab: 'favorites' } }">
                 <span>{{ $t('nav.favorites') }}</span>
               </router-link>
             </li>
+            
             <li class="login-mobile">
               <a href="#" @click.prevent="handleLogout">
                 <span>{{ $t('nav.logout') }}</span>
@@ -92,7 +93,7 @@
           <ul class="user-nav">
             
             <li v-if="isLoggedIn" class="nav-icon-btn">
-              <router-link to="/favorites" class="heart-toggle" :title="$t('nav.favorites')">
+              <router-link :to="{ path: '/profile', query: { tab: 'favorites' } }" class="heart-toggle" :title="$t('nav.favorites')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
               </router-link>
             </li>
@@ -118,11 +119,11 @@
                   <span>{{ $t('nav.profile') }}</span> 
                 </a>
                 <ul class="dropdown-content dropdown-right">
-                 <li v-if="isAdmin">
-                    <router-link to="/admin" style="color: #d9534f; font-weight: bold;">
-                        {{ $t('nav.admin') }} 
-                    </router-link>
-                </li>
+                  <li v-if="isAdmin">
+                     <router-link to="/admin" style="color: #d9534f; font-weight: bold;">
+                         {{ $t('nav.admin') }} 
+                     </router-link>
+                 </li>
                   <li><router-link to="/profile">{{ $t('nav.settings') }}</router-link></li>
                   <li><a href="#" @click.prevent="handleLogout">{{ $t('nav.logout') }}</a></li>
                 </ul>
@@ -137,6 +138,7 @@
     </div>
   </header>
 </template>
+
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

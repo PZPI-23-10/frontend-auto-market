@@ -40,7 +40,8 @@
     "specEngineSize": "Engine Size",
     "engineSize": "{size} L",
     "toggleFavorite": "Add to favorites",
-    "favoriteToast": "Listing added to favorites"
+    "favoriteToast": "Listing added to favorites",
+    "draft": "Draft"
   },
   "common": {
     "yes": "Yes",
@@ -186,7 +187,22 @@
     "nav": {
       "profile": "Main Profile",
       "password": "Change Password",
-      "orders": "My Listings"
+      "orders": "My Listings",
+      "favorites": "en"
+    },
+    "favoritesTab": {
+      "title": "Favorite Cars",
+      "empty": "You haven't added any cars to favorites yet.",
+      "browseBtn": "Browse Catalog",
+      "removeBtn": "Remove",
+      "toast": {
+        "loginRequired": "Please login to manage favorites",
+        "added": "Added to favorites",
+        "removed": "Removed from favorites",
+        "error": "Failed to update status",
+        "authError": "Authorization failed. Please login again.",
+        "serverError": "Server error"
+      }
     },
     "profileTab": {
       "title": "Main Profile",

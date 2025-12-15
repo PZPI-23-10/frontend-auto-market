@@ -7,31 +7,36 @@
         <nav class="profile-nav">
           <ul>
             <li>
-              <a 
-                href="#"
+              <router-link 
+                :to="{ path: '/profile', query: { tab: 'profile' } }" 
                 :class="{ active: activeTab === 'profile' }"
-                @click.prevent="activeTab = 'profile'"
               >
                 {{ t('profile.nav.profile') }}
-              </a>
+              </router-link>
             </li>
             <li>
-              <a 
-                href="#" 
+              <router-link 
+                :to="{ path: '/profile', query: { tab: 'password' } }" 
                 :class="{ active: activeTab === 'password' }"
-                @click.prevent="activeTab = 'password'"
               >
                 {{ t('profile.nav.password') }}
-              </a>
+              </router-link>
             </li>
             <li>
-              <a 
-                href="#" 
+              <router-link 
+                :to="{ path: '/profile', query: { tab: 'orders' } }" 
                 :class="{ active: activeTab === 'orders' }"
-                @click.prevent="activeTab = 'orders'"
               >
                 {{ t('profile.nav.orders') }}
-              </a>
+              </router-link>
+            </li>
+            <li>
+              <router-link 
+                :to="{ path: '/profile', query: { tab: 'favorites' } }" 
+                :class="{ active: activeTab === 'favorites' }"
+              >
+                {{ t('profile.nav.favorites') }}
+              </router-link>
             </li>
           </ul>
         </nav>
@@ -161,6 +166,41 @@
           </form>
         </div>
 
+        <div v-if="activeTab === 'favorites'" class="tab-pane">
+          <div class="tab-header">
+            <h2>{{ t('profile.favoritesTab.title') }} <span v-if="favoriteCars.length" style="color:#777; font-size: 0.8em">({{ favoriteCars.length }})</span></h2>
+          </div>
+
+          <div v-if="isLoadingFavorites" class="loading-state">
+            <div class="spinner"></div>
+            <p>{{ t('listingDetail.loading') }}</p>
+          </div>
+
+          <div v-else-if="favoriteCars.length > 0" class="listings-list">
+            <div 
+              v-for="car in favoriteCars" 
+              :key="car.id" 
+              class="listing-item-wrapper"
+            >
+              <CarCard :listing="car" />
+              
+              <div class="listing-actions">
+                <button class="btn-action btn-delete" @click="removeFromFavorites(car.id)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    {{ t('profile.favoritesTab.removeBtn') }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="no-results">
+            <p>{{ t('profile.favoritesTab.empty') }}</p>
+            <button @click="router.push('/listings')" class="btn-primary" style="margin-top: 15px;">
+              {{ t('profile.favoritesTab.browseBtn') }}
+            </button>
+          </div>
+        </div>
+
         <div v-if="activeTab === 'password'" class="tab-pane">
           <section class="password-section">
             <h2>{{ t('profile.passwordTab.title') }}</h2>
@@ -244,8 +284,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch} from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuth } from '@/store/auth';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n'; 
@@ -255,16 +295,22 @@ import CarCard from '@/components/CarCard.vue';
 
 const toast = useToast();
 const { t } = useI18n(); 
+const authStore = useAuth(); 
+const { userId, token, clearAuthData, setFavorites, removeFavoriteId } = authStore;
+
 const API_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Auth';
 const API_PROFILE_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Profile';
 const VERIFY_EMAIL_URL = `${API_BASE_URL}/verify-email`;
 const SEND_VERIFICATION_URL = `${API_BASE_URL}/send-verification-email`;
 const API_LISTING_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Listing'; 
+const API_FAV_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Favourite';
+
+const route = useRoute();
 const router = useRouter(); 
 const isLoadingListings = ref(false); 
 const userListings = ref([]);
-
-const { userId, token, clearAuthData } = useAuth();
+const isLoadingFavorites = ref(false);
+const favoriteCars = ref([]);
 
 const countries = ref([
   { code: 'UA', nameKey: 'countries.ua', phoneCode: '380' },
@@ -302,25 +348,28 @@ const verificationCode = ref('');
 const isLoadingEmail = ref(false);     
 const isLoadingVerify = ref(false);    
 
-// === 1. Helper для перетворення значень у ключі (lower_snake_case) або null ===
+function getAuthHeader() {
+  if (!token.value) return {};
+  const clean = String(token.value).replace(/^"|"$/g, '');
+  return { 
+    'Authorization': `Bearer ${clean}`,
+    'Content-Type': 'application/json'
+  };
+}
+
 function toKey(val) {
-  if (!val) return null; // Повертаємо null, щоб приховати поле в CarCard
+  if (!val) return null; 
   return val.toLowerCase().replace(/\s+/g, '_');
 }
 
-// === 2. Оновлена функція маппінгу ===
 function mapApiListingToCarCard(apiItem) {
   let images = [];
-
   let rawPhotos = apiItem.photos || apiItem.photoUrls;
 
   if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
     if (typeof rawPhotos[0] === 'object' && rawPhotos[0] !== null) {
-        
         rawPhotos.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-
         images = rawPhotos.map(p => p.url);
-        
     } else {
         images = rawPhotos;
     }
@@ -336,12 +385,10 @@ function mapApiListingToCarCard(apiItem) {
     mileage: apiItem.mileage,
     price: apiItem.price,
     currency: 'USD', 
-    
     fuel: toKey(apiItem.fuelType?.name),       
     transmission: toKey(apiItem.gearType?.name), 
     bodyType: toKey(apiItem.bodyType?.name),
     color: toKey(apiItem.colorHex || 'other'), 
-    
     location: cityLabel || regionLabel || 'Україна',
     images: images, 
     mainImage: images.length > 0 ? images[0] : null,
@@ -350,11 +397,40 @@ function mapApiListingToCarCard(apiItem) {
   };
 }
 
+async function fetchFavorites() {
+  const ids = Array.from(authStore.favoriteIds.value || []); 
+  
+  if (ids.length === 0) {
+    favoriteCars.value = [];
+    return;
+  }
+
+  isLoadingFavorites.value = true;
+  try {
+    const requests = ids.map(id => 
+      axios.get(`${API_LISTING_BASE_URL}/${id}`)
+        .then(res => res.data)
+        .catch(() => null)
+    );
+    
+    const results = await Promise.all(requests);
+    
+    favoriteCars.value = results
+        .filter(item => item !== null)
+        .map(mapApiListingToCarCard);
+
+  } catch (error) {
+    console.error('Error fetching favorites:', error);
+  } finally {
+    isLoadingFavorites.value = false;
+  }
+}
+
 async function fetchUserListings() {
   isLoadingListings.value = true;
   try {
     const response = await axios.get(`${API_LISTING_BASE_URL}/user`, {
-      headers: { 'Authorization': `Bearer ${token.value}` }
+      headers: getAuthHeader()
     });
     userListings.value = response.data.map(mapApiListingToCarCard);
   } catch (error) {
@@ -365,36 +441,19 @@ async function fetchUserListings() {
   }
 }
 
-watch(activeTab, (newTab) => {
-  if (newTab === 'orders') {
-    fetchUserListings(); 
-  }
-});
-
-function editListing(id) {
-  router.push({ name: 'edit-listing', params: { id: id } });
-}
+function editListing(id) { router.push({ name: 'edit-listing', params: { id: id } }); }
 
 async function deleteListing(id) {
   if (!confirm(t('profile.ordersTab.deleteConfirm'))) return;
-
-  console.log("Мій поточний ID (з токена):", userId.value);
-  const car = userListings.value.find(c => c.id === id);
-  console.log("ID оголошення, яке видаляємо:", id);
   try {
     await axios.delete(`${API_LISTING_BASE_URL}/${id}`, {
-      headers: { 'Authorization': `Bearer ${token.value}` }
+      headers: getAuthHeader()
     });
-    
     toast.success(t('profile.ordersTab.deleteSuccess'));
-    
     userListings.value = userListings.value.filter(item => item.id !== id);
-    
   } catch (error) {
-    console.error('Помилка видалення:', error);
     if (error.response && error.response.status === 404) {
        userListings.value = userListings.value.filter(item => item.id !== id);
-       toast.warning("Оголошення вже було видалено (оновлюємо список).");
     } else {
        toast.error(t('profile.ordersTab.deleteFail'));
     }
@@ -402,9 +461,7 @@ async function deleteListing(id) {
 }
 
 const fullName = computed(() => {
-  if (!user.value.firstName && !user.value.lastName) {
-    return t('profile.profileTab.fullNamePlaceholder');
-  }
+  if (!user.value.firstName && !user.value.lastName) return t('profile.profileTab.fullNamePlaceholder');
   return `${user.value.firstName} ${user.value.lastName}`.trim(); 
 });
 
@@ -415,14 +472,26 @@ onMounted(async () => {
     return;
   } 
 
+  if (route.query.tab) activeTab.value = route.query.tab; 
+  else activeTab.value = 'profile';
+  
+  if (activeTab.value === 'orders') fetchUserListings();
+
   try {
     const response = await axios.get(`${API_PROFILE_BASE_URL}?userId=${userId.value}`, {
-      headers: { 'Authorization': `Bearer ${token.value}` }
+      headers: getAuthHeader() 
     });   
     
     const data = response.data;
-    console.log("Profile data received:", data); 
-
+    
+    if (data.favouriteVehicles && setFavorites) {
+        setFavorites(data.favouriteVehicles);
+        
+        if (activeTab.value === 'favorites') {
+            fetchFavorites();
+        }
+    }
+    
     user.value.firstName = data.firstName || '';
     user.value.lastName = data.lastName || '';
     user.value.email = data.email || '';
@@ -432,14 +501,7 @@ onMounted(async () => {
     user.value.country = data.country || 'UA';
     user.value.isVerified = data.isVerified || false; 
 
-    if (data.dateOfBirth) {
-      try {
-        user.value.birthday = new Date(data.dateOfBirth).toISOString().split('T')[0];
-      } catch (e) {
-        console.error("Invalid date format received for dateOfBirth:", data.dateOfBirth);
-        user.value.birthday = ''; 
-      }
-    }
+    if (data.dateOfBirth) { try { user.value.birthday = new Date(data.dateOfBirth).toISOString().split('T')[0]; } catch (e) {} }
     
     const fullPhone = data.phoneNumber || '';
     let foundCode = false;
@@ -449,113 +511,63 @@ onMounted(async () => {
       if (fullPhone.startsWith(codeWithPlus)) {
         user.value.phoneCode = country.phoneCode;
         user.value.phoneNumber = fullPhone.substring(codeWithPlus.length);
-        foundCode = true;
-        break;
+        foundCode = true; break;
       }
     }
     if (!foundCode && fullPhone) {
         user.value.phoneNumber = fullPhone.replace(/^\+/, ''); 
-        const defaultCountry = countries.value.find(c => c.code === user.value.country);
-        user.value.phoneCode = defaultCountry ? defaultCountry.phoneCode : '380'; 
     }
 
   } catch (error) {
-     console.error('Помилка завантаження профілю (Axios):', error);
-     let errorMessage = t('profile.errors.loadProfileDefault');
-     if (error.response) {
-       errorMessage = error.response.data?.message || error.response.data || t('profile.errors.serverError');
-       if (error.response.status === 401) {
+     if (error.response?.status === 401) {
            clearAuthData(); 
            router.push('/login');
-           errorMessage = t('profile.errors.sessionExpired');
-       }
-     } else if (error.request) {
-       errorMessage = t('profile.errors.noResponse');
-     } else {
-       errorMessage = error.message;
      }
-     toast.error(errorMessage);
   }
 });
 
 async function sendVerificationEmail() {
-   if (!token.value) {
-       toast.error(t('profile.errors.authError')); 
-       return;
-   }
+   if (!token.value) { toast.error(t('profile.errors.authError')); return; }
    isLoadingEmail.value = true;
    try {
-       await axios.post(SEND_VERIFICATION_URL, {}, { 
-           headers: { 'Authorization': `Bearer ${token.value}` }
-       });
+       await axios.post(SEND_VERIFICATION_URL, {}, { headers: getAuthHeader() });
        toast.success(t('profile.profileTab.verify.toast.sendSuccess')); 
        verificationCodeSent.value = true; 
    } catch (error) {
-       console.error('Помилка відправки коду:', error);
-       let errMsg = error.response?.data || t('profile.profileTab.verify.toast.sendFail'); 
-       toast.error(t('profile.errors.prefix', { error: errMsg })); 
-   } finally {
-       isLoadingEmail.value = false;
-   }
+       toast.error(t('profile.errors.prefix', { error: error.response?.data || 'Error' })); 
+   } finally { isLoadingEmail.value = false; }
 }
 
 async function verifyCode() {
-    if (!verificationCode.value || verificationCode.value.length !== 6) {
-        toast.warning(t('profile.profileTab.verify.toast.codeRequired')); 
-        return;
-    }
-    if (!token.value) {
-        toast.error(t('profile.errors.authError')); 
-        return;
-    }
+    if (!verificationCode.value || verificationCode.value.length !== 6) return;
     isLoadingVerify.value = true;
     try {
-        await axios.post(VERIFY_EMAIL_URL, 
-          { code: verificationCode.value }, 
-          { headers: { 'Authorization': `Bearer ${token.value}`, 'Content-Type': 'application/json' } }
-        );
+        await axios.post(VERIFY_EMAIL_URL, { code: verificationCode.value }, { headers: getAuthHeader() });
         toast.success(t('profile.profileTab.verify.toast.verifySuccess')); 
         user.value.isVerified = true; 
-        verificationCodeSent.value = false; 
-        verificationCode.value = ''; 
     } catch (error) {
-        console.error('Помилка перевірки коду:', error);
-        let errMsg = t('profile.profileTab.verify.toast.verifyFailDefault');
-        if (error.response?.status === 400) {
-            errMsg = error.response.data || t('profile.profileTab.verify.toast.invalidCode');
-        } else if (error.response?.status === 401) {
-            errMsg = t('profile.errors.authError');
-        } else {
-           errMsg = error.response?.data || t('profile.errors.serverError');
-        }
-        toast.error(t('profile.errors.prefix', { error: errMsg }));
-    } finally {
-        isLoadingVerify.value = false;
-    }
+        toast.error(t('profile.profileTab.verify.toast.invalidCode'));
+    } finally { isLoadingVerify.value = false; }
 }
 
 async function saveProfile() {
-  if (!user.value.firstName ) {
+  if (!user.value.firstName || !user.value.phoneNumber) {
     toast.warning(t('profile.profileTab.toast.nameRequired')); 
     return;
-  }
-  if (!user.value.phoneNumber) {
-      toast.warning(t('profile.profileTab.toast.phoneRequired')); 
-      return;
   }
   
   const formData = new FormData();
   formData.append('firstName', user.value.firstName);
   formData.append('lastName', user.value.lastName);
+  
   formData.append('phoneNumber', `+${user.value.phoneCode}${user.value.phoneNumber}`);
+  
   if (user.value.birthday) {
-      try {
+      try { 
           formData.append('dateOfBirth', new Date(user.value.birthday).toISOString()); 
-      } catch (e) {
-          toast.error(t('profile.profileTab.toast.invalidDate')); 
-          return; 
-      }
+      } catch (e) {}
   }
+  
   formData.append('address', user.value.address || ""); 
   formData.append('country', user.value.country);
   formData.append('aboutYourself', user.value.bio || ""); 
@@ -564,28 +576,29 @@ async function saveProfile() {
     formData.append('Photo', selectedFile.value); 
   } 
 
+  const headers = getAuthHeader();
+  
+  delete headers['Content-Type']; 
+
   try {
-    await axios.put(`${API_PROFILE_BASE_URL}/update`, formData, { 
-      headers: { 'Authorization': `Bearer ${token.value}` }
+    const response = await axios.put(`${API_PROFILE_BASE_URL}/update`, formData, { 
+        headers: headers 
     });
+    
     toast.success(t('profile.profileTab.toast.saveSuccess')); 
-    selectedFile.value = null; 
-    if (selectedFile.value) {
-      toast.info(t('profile.profileTab.toast.avatarInfo')); 
+    
+    const updatedData = response.data;
+    if (updatedData) {
+        if (updatedData.avatarUrl) user.value.avatarUrl = updatedData.avatarUrl;
+        user.value.firstName = updatedData.firstName;
+        user.value.lastName = updatedData.lastName;
     }
+    
+    selectedFile.value = null; 
+    
   } catch (error) {
-     console.error('Помилка збереження (Axios):', error);
-     let errorMessage = t('profile.profileTab.toast.saveFailDefault');
-     if (error.response) {
-       if (error.response.data?.errors) {
-           errorMessage = Object.values(error.response.data.errors).flat().join(' ');
-       } else {
-           errorMessage = error.response.data?.message || error.response.data?.title || t('profile.errors.serverError');
-       }
-     } 
-     else if (error.request) { errorMessage = t('profile.errors.noResponse'); } 
-     else { errorMessage = error.message; }
-     toast.error(t('profile.profileTab.toast.saveFailPrefix', { error: errorMessage }));
+     console.error("Save error:", error);
+     toast.error(t('profile.profileTab.toast.saveFailDefault'));
   }
 }
 
@@ -598,101 +611,68 @@ function filterPhoneInput(event) {
 
 function onFileSelected(event) {
   const file = event.target.files[0];
-  const currentInput = event.target; 
-  if (!file) { selectedFile.value = null; currentInput.value = ''; return; }
-  if (!file.type.startsWith('image/')) { toast.error(t('profile.profileTab.toast.imageFileRequired')); selectedFile.value = null; currentInput.value = ''; return; }
-  selectedFile.value = file; 
-  const reader = new FileReader();
-  reader.onload = (e) => { user.value.avatarUrl = e.target.result; };
-  reader.readAsDataURL(file);
+  if (file) { selectedFile.value = file; user.value.avatarUrl = URL.createObjectURL(file); }
 }
-
 function triggerFileUpload() { fileInput.value.click(); }
 
 async function changePassword() {
-    if (!passwordForm.value.currentPassword || !passwordForm.value.newPassword || !passwordForm.value.confirmPassword) {
-        toast.warning(t('profile.passwordTab.toast.checkPasswords'));
-        return;
-    }
-    
     if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-        toast.warning(t('profile.passwordTab.toast.mismatchError'));
-        return;
+        toast.warning(t('profile.passwordTab.toast.mismatchError')); return;
     }
-
-    const pass = passwordForm.value.newPassword;
-
-    if (pass.length < 6) {
-        toast.warning("Пароль має містити мінімум 6 символів");
-        return;
-    }
-    if (!/\d/.test(pass)) {
-        toast.warning("Пароль має містити хоча б одну цифру");
-        return;
-    }
-    if (!/[a-z]/.test(pass)) {
-        toast.warning("Пароль має містити хоча б одну маленьку літеру");
-        return;
-    }
-    if (!/[A-Z]/.test(pass)) {
-        toast.warning("Пароль має містити хоча б одну велику літеру");
-        return;
-    }
-    if (!/[^a-zA-Z0-9]/.test(pass)) {
-        toast.warning("Пароль має містити хоча б один спецсимвол (!@#)");
-        return;
-    }
-    // -----------------------------------------
-
-    const CHANGE_PASSWORD_URL = `${API_BASE_URL}/change-password`; 
-    
-    const payload = { 
+    try {
+      await axios.post(`${API_BASE_URL}/change-password`, { 
         Password: passwordForm.value.currentPassword, 
         NewPassword: passwordForm.value.newPassword,  
         PasswordConfirmation: passwordForm.value.confirmPassword 
-    };
-
-    try {
-      await axios.post(CHANGE_PASSWORD_URL, payload, {
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.value}` }
-      });
-      
+      }, { headers: getAuthHeader() });
       toast.success(t('profile.passwordTab.toast.saveSuccess')); 
       passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
-      
     } catch (error) {
-       let errorMessage = t('profile.passwordTab.toast.saveFailDefault');
-       
-       if (error.response) {
-         if (error.response.status === 400 && typeof error.response.data === 'string') {
-             if (error.response.data.includes("Old password is incorrect")) { 
-                 errorMessage = t('profile.passwordTab.toast.oldPasswordError'); 
-             } 
-             else { 
-                 errorMessage = error.response.data; 
-             }
-         } else { 
-             errorMessage = error.response.data?.message || t('profile.errors.serverError'); 
-         }
-       } else if (error.request) { 
-           errorMessage = t('profile.errors.noResponse'); 
-       } else { 
-           errorMessage = error.message; 
-       }
-       
-       toast.error(t('profile.passwordTab.toast.saveFailPrefix', { error: errorMessage }));
+       toast.error(error.response?.data || 'Error');
     }
 }
 
 function forgotPassword() {
-    if (user.value.email) {
-      router.push({ name: 'forgot-password', query: { email: user.value.email } }); 
-      toast.info(t('profile.passwordTab.toast.redirecting')); 
-    } else {
-      toast.warning(t('profile.passwordTab.toast.noEmailWarning')); 
-      router.push({ name: 'forgot-password' }); 
+    router.push({ name: 'forgot-password', query: { email: user.value.email } }); 
+}
+
+// === ВИДАЛЕННЯ З УЛЮБЛЕНИХ (З UI ПРОФІЛЮ) ===
+async function removeFromFavorites(id) {
+    favoriteCars.value = favoriteCars.value.filter(c => c.id !== id);
+    if (removeFavoriteId) removeFavoriteId(id); 
+
+    try {
+        await axios.delete(`${API_FAV_URL}/remove`, { 
+            headers: getAuthHeader(), 
+            data: { vehicleListingId: id }
+        });
+        toast.success(t('profile.favoritesTab.toast.removed'));
+    } catch (e) {
+        console.error("Помилка видалення:", e);
+        toast.error(t('profile.favoritesTab.toast.error'));
+        fetchFavorites();
     }
 }
+
+watch(() => route.query.tab, (newTabFromUrl) => {
+  if (newTabFromUrl) {
+    activeTab.value = newTabFromUrl;
+  } else {
+    activeTab.value = 'profile'; 
+  }
+}, { immediate: true });
+
+watch(activeTab, (newTab) => {
+  if (newTab === 'orders') fetchUserListings();
+  if (newTab === 'favorites') fetchFavorites();
+
+  let titleKey = 'profile.nav.profile'; 
+  if (newTab === 'password') titleKey = 'profile.nav.password';
+  if (newTab === 'orders') titleKey = 'profile.nav.orders';
+  if (newTab === 'favorites') titleKey = 'profile.nav.favorites';
+  
+  document.title = `${t(titleKey)} | AutoMarket`;
+});
 
 function goToCreateListing() { router.push('/create-listing'); }
 </script>
