@@ -204,7 +204,9 @@
                 <a :href="`tel:${seller.phone}`">{{ seller.phone }}</a>
               </div>
             </div>
-            <button class="btn-secondary message-btn">
+            <button class="btn-secondary message-btn"
+            @click="contactSeller"
+            :disabled="isContacting">
               {{ t('listingDetail.sendMessage') }}
             </button>
           </div>
@@ -221,24 +223,34 @@
 
   </div>
 </template>
-
 <script setup>
-import VehicleCheck from '@/components/VehicleCheck.vue';
 import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router'; 
+import { useRoute, useRouter } from 'vue-router'; 
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
+
+// Импорт вашего composable (без Pinia)
+import { useAuth } from '@/store/auth'; 
+import { chatStore } from '@/store/chatStore';
+
+import VehicleCheck from '@/components/VehicleCheck.vue';
 import defaultAvatar from '@/assets/default-avatar.png'; 
 import placeholderImage from '@/assets/no-photo.png'; 
 
 const route = useRoute();
+const router = useRouter(); 
 const toast = useToast();
-const { t, te, locale } = useI18n();
+const { t, locale } = useI18n();
 
 const API_BASE = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
 
+// --- АДАПТАЦИЯ ПОД ВАШ USEAUTH ---
+// Деструктурируем то, что возвращает ваш файл useAuth
+const { userId, token, isAuthenticated } = useAuth(); 
+
 const isLoading = ref(true);
+const isContacting = ref(false);
 const listing = ref(null); 
 
 const seller = ref({
@@ -247,6 +259,8 @@ const seller = ref({
   phone: '',
   avatarUrl: null
 });
+
+// --- Вспомогательные функции ---
 
 function getLabel(category, serverName) {
   if (!serverName) return '';
@@ -285,18 +299,14 @@ function mapApiToDetail(apiItem) {
     licensePlate: licensePlate,
     vin: apiItem.vin, 
     isVerified: apiItem.isVerified,
-    
     fuel: apiItem.fuelType?.name ? getLabel('fuel', apiItem.fuelType.name) : null,
     transmission: apiItem.gearType?.name ? getLabel('transmission', apiItem.gearType.name) : null,
     bodyType: apiItem.bodyType?.name ? getLabel('bodyType', apiItem.bodyType.name) : null,
-    
     color: apiItem.colorHex ? getLabel('color', apiItem.colorHex) : null,
     colorHex: apiItem.colorHex, 
-
     technicalCondition: apiItem.condition?.name ? getLabel('techState', apiItem.condition.name) : null,
     engineSize: apiItem.engineSize || 0,
     inAccident: apiItem.hasAccident ?? null, 
-    
     images: processedImages, 
     description: apiItem.description || ''
   };
@@ -309,6 +319,57 @@ function isValidLicensePlate(plate) {
   return plate.length > 2;
 }
 
+// --- ЛОГИКА КНОПКИ "НАПИСАТЬ" ---
+
+const contactSeller = async () => {
+  // 1. Проверяем, есть ли токен (isAuthenticated - это computed в вашем auth.js)
+  if (!isAuthenticated.value) {
+    toast.info(t('auth.loginRequired') || 'Увійдіть, щоб написати продавцю');
+    router.push('/login'); 
+    return;
+  }
+
+  // 2. Проверка "сам себе". 
+  // userId.value - это строка из localStorage, а listing.userId - число с бэкенда.
+  // Приводим к числу для корректного сравнения.
+  if (Number(userId.value) === listing.value.userId) {
+    toast.warning('Ви не можете писати самі собі');
+    return;
+  }
+
+  isContacting.value = true;
+
+  try {
+    // 3. Отправляем запрос. Используем token.value
+    const res = await axios.post(
+      `${API_BASE}/Chat/with/${listing.value.userId}`, 
+      {}, 
+      { headers: { Authorization: `Bearer ${token.value}` } }
+    );
+    
+    const chatData = res.data; 
+
+    // 4. Данные для отображения в списке чатов
+    const listingContext = {
+      id: listing.value.id,
+      title: `${listing.value.brand} ${listing.value.model} ${listing.value.year}`,
+      price: formattedPrice.value,
+      image: selectedImageUrl.value 
+    };
+
+    // 5. Открываем чат
+    chatStore.openChat(chatData.id, listingContext);
+
+  } catch (e) {
+    console.error('Ошибка создания чата:', e);
+    toast.error('Не вдалося відкрити чат');
+  } finally {
+    isContacting.value = false;
+  }
+};
+
+// --- Lifecycle ---
+
 onMounted(async () => {
   isLoading.value = true;
   const carId = route.params.id;
@@ -319,6 +380,7 @@ onMounted(async () => {
     if (response.data) {
       listing.value = mapApiToDetail(response.data);
       
+      // Загрузка данных продавца
       if (listing.value.userId) {
         try {
           const profileRes = await axios.get(`${API_BASE}/Profile`, { params: { userId: listing.value.userId } });
@@ -342,6 +404,8 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
+
+// --- Computed ---
 
 const formattedPrice = computed(() => {
   if (!listing.value) return '';

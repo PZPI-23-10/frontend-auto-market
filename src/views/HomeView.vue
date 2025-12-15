@@ -66,9 +66,6 @@
     <section>
       </section>
 
-    <button class="fab-sell-car" @click="handleSellClick">
-      {{ t('home.sellButton') }} +
-    </button>
   </div>
 </template>
 
@@ -173,9 +170,7 @@ function handleSearch() {
   router.push({ name: 'listings', query: queryParams });
 }
 
-function handleSellClick() {
-  router.push('/create-listing');
-}
+
 </script>
 
 <style scoped>
