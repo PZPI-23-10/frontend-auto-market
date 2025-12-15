@@ -1,7 +1,9 @@
 <template>
   <div class="chat-list">
-    <div v-if="isLoading" class="state-msg">Загрузка...</div>
-    <div v-else-if="chats.length === 0" class="state-msg">У вас пока нет чатов</div>
+    <div v-if="isLoading" class="loading-state">Загрузка чатов...</div>
+    <div v-else-if="processedChats.length === 0" class="empty-state">
+        <p>У вас пока нет сообщений</p>
+    </div>
 
     <div 
       v-else 
@@ -10,58 +12,78 @@
       class="chat-item" 
       @click="$emit('select-chat', chat)"
     >
-      <div class="avatar-placeholder">
-        U
+      <img 
+        v-if="chat.otherUserPhoto" 
+        :src="chat.otherUserPhoto" 
+        class="avatar-img" 
+      />
+      <div v-else class="avatar-placeholder">
+        {{ chat.otherUserName.charAt(0).toUpperCase() }}
       </div>
       
       <div class="chat-info">
-        <div class="top">
-          <span class="name">User #{{ chat.otherUserId }}</span>
+        <div class="top-row">
+          <span class="user-name">{{ chat.otherUserName }}</span>
           <span class="date">{{ formatDate(chat.lastMessageDate) }}</span>
         </div>
-        <div class="car-title">Чат #{{ chat.id }}</div>
-        <div class="preview">{{ chat.lastMessageText }}</div>
+        
+        <div 
+            class="preview-text"
+            :class="{ 'unread': chat.hasUnread }"
+        >
+            <span v-if="chat.isLastMessageMine" class="you-prefix">Ви: </span>
+            {{ chat.lastMessageText }}
+        </div>
       </div>
+      
+      <div v-if="chat.hasUnread" class="unread-dot"></div>
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useAuth } from '@/store/auth';
 
 const emit = defineEmits(['select-chat']);
-
-// --- ИСПРАВЛЕНИЕ: Безопасное получение ID ---
-const { token, userId } = useAuth(); 
-const API_HOST = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
-// -------------------------
-
+const { token, userId } = useAuth(); // userId должен быть доступен в store
 const chats = ref([]);
 const isLoading = ref(true);
 
+const API_HOST = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
 
 const processedChats = computed(() => {
     return chats.value.map(chat => {
-        // --- Получаем ID текущего пользователя как число ---
-        const myId = Number(userId.value); 
-        // -------------------------
+        const myId = Number(userId.value);
         
-        // Определяем ID собеседника
-        const otherId = chat.firstUserId === myId ? chat.secondUserId : chat.firstUserId;
+        // Определяем, кто из двух юзеров в DTO - собеседник
+        // Если FirstUser - это я, значит собеседник - SecondUser, и наоборот
+        const isFirstUserMe = chat.firstUser.id === myId;
+        const otherUser = isFirstUserMe ? chat.secondUser : chat.firstUser;
         
-        // Находим последнее сообщение (сообщения теперь загружаются благодаря вашему исправлению на бэкенде)
+        // Последнее сообщение
         const lastMsg = chat.messages && chat.messages.length > 0 
             ? chat.messages[chat.messages.length - 1] 
             : null;
 
+        // Является ли сообщение непрочитанным и НЕ моим?
+        const hasUnread = lastMsg && !lastMsg.isRead && lastMsg.senderId !== myId;
+        const isLastMessageMine = lastMsg && lastMsg.senderId === myId;
+
         return {
-            ...chat,
-            otherUserId: otherId,
+            id: chat.id,
+            otherUserId: otherUser.id,
+            otherUserName: `${otherUser.firstName} ${otherUser.lastName}`,
+            otherUserPhoto: otherUser.photoUrl,
             lastMessageText: lastMsg ? lastMsg.text : 'Немає повідомлень',
-            lastMessageDate: lastMsg ? lastMsg.sentAt : chat.createdAt
+            lastMessageDate: lastMsg ? lastMsg.sentAt : chat.createdAt,
+            hasUnread,
+            isLastMessageMine
         };
-    });
+    })
+    // Сортировка: новые сверху
+    .sort((a, b) => new Date(b.lastMessageDate) - new Date(a.lastMessageDate));
 });
 
 onMounted(async () => {
@@ -71,7 +93,7 @@ onMounted(async () => {
     });
     chats.value = res.data; 
   } catch (e) {
-    console.error(e);
+    console.error("Ошибка загрузки чатов", e);
   } finally {
     isLoading.value = false;
   }
@@ -80,20 +102,43 @@ onMounted(async () => {
 function formatDate(dateString) {
   if(!dateString) return '';
   const date = new Date(dateString);
-  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const now = new Date();
+  // Если сегодня - показываем время, иначе дату
+  if (date.toDateString() === now.toDateString()) {
+      return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  }
+  return date.toLocaleDateString();
 }
 </script>
 
 <style scoped>
 .chat-list { flex: 1; overflow-y: auto; background: #fff; }
-.state-msg { padding: 20px; text-align: center; color: #888; }
-.chat-item { display: flex; padding: 12px 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; align-items: center; }
+.loading-state, .empty-state { padding: 20px; text-align: center; color: #999; margin-top: 50px;}
+
+.chat-item { 
+    display: flex; padding: 15px; border-bottom: 1px solid #f5f5f5; 
+    cursor: pointer; align-items: center; position: relative; transition: background 0.2s;
+}
 .chat-item:hover { background: #f9f9f9; }
-.avatar-placeholder { width: 40px; height: 40px; background: #eee; color: #555; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; }
-.chat-info { flex: 1; }
-.top { display: flex; justify-content: space-between; font-size: 14px; }
-.name { font-weight: 600; color: #333; }
-.date { color: #999; font-size: 12px; }
-.car-title { font-size: 12px; color: #2196f3; margin-top: 2px; }
-.preview { font-size: 13px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+
+.avatar-placeholder, .avatar-img {
+    width: 48px; height: 48px; border-radius: 50%; object-fit: cover; margin-right: 15px;
+}
+.avatar-placeholder {
+    background: #e0e0e0; color: #555; display: flex; 
+    align-items: center; justify-content: center; font-weight: bold; font-size: 20px;
+}
+
+.chat-info { flex: 1; min-width: 0; } /* min-width fix for truncation */
+.top-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.user-name { font-weight: 600; font-size: 15px; color: #333; }
+.date { font-size: 12px; color: #999; }
+
+.preview-text { font-size: 13px; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.preview-text.unread { font-weight: 700; color: #000; }
+.you-prefix { font-weight: normal; color: #999; }
+
+.unread-dot {
+    width: 10px; height: 10px; background-color: #3498db; border-radius: 50%; margin-left: 10px;
+}
 </style>
