@@ -111,6 +111,7 @@
     "stolen": "STOLEN VEHICLE",
     "notFoundDB": "Vehicle not found in database.",
     "serviceUnavailable": "Service temporarily unavailable.",
+    "verifiedLabel": "VERIFIED",
     "fields": {
       "makeModel": "Make/Model",
       "year": "Year",
@@ -387,6 +388,7 @@
     "steps": {
       "basic": "Info",
       "specs": "Specs",
+      "map": "Location",
       "comfort": "Comfort",
       "price": "Price",
       "description": "Description",
@@ -408,9 +410,21 @@
       "licensePlatePlaceholder": "AA 1234 BB",
       "region": "Region",
       "city": "City",
+      "identificationTitle": "Vehicle Identification *",
+      "plateBtn": "🇺🇦 License Plate",
+      "vinBtn": "🌎 VIN Code",
+      "plateHint": "Ukrainian license plate",
+      "vinVerified": "— Verified",
       "cityPlaceholder": "E.g., Kyiv"
     },
     "step2": {
+      "mapTitle": "Location on Map",
+      "required": "* Required",
+      "mapHint": "Click on the map to indicate the exact meeting place for car inspection.",
+      "coordsSelected": "📍 Selected:",
+      "coordsError": "⚠️ Please select a point on the map"
+    },
+    "step3": {
       "title": "Vehicle Specifications",
       "fuel": "Fuel Type",
       "transmission": "Transmission",
@@ -423,7 +437,7 @@
       "technicalCondition": "Technical Condition",
       "inAccident": "Involved in accident"
     },
-    "step3": {
+    "step343": {
       "title": "Comfort & Options",
       "ac": "Air Conditioning",
       "climate": "Climate Control",

@@ -19,7 +19,7 @@
           <Transition name="fade-slide" mode="out-in">
             
             <section class="form-card" v-if="currentStep === 1">
-              <h2>{{ t('createListing.step1.title') }} <small>* {{ t('createListing.required') }}</small></h2>
+              <h2>{{ t('createListing.step1.title') }} <small> {{ t('createListing.required') }}</small></h2>
               
               <div class="form-row">
                 <div class="form-group">
@@ -80,20 +80,24 @@
               </div>
 
               <div class="identification-section">
-                <label style="margin-bottom: 10px; display: block; font-weight: 600;">Ідентифікація авто *</label>
+                <label style="margin-bottom: 10px; display: block; font-weight: 600;">
+                  {{ t('createListing.step1.identificationTitle') }}
+                </label>
                 
                 <div class="toggle-container">
                   <button type="button" class="toggle-btn" :class="{ active: inputType === 'plate' }" @click="switchInputType('plate')">
-                    🇺🇦 Держ. номер
+                    {{ t('createListing.step1.plateBtn') }}
                   </button>
                   <button type="button" class="toggle-btn" :class="{ active: inputType === 'vin' }" @click="switchInputType('vin')">
-                    🌎 VIN код
+                    {{ t('createListing.step1.vinBtn') }}
                   </button>
                 </div>
 
                 <div v-if="inputType === 'plate'" class="form-group fade-in">
                   <input type="text" id="licensePlate" v-model="listing.licensePlate" @input="formatLicensePlate" placeholder="AA1234BB" maxlength="8" class="plate-input">
-                  <small style="color: #aaa; margin-top: 5px; display: block;">Український номерний знак</small>
+                  <small style="color: #aaa; margin-top: 5px; display: block;">
+                    {{ t('createListing.step1.plateHint') }}
+                  </small>
                 </div>
 
                 <div v-if="inputType === 'vin'" class="form-group fade-in">
@@ -108,7 +112,9 @@
                   
                   <small v-if="vinError" class="error-message">{{ vinError }}</small>
                   <small v-else-if="vinStatus === 'invalid'" class="error-message">{{ vinStatusMsg }}</small>
-                  <small v-else-if="vinStatus === 'valid'" style="color: #2ecc71; margin-top: 5px; display: block; font-weight: 600;">{{ vinStatusMsg }} — Verified</small>
+                  <small v-else-if="vinStatus === 'valid'" style="color: #2ecc71; margin-top: 5px; display: block; font-weight: 600;">
+                    {{ vinStatusMsg }} {{ t('createListing.step1.vinVerified') }}
+                  </small>
                   <small v-else-if="vinStatus === 'warning'" style="color: #f1c40f; margin-top: 5px; display: block; font-weight: 600;">{{ vinStatusMsg }}</small>
                 </div>
               </div>
@@ -133,27 +139,30 @@
             </section>
             
             <section class="form-card" v-else-if="currentStep === 2">
-               <h2>Місцезнаходження на мапі <small>* Обов'язково</small></h2>
+               <h2>
+                 {{ t('createListing.step2.mapTitle') }} 
+                 <small>{{ t('createListing.step2.required') }}</small>
+               </h2>
                <p style="color: #aaa; font-size: 14px; margin-bottom: 15px;">
-                   Натисніть на мапу, щоб вказати точне місце зустрічі для огляду авто.
+                   {{ t('createListing.step2.mapHint') }}
                </p>
                
                <div id="map-container" class="map-container"></div>
                
                <div v-if="listing.latitude && listing.longitude" class="coords-display">
-                   📍 Вибрано: {{ listing.latitude.toFixed(6) }}, {{ listing.longitude.toFixed(6) }}
+                   {{ t('createListing.step2.coordsSelected') }} {{ listing.latitude.toFixed(6) }}, {{ listing.longitude.toFixed(6) }}
                </div>
                <div v-else class="coords-display error">
-                   ⚠️ Будь ласка, виберіть точку на мапі
+                   {{ t('createListing.step2.coordsError') }}
                </div>
             </section>
             
             <section class="form-card" v-else-if="currentStep === 3">
-              <h2>{{ t('createListing.step2.title') }} <small>* {{ t('createListing.required') }}</small></h2>
+              <h2>{{ t('createListing.step3.title') }} <small> {{ t('createListing.required') }}</small></h2>
               
               <div class="form-row">
                 <div class="form-group">
-                  <label for="fuel">{{ t('createListing.step2.fuel') }} *</label>
+                  <label for="fuel">{{ t('createListing.step3.fuel') }} *</label>
                   <select id="fuel" v-model="listing.fuelTypeId" required>
                     <option :value="null" disabled>{{ t('createListing.select') }}</option>
                     <option v-for="fuel in lists.fuelTypes" :key="fuel.id" :value="fuel.id">
@@ -163,7 +172,7 @@
                 </div>
                 
                 <div class="form-group">
-                  <label for="transmission">{{ t('createListing.step2.transmission') }} *</label>
+                  <label for="transmission">{{ t('createListing.step3.transmission') }} *</label>
                   <select id="transmission" v-model="listing.gearTypeId" required>
                     <option :value="null" disabled>{{ t('createListing.select') }}</option>
                     <option v-for="gear in lists.gearTypes" :key="gear.id" :value="gear.id">
@@ -175,7 +184,7 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="technicalCondition">{{ t('createListing.step2.technicalCondition') }} *</label>
+                  <label for="technicalCondition">{{ t('createListing.step3.technicalCondition') }} *</label>
                   <select id="technicalCondition" v-model="listing.conditionId" required>
                     <option :value="null" disabled>{{ t('createListing.select') }}</option>
                     <option v-for="cond in lists.conditions" :key="cond.id" :value="cond.id">
@@ -184,7 +193,7 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="color">{{ t('createListing.step2.color') }} *</label>
+                  <label for="color">{{ t('createListing.step3.color') }} *</label>
                   <select id="color" v-model="listing.colorHex" required>
                     <option value="" disabled>{{ t('createListing.select') }}</option>
                     <option v-for="c in colorOptions" :key="c.hex" :value="c.hex">
@@ -195,12 +204,12 @@
               </div>
               <div class="form-group checkbox-group single-checkbox">
                   <input type="checkbox" id="inAccident" v-model="listing.inAccident">
-                  <label for="inAccident">{{ t('createListing.step2.inAccident') }}</label>
+                  <label for="inAccident">{{ t('createListing.step3.inAccident') }}</label>
               </div>
             </section>
             
             <section class="form-card" v-else-if="currentStep === 4">
-              <h2>{{ t('createListing.step4.title') }} <small>* {{ t('createListing.required') }}</small></h2>
+              <h2>{{ t('createListing.step4.title') }} <small> {{ t('createListing.required') }}</small></h2>
               <div class="form-group price-group">
                 <label for="price">{{ t('createListing.step4.price') }} *</label>
                 <div class="input-group">
@@ -222,7 +231,7 @@
             </section>
             
             <section class="form-card" v-else-if="currentStep === 6">
-              <h2>{{ t('createListing.step6.title') }} <small>* {{ t('createListing.required') }}</small></h2>
+              <h2>{{ t('createListing.step6.title') }} <small> {{ t('createListing.required') }}</small></h2>
               <PhotoUploader 
                 :maxFiles="10" 
                 @files-updated="updateFiles" 

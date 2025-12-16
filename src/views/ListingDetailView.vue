@@ -18,10 +18,11 @@
             <div class="listing-header">
               <h2>{{ listing.brand }} {{ listing.model }} ({{ listing.year }})</h2>
               
-              <button 
+              <div class="header-actions">
+                <button 
                   class="favorite-btn-detail" 
                   @click.stop="toggleFavorite" 
-                  :title="isFav ? 'Видалити з улюблених' : 'Додати в улюблені'"
+                  :title="isFav ? t('listingDetail.removeFromFav') : t('listingDetail.addToFav')"
                 >
                   <svg v-if="isFav" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#e74c3c" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
@@ -31,9 +32,10 @@
                   </svg>
                 </button>
 
-              <div v-if="listing.isVerified" class="verified-badge" title="VIN перевірено">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>VERIFIED</span>
+                <div v-if="listing.isVerified" class="verified-badge" :title="t('listingDetail.vinVerifiedTitle')">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>{{ t('listingDetail.verifiedLabel') || 'VERIFIED' }}</span>
+                </div>
               </div>
             </div>
             
@@ -196,11 +198,25 @@
         <aside class="sidebar">
           <div class="filter-card">
             <h2 class="price">{{ formattedPrice }}</h2>
-            <p class="location">{{ listing.location }}</p>
+            
+            <p class="location">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              
+              <span v-if="listing.regionName">
+                {{ t('options.region.' + getLabel('options.region', listing.regionName), listing.regionName) }}
+              </span>
+              
+              <span v-if="listing.regionName && listing.cityName"> - </span>
+              
+              <span v-if="listing.cityName">
+                {{ t('options.city.' + getLabel('options.city', listing.cityName), listing.cityName) }}
+              </span>
+
+              <span v-if="!listing.regionName && !listing.cityName">Не вказано</span>
+            </p>
             
             <div v-if="hasCoordinates" id="map-container" class="map-view"></div>
-             <p v-else class="no-map-text">Місцезнаходження на карті не вказано</p>
-
+             <p v-else class="no-map-text">{{ t('listingDetail.mapNotAvailable') }}</p>
           </div>
           
           <div class="filter-card seller-card">
@@ -291,7 +307,7 @@ const seller = ref({
 
 async function toggleFavorite() {
   if (!token.value) {
-    toast.error(t('profile.favoritesTab.toast.loginRequired'));
+    toast.error(t('profile.favoritesTab.toast.loginRequired')); // LOCALES
     router.push('/login');
     return;
   }
@@ -312,7 +328,7 @@ async function toggleFavorite() {
         },
         data: payload
       });
-      toast.info(t('profile.favoritesTab.toast.removed'));
+      toast.info(t('profile.favoritesTab.toast.removed')); // LOCALES
     } else {
       // === ADD ===
       if (addFavoriteId) addFavoriteId(Number(listingId));
@@ -324,7 +340,7 @@ async function toggleFavorite() {
             'Content-Type': 'application/json'
         }
       });
-      toast.success(t('profile.favoritesTab.toast.added'));
+      toast.success(t('profile.favoritesTab.toast.added')); // LOCALES
     }
   } catch (error) {
     console.error("Помилка favorite:", error);
@@ -367,7 +383,10 @@ function mapApiToDetail(apiItem) {
   let licensePlate = apiItem.licensePlate || apiItem.number || '';
   if (licensePlate === '0000000000') licensePlate = '';
 
-  const location = apiItem.city?.name || apiItem.region?.name || 'Україна';
+  const regionName = apiItem.region?.name || '';
+  const cityName = apiItem.city?.name || '';
+
+  const locationFull = [regionName, cityName].filter(Boolean).join(', ') || 'Україна';
 
   return {
     id: apiItem.id,
@@ -378,7 +397,9 @@ function mapApiToDetail(apiItem) {
     mileage: apiItem.mileage,
     price: apiItem.price,
     currency: apiItem.currency || 'USD',
-    location: location,
+    regionName: regionName, 
+    cityName: cityName,     
+    locationRaw: locationFull,    
     licensePlate: licensePlate,
     vin: apiItem.vin, 
     isVerified: apiItem.isVerified,
@@ -631,35 +652,62 @@ function closeModal() {
   z-index: 1;
 }
 
+
 .listing-header {
   display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
+  justify-content: space-between; /* Текст зліва, кнопки справа */
+  align-items: center;            /* Центруємо все по вертикалі (це "підніме" кнопки) */
   flex-wrap: wrap;
+  
+  /* Ось ця лінія буде одна на всіх */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15); 
+  
+  padding-bottom: 15px; /* Відступ від тексту/кнопок до лінії */
+  margin-bottom: 20px;
+  gap: 15px;
 }
 
+/* Заголовок: ПРИБИРАЄМО особисту лінію і відступи */
 .listing-header h2 {
-  margin: 0;
-  border: none;
-  padding: 0;
+  margin: 0 !important; 
+  padding: 0 !important; 
+  border: none !important;
+  font-size: 24px;
+  line-height: 1;
 }
 
-/* БЕЙДЖ VERIFIED */
+/* Блок справа (Серце + Verified) */
+.header-actions {
+  display: flex;
+  align-items: center; /* Рівняємо серце і бейдж між собою */
+  gap: 15px;           /* Відстань між серцем і бейджем */
+  margin-left: auto;
+}
+
+/* Стиль кнопки серця (щоб стояла рівно) */
+.favorite-btn-detail {
+  display: flex;       /* Щоб SVG всередині не стрибав */
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
 .verified-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   background: rgba(46, 204, 113, 0.15); 
   color: #2ecc71; 
   border: 1px solid rgba(46, 204, 113, 0.3);
-  padding: 4px 10px;
+  padding: 6px 12px;
   border-radius: 20px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  user-select: none;
-  box-shadow: 0 0 10px rgba(46, 204, 113, 0.1);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  height: fit-content; 
 }
 
 .form-card, .filter-card, .loading-card {
