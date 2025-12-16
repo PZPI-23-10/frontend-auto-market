@@ -3,18 +3,22 @@ import { reactive } from 'vue';
 export const chatStore = reactive({
   isOpen: false,           
   activeChatId: null,       
-  activeListingContext: null, // { id, title, price, image }
+  activeListingContext: null,
+  // НОВОЕ ПОЛЕ: Хранит { name: 'Иван', photo: 'url' } для шапки
+  activeChatHeader: null, 
 
   openInbox() {
     this.isOpen = true;
-    this.activeChatId = null;
-    this.activeListingContext = null;
+    this.resetActiveChat();
   },
 
-  // Открыть конкретный чат (например, нажали кнопку "Написать" на странице товара)
-  openChat(chatId, listingContext = null) {
+  // Обновляем функцию открытия чата, теперь она принимает headerInfo
+  openChat(chatId, headerInfo = null, listingContext = null) {
     this.isOpen = true;
     this.activeChatId = chatId;
+    // Сохраняем информацию для шапки
+    this.activeChatHeader = headerInfo; 
+
     if (listingContext) {
       this.activeListingContext = listingContext;
     }
@@ -25,7 +29,13 @@ export const chatStore = reactive({
   },
 
   backToInbox() {
+    this.resetActiveChat();
+  },
+
+  // Вспомогательная функция для сброса состояния
+  resetActiveChat() {
     this.activeChatId = null;
     this.activeListingContext = null;
+    this.activeChatHeader = null; // Сбрасываем заголовок
   }
 });

@@ -5,7 +5,7 @@
        <svg viewBox="0 0 24 24" width="28" height="28" fill="white">
           <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path>
        </svg>
-    </div>
+       </div>
 
     <Transition name="slide-up">
       <div v-if="chatStore.isOpen" class="chat-window">
@@ -13,9 +13,24 @@
         <div class="chat-header">
           <div class="header-left">
             <button v-if="chatStore.activeChatId" @click="chatStore.backToInbox()" class="back-btn">
-               ❮ Назад
+               <svg viewBox="0 0 24 24" width="24" height="24" fill="#2980b9"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
             </button>
-            <span class="header-title">
+            
+            <div v-if="chatStore.activeChatId && chatStore.activeChatHeader" class="header-user-info">
+               <img 
+                 v-if="chatStore.activeChatHeader.photo" 
+                 :src="chatStore.activeChatHeader.photo" 
+                 class="header-avatar-img" 
+               />
+               <div v-else class="header-avatar-placeholder">
+                 {{ chatStore.activeChatHeader.name.charAt(0).toUpperCase() }}
+               </div>
+               <span class="header-title header-user-name">
+                   {{ chatStore.activeChatHeader.name }}
+               </span>
+            </div>
+
+            <span v-else class="header-title">
                {{ chatStore.activeChatId ? 'Діалог' : 'Мої повідомлення' }}
             </span>
           </div>
@@ -44,11 +59,19 @@ import { chatStore } from '@/store/chatStore';
 import ChatList from './ChatList.vue';
 import ChatRoom from './ChatRoom.vue';
 
-// Обработка выбора чата из списка
+// ИЗМЕНЕНО: Обработка выбора чата из списка
 function handleSelectChat(chat) {
-  // Мы не передаем listingContext при открытии из списка,
-  // так как история уже существует и контекст не нужен.
-  chatStore.openChat(chat.id);
+  // chat - это объект из processedChats в ChatList.vue.
+  // Он уже содержит otherUserName и otherUserPhoto.
+  
+  // Формируем данные для шапки
+  const headerInfo = {
+      name: chat.otherUserName,
+      photo: chat.otherUserPhoto
+  };
+  
+  // Передаем их в стор при открытии
+  chatStore.openChat(chat.id, headerInfo);
 }
 </script>
 
@@ -80,25 +103,41 @@ function handleSelectChat(chat) {
 }
 
 .chat-header {
-  height: 55px; background: #fff; border-bottom: 1px solid #eee;
+  height: 60px; /* Чуть увеличили высоту для аватара */
+  background: #fff; border-bottom: 1px solid #eee;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 15px;
 }
-.header-left { display: flex; align-items: center; gap: 10px; }
-.header-title { font-weight: bold; font-size: 16px; color: #333; }
+.header-left { display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0; }
+
+/* Стили для инфо о юзере в шапке */
+.header-user-info { display: flex; align-items: center; flex: 1; min-width: 0; }
+
+.header-avatar-img, .header-avatar-placeholder {
+    width: 36px; height: 36px; border-radius: 50%; margin-right: 10px; flex-shrink: 0;
+}
+.header-avatar-img { object-fit: cover; }
+.header-avatar-placeholder {
+    background: #e0e0e0; color: #555; display: flex; 
+    align-items: center; justify-content: center; font-weight: 600; font-size: 16px;
+}
+
+.header-title { font-weight: bold; font-size: 17px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-user-name { font-size: 16px; }
+
 .back-btn { 
-    background: none; border: none; color: #2980b9; 
-    font-size: 14px; cursor: pointer; font-weight: 500;
+    background: none; border: none; 
+    padding: 5px; display: flex; align-items: center;
+    cursor: pointer; margin-right: 5px;
 }
 .close-btn { 
     background: none; border: none; color: #999; 
-    font-size: 20px; cursor: pointer; 
+    font-size: 24px; cursor: pointer; padding: 5px;
 }
 .close-btn:hover { color: #333; }
 
 .chat-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-/* Анимация появления */
 .slide-up-enter-active, .slide-up-leave-active { transition: all 0.3s ease; }
 .slide-up-enter-from, .slide-up-leave-to { transform: translateY(20px); opacity: 0; }
 </style>

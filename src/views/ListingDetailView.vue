@@ -197,6 +197,10 @@
           <div class="filter-card">
             <h2 class="price">{{ formattedPrice }}</h2>
             <p class="location">{{ listing.location }}</p>
+            
+            <div v-if="hasCoordinates" id="map-container" class="map-view"></div>
+             <p v-else class="no-map-text">Місцезнаходження на карті не вказано</p>
+
           </div>
           
           <div class="filter-card seller-card">
@@ -236,14 +240,18 @@
 
   </div>
 </template>
+
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, onBeforeUnmount, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router'; 
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 
-// Импорт вашего composable (без Pinia)
+// --- LEAFLET IMPORTS ---
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
 import { useAuth } from '@/store/auth'; 
 import { chatStore } from '@/store/chatStore';
 
@@ -260,15 +268,17 @@ const listingId = route.params.id;
 const API_BASE = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
 const API_FAV_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Favourite';
 
-const { token, favoriteIds, addFavoriteId, removeFavoriteId } = useAuth();
+const { token, favoriteIds, addFavoriteId, removeFavoriteId, isAuthenticated, userId } = useAuth();
 
 const isFav = computed(() => {
   if (!favoriteIds || !favoriteIds.value) return false;
   return favoriteIds.value.has(Number(listingId));
 });
+
 const isLoading = ref(true);
 const isContacting = ref(false);
 const listing = ref(null); 
+const mapInstance = ref(null);
 
 const seller = ref({
   name: 'Завантаження...',
@@ -340,7 +350,7 @@ function getLabel(category, serverName) {
   if (category === 'color' && serverName.startsWith('#')) {
       return serverName.toLowerCase(); 
   }
-  const keyRaw = serverName.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_').replace(/,/g, '').replace(/\./g, '');      
+  const keyRaw = serverName.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_').replace(/,/g, '').replace(/\./g, '');       
   return keyRaw;
 }
 
@@ -381,7 +391,10 @@ function mapApiToDetail(apiItem) {
     engineSize: apiItem.engineSize || 0,
     inAccident: apiItem.hasAccident ?? null, 
     images: processedImages, 
-    description: apiItem.description || ''
+    description: apiItem.description || '',
+    // --- Координати з API ---
+    latitude: apiItem.latitude,
+    longitude: apiItem.longitude
   };
 }
 
@@ -392,19 +405,76 @@ function isValidLicensePlate(plate) {
   return plate.length > 2;
 }
 
+// --- ЛОГИКА КАРТЫ (LEAFLET) ---
+
+const hasCoordinates = computed(() => {
+  // Перевірка на null, undefined та 0 (щоб не показувати карту в океані)
+  return listing.value && 
+         listing.value.latitude && 
+         listing.value.longitude && 
+         listing.value.latitude !== 0 && 
+         listing.value.longitude !== 0;
+});
+
+const initMap = () => {
+  // Перевіряємо, чи існує контейнер у DOM перед ініціалізацією
+  const mapContainer = document.getElementById('map-container');
+  if (!hasCoordinates.value || !mapContainer) return;
+
+  // Виправляємо проблему з іконками у Vite/Webpack
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
+    iconUrl: new URL('leaflet/dist/images/marker-icon.png', import.meta.url).href,
+    shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
+  });
+
+  const lat = listing.value.latitude;
+  const lng = listing.value.longitude;
+
+  if (mapInstance.value) {
+    mapInstance.value.remove();
+  }
+
+  // Створюємо карту
+  mapInstance.value = L.map('map-container').setView([lat, lng], 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(mapInstance.value);
+
+  L.marker([lat, lng])
+    .addTo(mapInstance.value)
+    .bindPopup(`${listing.value.brand} ${listing.value.model}`)
+    .openPopup();
+};
+
+onBeforeUnmount(() => {
+  if (mapInstance.value) {
+    mapInstance.value.remove();
+  }
+});
+
+// !!! ВАЖЛИВО: Watcher для запуску карти !!!
+// Цей код чекає, поки зникне спіннер (isLoading = false),
+// потім чекає оновлення DOM (nextTick), щоб з'явився <div id="map-container">,
+// і тільки потім запускає Leaflet.
+watch(isLoading, async (newValue) => {
+  if (newValue === false && hasCoordinates.value) {
+    await nextTick();
+    initMap();
+  }
+});
+
 // --- ЛОГИКА КНОПКИ "НАПИСАТЬ" ---
 
 const contactSeller = async () => {
-  // 1. Проверяем, есть ли токен (isAuthenticated - это computed в вашем auth.js)
   if (!isAuthenticated.value) {
     toast.info(t('auth.loginRequired') || 'Увійдіть, щоб написати продавцю');
     router.push('/login'); 
     return;
   }
 
-  // 2. Проверка "сам себе". 
-  // userId.value - это строка из localStorage, а listing.userId - число с бэкенда.
-  // Приводим к числу для корректного сравнения.
   if (Number(userId.value) === listing.value.userId) {
     toast.warning('Ви не можете писати самі собі');
     return;
@@ -413,7 +483,6 @@ const contactSeller = async () => {
   isContacting.value = true;
 
   try {
-    // 3. Отправляем запрос. Используем token.value
     const res = await axios.post(
       `${API_BASE}/Chat/with/${listing.value.userId}`, 
       {}, 
@@ -422,7 +491,6 @@ const contactSeller = async () => {
     
     const chatData = res.data; 
 
-    // 4. Данные для отображения в списке чатов
     const listingContext = {
       id: listing.value.id,
       title: `${listing.value.brand} ${listing.value.model} ${listing.value.year}`,
@@ -430,7 +498,6 @@ const contactSeller = async () => {
       image: selectedImageUrl.value 
     };
 
-    // 5. Открываем чат
     chatStore.openChat(chatData.id, listingContext);
 
   } catch (e) {
@@ -474,6 +541,7 @@ onMounted(async () => {
     toast.error(t('listingDetail.loadError'));
     listing.value = null;
   } finally {
+    // Встановлення isLoading в false запустить watcher, який ініціалізує карту
     isLoading.value = false;
   }
 });
@@ -510,6 +578,7 @@ function closeModal() {
 </script>
 
 <style scoped>
+/* Ваші стилі */
 .title-wrapper {
   display: flex;
   align-items: center;
@@ -753,6 +822,30 @@ function closeModal() {
 .image-modal-content { position: relative; max-width: 95%; max-height: 95vh; }
 .modal-image { max-width: 100%; max-height: 90vh; border-radius: 4px; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
 .modal-close-btn { position: absolute; top: -40px; right: 0; background: transparent; color: #fff; border: none; font-size: 40px; cursor: pointer; }
+
+/* STYLES FOR MAP */
+.map-view {
+  width: 100%;
+  height: 200px;
+  margin-top: 15px;
+  border-radius: 8px;
+  z-index: 1; 
+}
+
+.no-map-text {
+  font-size: 13px;
+  color: #888;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* Custom Leaflet Popup for Dark Theme */
+:deep(.leaflet-popup-content-wrapper),
+:deep(.leaflet-popup-tip) {
+  background: #333;
+  color: #fff;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+}
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>

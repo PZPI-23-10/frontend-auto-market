@@ -83,98 +83,42 @@
                 <label style="margin-bottom: 10px; display: block; font-weight: 600;">Ідентифікація авто *</label>
                 
                 <div class="toggle-container">
-                  <button 
-                    type="button" 
-                    class="toggle-btn" 
-                    :class="{ active: inputType === 'plate' }" 
-                    @click="switchInputType('plate')"
-                  >
+                  <button type="button" class="toggle-btn" :class="{ active: inputType === 'plate' }" @click="switchInputType('plate')">
                     🇺🇦 Держ. номер
                   </button>
-                  <button 
-                    type="button" 
-                    class="toggle-btn" 
-                    :class="{ active: inputType === 'vin' }" 
-                    @click="switchInputType('vin')"
-                  >
+                  <button type="button" class="toggle-btn" :class="{ active: inputType === 'vin' }" @click="switchInputType('vin')">
                     🌎 VIN код
                   </button>
                 </div>
 
                 <div v-if="inputType === 'plate'" class="form-group fade-in">
-                  <input 
-                    type="text" 
-                    id="licensePlate" 
-                    v-model="listing.licensePlate"
-                    @input="formatLicensePlate"
-                    placeholder="AA1234BB" 
-                    maxlength="8"
-                    class="plate-input"
-                  >
+                  <input type="text" id="licensePlate" v-model="listing.licensePlate" @input="formatLicensePlate" placeholder="AA1234BB" maxlength="8" class="plate-input">
                   <small style="color: #aaa; margin-top: 5px; display: block;">Український номерний знак</small>
                 </div>
 
                 <div v-if="inputType === 'vin'" class="form-group fade-in">
-                  <div class="input-wrapper" :class="{ 
-                      'has-error': vinError || vinStatus === 'invalid', 
-                      'has-success': vinStatus === 'valid',
-                      'has-warning': vinStatus === 'warning'
-                  }">
-                    <input 
-                      type="text" 
-                      id="vin" 
-                      v-model="listing.vin" 
-                      @input="handleVinInput" 
-                      placeholder="WBA..." 
-                      maxlength="17"
-                      :class="{ 
-                          'input-error': vinError || vinStatus === 'invalid',
-                          'input-success': vinStatus === 'valid',
-                          'input-warning': vinStatus === 'warning'
-                      }"
-                    >
+                  <div class="input-wrapper" :class="{ 'has-error': vinError || vinStatus === 'invalid', 'has-success': vinStatus === 'valid', 'has-warning': vinStatus === 'warning' }">
+                    <input type="text" id="vin" v-model="listing.vin" @input="handleVinInput" placeholder="WBA..." maxlength="17" :class="{ 'input-error': vinError || vinStatus === 'invalid', 'input-success': vinStatus === 'valid', 'input-warning': vinStatus === 'warning' }">
                     
-                    <span v-if="vinStatus === 'loading'" class="status-icon">
-                      <div class="mini-spinner"></div>
-                    </span>
-
-                    <span v-if="vinStatus === 'valid'" class="status-icon valid-icon" title="Перевірено">
-                      ✅
-                    </span>
-
-                    <span v-if="vinStatus === 'warning'" class="status-icon warning-icon" title="Ручне заповнення">
-                       ⚠️
-                    </span>
-
-                    <span v-if="vinStatus === 'invalid' || vinError" class="status-icon invalid-icon" title="Помилка">
-                      ❌
-                    </span>
+                    <span v-if="vinStatus === 'loading'" class="status-icon"><div class="mini-spinner"></div></span>
+                    <span v-if="vinStatus === 'valid'" class="status-icon valid-icon">✅</span>
+                    <span v-if="vinStatus === 'warning'" class="status-icon warning-icon">⚠️</span>
+                    <span v-if="vinStatus === 'invalid' || vinError" class="status-icon invalid-icon">❌</span>
                   </div>
                   
                   <small v-if="vinError" class="error-message">{{ vinError }}</small>
                   <small v-else-if="vinStatus === 'invalid'" class="error-message">{{ vinStatusMsg }}</small>
-                  
-                  <small v-else-if="vinStatus === 'valid'" style="color: #2ecc71; margin-top: 5px; display: block; font-weight: 600;">
-                    {{ vinStatusMsg }} — Verified
-                  </small>
-                  
-                  <small v-else-if="vinStatus === 'warning'" style="color: #f1c40f; margin-top: 5px; display: block; font-weight: 600;">
-                     {{ vinStatusMsg }}
-                  </small>
-                  
-                  <small v-else style="color: #aaa; margin-top: 5px; display: block;">
-                    Введіть 17 символів для автоматичної перевірки.
-                  </small>
+                  <small v-else-if="vinStatus === 'valid'" style="color: #2ecc71; margin-top: 5px; display: block; font-weight: 600;">{{ vinStatusMsg }} — Verified</small>
+                  <small v-else-if="vinStatus === 'warning'" style="color: #f1c40f; margin-top: 5px; display: block; font-weight: 600;">{{ vinStatusMsg }}</small>
                 </div>
               </div>
+
               <div class="form-row">
                 <div class="form-group">
                   <label for="region">{{ t('createListing.step1.region') }} *</label>
                   <select id="region" v-model="listing.regionId" required>
                     <option :value="null" disabled>{{ t('createListing.select') }}</option>
-                    <option v-for="r in lists.regions" :key="r.id" :value="r.id">
-                      {{ getLabel('region', r.name) }}
-                    </option>
+                    <option v-for="r in lists.regions" :key="r.id" :value="r.id">{{ getLabel('region', r.name) }}</option>
                   </select>
                 </div>
 
@@ -182,15 +126,29 @@
                   <label for="city">{{ t('createListing.step1.city') }} *</label>
                   <select id="city" v-model="listing.cityId" required :disabled="!listing.regionId">
                     <option :value="null" disabled>{{ t('createListing.select') }}</option>
-                    <option v-for="c in lists.cities" :key="c.id" :value="c.id">
-                      {{ getLabel('city', c.name) }}
-                    </option>
+                    <option v-for="c in lists.cities" :key="c.id" :value="c.id">{{ getLabel('city', c.name) }}</option>
                   </select>
                 </div>
               </div>
             </section>
             
             <section class="form-card" v-else-if="currentStep === 2">
+               <h2>Місцезнаходження на мапі <small>* Обов'язково</small></h2>
+               <p style="color: #aaa; font-size: 14px; margin-bottom: 15px;">
+                   Натисніть на мапу, щоб вказати точне місце зустрічі для огляду авто.
+               </p>
+               
+               <div id="map-container" class="map-container"></div>
+               
+               <div v-if="listing.latitude && listing.longitude" class="coords-display">
+                   📍 Вибрано: {{ listing.latitude.toFixed(6) }}, {{ listing.longitude.toFixed(6) }}
+               </div>
+               <div v-else class="coords-display error">
+                   ⚠️ Будь ласка, виберіть точку на мапі
+               </div>
+            </section>
+            
+            <section class="form-card" v-else-if="currentStep === 3">
               <h2>{{ t('createListing.step2.title') }} <small>* {{ t('createListing.required') }}</small></h2>
               
               <div class="form-row">
@@ -241,7 +199,7 @@
               </div>
             </section>
             
-            <section class="form-card" v-else-if="currentStep === 3">
+            <section class="form-card" v-else-if="currentStep === 4">
               <h2>{{ t('createListing.step4.title') }} <small>* {{ t('createListing.required') }}</small></h2>
               <div class="form-group price-group">
                 <label for="price">{{ t('createListing.step4.price') }} *</label>
@@ -255,7 +213,7 @@
               </div>
             </section>
             
-            <section class="form-card" v-else-if="currentStep === 4">
+            <section class="form-card" v-else-if="currentStep === 5">
               <h2>{{ t('createListing.step5.title') }}</h2>
               <div class="form-group">
                 <label for="description">{{ t('createListing.step5.label') }}</label>
@@ -263,7 +221,7 @@
               </div>
             </section>
             
-            <section class="form-card" v-else-if="currentStep === 5">
+            <section class="form-card" v-else-if="currentStep === 6">
               <h2>{{ t('createListing.step6.title') }} <small>* {{ t('createListing.required') }}</small></h2>
               <PhotoUploader 
                 :maxFiles="10" 
@@ -329,13 +287,28 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'; 
+import { ref, computed, watch, onMounted, nextTick } from 'vue'; 
 import { useRoute, useRouter } from 'vue-router'; 
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import PhotoUploader from '@/components/PhotoUploader.vue'; 
 import { useAuth } from '@/store/auth'; 
+
+// --- LEAFLET IMPORTS ---
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+// -----------------------
 
 const route = useRoute(); 
 const router = useRouter();
@@ -373,13 +346,19 @@ const listing = ref({
   isPublished: false, colorHex: '', inAccident: false, conditionId: null, 
   price: '', currency: 'USD', description: '',
   licensePlate: '', vin: '', 
+  latitude: null, longitude: null, 
   photosToDelete: [] 
 });
 const listingPhotos = ref([]); 
 const currentStep = ref(1);
+
+// --- STEPS ---
 const steps = ref([
-  { titleKey: 'createListing.steps.basic' }, { titleKey: 'createListing.steps.specs' },
-  { titleKey: 'createListing.steps.price' }, { titleKey: 'createListing.steps.description' }, 
+  { titleKey: 'createListing.steps.basic' }, 
+  { titleKey: 'createListing.steps.map' }, 
+  { titleKey: 'createListing.steps.specs' },
+  { titleKey: 'createListing.steps.price' }, 
+  { titleKey: 'createListing.steps.description' }, 
   { titleKey: 'createListing.steps.photos' }       
 ]);
 
@@ -399,35 +378,29 @@ function getLabel(cat, name) {
 function switchInputType(type) {
     inputType.value = type;
     vinError.value = '';
-    
 }
 
 // --- LOGIC: VIN ---
 function handleVinInput(event) { 
     let val = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (val.length > 17) val = val.slice(0, 17);
-    
     listing.value.vin = val;
     event.target.value = val; 
-    
-    // Скидаємо статуси
     vinError.value = ''; 
     vinStatus.value = null;
     vinStatusMsg.value = '';
-    
     if (val.length === 17) checkVinData(val);
-}const isManualMode = ref(false);
+}
+const isManualMode = ref(false);
 
 async function checkVinData(vin) {
     vinStatus.value = 'loading';
     vinStatusMsg.value = '';
-    isManualMode.value = false; // Сброс
+    isManualMode.value = false;
 
     try {
         const res = await axios.get(`${API_HOST}/VehicleCheck/vin/${vin}`);
         const apiData = res.data;
-        
-        // УСПЕХ: Авто найдено (2021+)
         vinStatus.value = 'valid';
         vinStatusMsg.value = `${apiData.brand} ${apiData.model} (${apiData.year})`;
         
@@ -435,7 +408,6 @@ async function checkVinData(vin) {
             listing.value.licensePlate = apiData.digits;
             toast.success(`Номер ${apiData.digits} знайдено!`);
         } else if (apiData.number) {
-            // На случай, если API вернет number в другом формате
             listing.value.licensePlate = apiData.number;
         }
     } catch(e) {
@@ -449,6 +421,71 @@ async function checkVinData(vin) {
         }
     }
 }
+
+// --- MAP LOGIC ---
+let map = null;
+let marker = null;
+
+const initMap = () => {
+    if (map) {
+        map.remove();
+        map = null;
+        marker = null; // Очищення маркера
+    }
+
+    const container = document.getElementById('map-container');
+    if (!container) return;
+
+    // Центр України за замовчуванням
+    const defaultCoords = [48.3794, 31.1656]; 
+    const initialZoom = 6;
+    
+    // Перевірка: чи є валідні координати (не null і не 0)
+    const hasCoords = listing.value.latitude && listing.value.longitude;
+    
+    const viewCoords = hasCoords 
+        ? [listing.value.latitude, listing.value.longitude] 
+        : defaultCoords;
+        
+    const viewZoom = hasCoords ? 13 : initialZoom;
+
+    map = L.map('map-container').setView(viewCoords, viewZoom);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    if (hasCoords) {
+        marker = L.marker([listing.value.latitude, listing.value.longitude]).addTo(map);
+    }
+
+    map.on('click', (e) => {
+        const { lat, lng } = e.latlng;
+        // Зберігаємо як числа
+        listing.value.latitude = lat;
+        listing.value.longitude = lng;
+
+        if (marker) {
+            marker.setLatLng(e.latlng);
+        } else {
+            marker = L.marker(e.latlng).addTo(map);
+        }
+    });
+    
+    setTimeout(() => {
+        if(map) map.invalidateSize();
+    }, 100);
+};
+
+// --- WATCHER FIX ---
+watch(currentStep, (newStep) => {
+    if (newStep === 2) {
+        // Чекаємо завершення анімації переходу (Transition)
+        setTimeout(() => {
+            initMap();
+        }, 500); 
+    }
+});
 
 // --- DATA FETCHING ---
 async function fetchListingData(id) {
@@ -485,10 +522,12 @@ async function fetchListingData(id) {
             conditionId: data.condition?.id ?? data.conditionId,
             price: data.price, currency: data.currency || 'USD', description: data.description,
             licensePlate: data.number || '', 
-            vin: data.vin || ''
+            vin: data.vin || '',
+            // Якщо координати 0 (дефолт бекенда), ставимо null, щоб карта не ставила маркер в океані
+            latitude: (data.latitude && data.latitude !== 0) ? data.latitude : null,
+            longitude: (data.longitude && data.longitude !== 0) ? data.longitude : null
         });
         
-        // Якщо завантажуємо існуючий VIN - перевіряємо його статус
         if (listing.value.vin && listing.value.vin.length === 17) {
             checkVinData(listing.value.vin);
         }
@@ -566,20 +605,31 @@ function nextStep() {
         return;
     }
   }
+  
+  // Валідація карти
   if (currentStep.value === 2) {
+      if (!listing.value.latitude || !listing.value.longitude) {
+           toast.warning("Будь ласка, вкажіть місцезнаходження на мапі");
+           return;
+      }
+  }
+
+  if (currentStep.value === 3) {
       if (!listing.value.fuelTypeId || !listing.value.gearTypeId || !listing.value.colorHex || !listing.value.conditionId) {
         toast.warning(t('createListing.toast.fillField', { field: 'Required fields' }));
         return;
       }
   }
+  
   if (currentStep.value < steps.value.length) {
       currentStep.value++;
       window.scrollTo(0,0);
   }
-}function getFormData() {
+}
+
+function getFormData() {
   const formData = new FormData();
   
-  // Хелпер: добавляем поле только если оно не null и не undefined
   const appendIfVal = (key, val) => {
     if (val !== null && val !== undefined && val !== '') {
       formData.append(key, val);
@@ -588,7 +638,6 @@ function nextStep() {
 
   if (isEditMode.value && listingId.value) formData.append('Id', listingId.value);
 
-  // Используем безопасное добавление для ID (чтобы не отправлять строку "null")
   appendIfVal('ModelId', listing.value.modelId);
   appendIfVal('BodyTypeId', listing.value.bodyTypeId);
   appendIfVal('ConditionId', listing.value.conditionId);
@@ -596,7 +645,6 @@ function nextStep() {
   appendIfVal('FuelTypeId', listing.value.fuelTypeId);
   appendIfVal('GearTypeId', listing.value.gearTypeId);
   
-  // Числовые поля: 0 допустимо, поэтому проверяем отдельно
   formData.append('Year', listing.value.year);
   formData.append('Mileage', listing.value.mileage || 0);
   formData.append('Price', listing.value.price || 0);
@@ -605,20 +653,24 @@ function nextStep() {
   formData.append('ColorHex', listing.value.colorHex || '#000000'); 
   formData.append('HasAccident', listing.value.inAccident);
   
-  // --- ГЛАВНОЕ ИСПРАВЛЕНИЕ ДЛЯ VIN И НОМЕРА ---
-  
-  // Отправляем VIN, только если он полностью заполнен (17 символов)
   if (listing.value.vin && listing.value.vin.length === 17) {
       formData.append('Vin', listing.value.vin);
   }
-
-  // Отправляем Номер, только если он заполнен (минимум 3 символа)
-  // Если пользователь вводит только VIN (старая машина без номера в базе), номер не отправится, и это ОК.
   if (listing.value.licensePlate && listing.value.licensePlate.length >= 3) {
       formData.append('Number', listing.value.licensePlate);
   }
 
-  // ... (код для фото оставляем без изменений)
+  // --- ВИПРАВЛЕНА ЛОГІКА КООРДИНАТ ---
+  // 1. Перевіряємо на null і undefined (0 - теж валідна координата)
+  if (listing.value.latitude !== null && listing.value.latitude !== undefined) {
+      // 2. Передаємо як рядок з крапкою для надійності
+      // Якщо сервер вимагає кому (укр. локаль), спробуйте: .toString().replace('.', ',')
+      formData.append('Latitude', listing.value.latitude.toString());
+  }
+  if (listing.value.longitude !== null && listing.value.longitude !== undefined) {
+      formData.append('Longitude', listing.value.longitude.toString());
+  }
+
   if (listing.value.photosToDelete) {
     listing.value.photosToDelete.forEach(id => { if (id > 0) formData.append('PhotosToRemove', id); });
   }
@@ -640,6 +692,7 @@ function nextStep() {
   
   return formData;
 }
+
 async function handleSubmit() {
   vinError.value = '';
   
@@ -650,7 +703,6 @@ async function handleSubmit() {
       return;
   }
 
-  // --- ВАЛІДАЦІЯ ТІЛЬКИ АКТИВНОГО ПОЛЯ ---
   if (inputType.value === 'plate') {
       if (!listing.value.licensePlate || listing.value.licensePlate.length < 3) {
           toast.warning("Вкажіть коректний держ. номер (мінімум 3 символи)");
@@ -660,23 +712,18 @@ async function handleSubmit() {
       }
   } 
   else if (inputType.value === 'vin') {
-      // 1. Перевірка довжини
       if (!listing.value.vin || listing.value.vin.length !== 17) {
           vinError.value = "VIN код повинен містити рівно 17 символів";
           currentStep.value = 1;
           setTimeout(() => document.getElementById('vin')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
           return;
       }
-      
-      // 2. БЛОКУВАННЯ ТІЛЬКИ ПРИ РЕАЛЬНІЙ ПОМИЛЦІ
-      // Якщо статус 'warning' (не знайдено в базі, але код валідний) - пропускаємо!
       if (vinStatus.value === 'invalid') {
           vinError.value = "Помилка перевірки VIN. Перевірте код або спробуйте ввести держ. номер.";
           currentStep.value = 1;
           setTimeout(() => document.getElementById('vin')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
           return;
       }
-      
       if (vinStatus.value === 'loading') {
            toast.info("Зачекайте завершення перевірки VIN...");
            return;
@@ -685,14 +732,13 @@ async function handleSubmit() {
 
   isSubmitting.value = true;
   
-  // ... (далі код відправки) ...
   let url = isEditMode.value 
       ? (listing.value.isPublished ? `${API_HOST}/Listing/${listingId.value}` : `${API_HOST}/Listing/draft/${listingId.value}/publish`)
       : `${API_HOST}/Listing`;
   let method = isEditMode.value && listing.value.isPublished ? 'put' : 'post';
 
   try {
-    const formData = getFormData(); // Викликаємо оновлену функцію
+    const formData = getFormData();
     
     await axios[method](url, formData, {
       headers: {
@@ -712,27 +758,28 @@ async function handleSubmit() {
     let serverMessage = '';
 
     if (typeof errorData === 'string') {
-         serverMessage = errorData;
+          serverMessage = errorData;
     } else if (errorData?.title) {
-         serverMessage = errorData.title;
+          serverMessage = errorData.title;
     } else if (errorData?.errors) {
-         const firstKey = Object.keys(errorData.errors)[0];
-         serverMessage = errorData.errors[firstKey][0];
+          const firstKey = Object.keys(errorData.errors)[0];
+          serverMessage = errorData.errors[firstKey][0];
     } else if (errorData?.message) {
-         serverMessage = errorData.message;
+          serverMessage = errorData.message;
     }
 
     if (serverMessage && (serverMessage.includes('VIN') || inputType.value === 'vin')) {
-         vinError.value = serverMessage;
-         currentStep.value = 1;
-         setTimeout(() => document.getElementById('vin')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+          vinError.value = serverMessage;
+          currentStep.value = 1;
+          setTimeout(() => document.getElementById('vin')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
     } else {
-         handleError(error);
+          handleError(error);
     }
   } finally {
     isSubmitting.value = false;
   }
 }
+
 async function handleDraft() {
   if (isSubmitting.value) return;
   isSubmitting.value = true;
@@ -759,9 +806,7 @@ function handleError(error) {
     toast.error(msg);
 }
 </script>
-
 <style scoped>
-/* Стилі ті самі, додаємо стилі для статусів VIN */
 .create-listing-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
@@ -810,7 +855,7 @@ function handleError(error) {
 .spinner { width: 60px; height: 60px; border: 5px solid #555; border-top-color: #ffd700; border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* --- НОВІ СТИЛІ (Tabs, VIN) --- */
+/* TABS / IDENTIFICATION */
 .identification-section { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px; }
 .toggle-container { display: flex; gap: 10px; margin-bottom: 15px; }
 .toggle-btn { flex: 1; padding: 10px; border: 1px solid #555; background: transparent; color: #aaa; border-radius: 6px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; }
@@ -827,7 +872,26 @@ function handleError(error) {
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 .fade-in { animation: fadeIn 0.3s ease-in-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Міні спінер */
 .mini-spinner { width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-top-color: #ffd700; border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+/* MAP */
+.map-container {
+    width: 100%;
+    height: 400px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+    z-index: 10;
+    position: relative; /* Важно для Leaflet */
+}
+.coords-display {
+    padding: 10px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+    font-size: 14px;
+    color: #ffd700;
+}
+.coords-display.error {
+    color: #e74c3c;
+}
 </style>
