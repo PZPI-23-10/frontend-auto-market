@@ -1235,4 +1235,86 @@ button {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* --- АДАПТАЦІЯ ПРОФІЛЮ --- */
+
+@media (max-width: 992px) {
+  .profile-view {
+    padding-top: 80px; 
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  /* 1. Сітка профілю стає стовпчиком */
+  .profile-container {
+    grid-template-columns: 1fr; 
+    display: flex; 
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* 2. Заголовок */
+  .profile-view h1 {
+    font-size: 28px;
+    text-align: center;
+    padding-left: 0;
+    margin-bottom: 20px;
+  }
+
+  /* 3. Сайдбар (Меню вкладок) */
+  .profile-sidebar {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-x: auto; 
+  }
+  
+  .profile-nav ul {
+    flex-direction: row;
+    justify-content: space-between; 
+    gap: 10px;
+  }
+  
+  .profile-nav a {
+    white-space: nowrap; 
+    padding: 10px 15px;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  /* 4. Контент (Форми і картки) */
+  .profile-content {
+    width: 100%;
+    padding: 20px 15px;
+    box-sizing: border-box;
+  }
+
+  /* Адаптація форми */
+  .form-row {
+    grid-template-columns: 1fr; 
+  }
+
+  .avatar-upload-section {
+    flex-direction: column; 
+    text-align: center;
+  }
+  
+  .avatar-preview {
+    margin: 0 auto; 
+  }
+  
+  .listing-item-wrapper {
+    padding: 10px;
+  }
+  
+  .listing-actions {
+    flex-direction: column; 
+    gap: 10px;
+  }
+  
+  .btn-action {
+    width: 100%; 
+    justify-content: center;
+  }
+}
 </style>

@@ -10,7 +10,7 @@
 
     <div class="messages-area" ref="messagesContainer">
       <div v-if="messages.length === 0" class="empty-chat-state">
-        Напишіть перше повідомлення...
+        {{ t('chat.typeFirstMessage') }}
       </div>
       
       <div 
@@ -35,7 +35,7 @@
       <input 
         v-model="newMessage" 
         @keyup.enter="handleSend" 
-        placeholder="Ваше повідомлення..." 
+        :placeholder="t('chat.placeholder')" 
         :disabled="!isConnected"
       />
       <button class="send-btn" @click="handleSend" :disabled="!newMessage.trim() || !isConnected">
@@ -46,10 +46,12 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n';
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useChat } from '@/composables/useChat'; 
 import { useAuth } from '@/store/auth';
 
+const { t } = useI18n();
 const props = defineProps({
   chatId: { type: [Number, String], required: true },
   listingContext: { type: Object, default: null } 
@@ -182,4 +184,10 @@ const formatTime = (t) => {
     font-size: 16px;
 }
 .send-btn:disabled { background: #ccc; cursor: default; }
+
+@media (max-width: 768px) {
+    .bubble { max-width: 85%; font-size: 13px; } 
+    .input-area { padding: 8px; }
+    .input-area input { padding: 8px 12px; font-size: 14px; }
+}
 </style>

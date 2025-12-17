@@ -1214,4 +1214,209 @@ input, select { width: 100%; height: 42px; padding: 0 12px; background: rgba(0, 
   animation: spin 1s infinite linear;
   margin-right: 5px;
 }
+
+@media (max-width: 992px) {
+  /* 1. Адаптація головного контейнера */
+  .admin-view {
+    padding-left: 10px;
+    padding-right: 10px;
+    background-attachment: scroll; /* Важливо для фону на мобільних */
+  }
+
+  /* 2. Сайдбар стає горизонтальним меню */
+  .admin-sidebar {
+    padding: 10px;
+    margin-bottom: 20px;
+    overflow-x: auto; /* Дозволяє скрол */
+  }
+  
+  .admin-nav ul {
+    flex-direction: row; /* В ряд */
+    gap: 10px;
+    padding-bottom: 5px; /* Місце для скролбару */
+  }
+  
+  .admin-nav a {
+    white-space: nowrap; /* Текст не переноситься */
+    padding: 8px 15px;
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.05);
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .tab-pane, 
+  .data-list-section,
+  .dashboard-box {
+    overflow-x: auto;
+  }
+  
+  .data-table, 
+  .simple-table {
+    min-width: 600px; 
+  }
+
+  .report-form-row {
+    flex-direction: column; 
+    align-items: stretch;
+  }
+  
+  .report-form-row .form-group {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .report-controls-card {
+    padding: 15px;
+  }
+
+  .modal-window, 
+  .profile-modal, 
+  .delete-modal {
+    width: 95% !important; 
+    max-height: 90vh; 
+  }
+  
+  .profile-header-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .profile-details-grid {
+    grid-template-columns: 1fr; 
+  }
+
+  .mode-switch-container {
+    flex-direction: column;
+  }
+
+  /* Заголовки */
+  .header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+.header-flex {
+    display: flex;
+    flex-direction: row !important; /* Примусово в рядок */
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 15px;
+  }
+  
+.header-flex h2 {
+    font-size: 18px !important; /* Менший розмір */
+    margin: 0 !important;
+    border: none !important; /* Прибираємо лінію під самим текстом */
+    padding: 0 !important;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  /* 3. Лагодимо кнопку оновлення */
+  .btn-refresh {
+    margin: 0 !important; /* Прибираємо мінусові відступи */
+    align-self: center !important;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0; /* Щоб її не сплющило */
+    position: static !important;
+  }
+
+  /* 4. Адаптація фільтрів (Всі, Перевірені...) */
+  .filter-controls {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto; /* Горизонтальний скрол, якщо не влазять */
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    flex-wrap: nowrap; /* Не переносити на новий рядок */
+  }
+
+  .filter-pill {
+    white-space: nowrap; /* Текст в одну лінію */
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+@media (max-width: 992px) {
+  .admin-layout {
+    display: flex; /* Замість grid */
+    flex-direction: column; /* Елементи один під одним */
+    width: 100%;
+    gap: 20px;
+  }
+
+  .admin-sidebar {
+    width: 100%; /* Сайдбар на всю ширину */
+    box-sizing: border-box;
+    overflow-x: auto; /* Горизонтальний скрол для меню */
+  }
+
+  .admin-content {
+    width: 100%;
+    min-height: auto;
+    padding: 15px; /* Менше padding всередині контенту */
+    box-sizing: border-box;
+    overflow-x: hidden; /* Щоб таблиці не розпирали сам контент */
+  }
+}
+
+/* 3. Адаптація під вузькі телефони (< 768px) */
+@media (max-width: 768px) {
+  /* Заголовки та кнопки в шапці */
+  .header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Статистика (картки) в одну колонку */
+  .stats-grid {
+    grid-template-columns: 1fr; 
+    gap: 15px;
+  }
+  
+  .stat-card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* ТАБЛИЦІ: Найголовніша причина розпирання */
+  /* Робимо обгортку, щоб скролилась таблиця, а не сторінка */
+  .tab-pane {
+    width: 100%;
+    overflow-x: auto; /* Скрол всередині блоку */
+  }
+  
+  .data-table, .simple-table {
+    min-width: 600px; /* Таблиця широка, але вона в скролі */
+  }
+  
+  /* Форми додавання авто */
+  .add-dashboard-grid {
+    grid-template-columns: 1fr; /* Одна колонка */
+  }
+  
+  .admin-form-card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Графік */
+  .chart-wrapper {
+    padding: 10px;
+    overflow-x: auto;
+  }
+}
 </style>

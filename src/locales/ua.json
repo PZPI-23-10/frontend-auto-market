@@ -1,4 +1,14 @@
 {
+  "chat": {
+    "loading": "Завантаження чатів...",
+    "noMessages": "У вас поки немає повідомлень",
+    "you": "Ви",
+    "typeFirstMessage": "Напишіть перше повідомлення...",
+    "placeholder": "Ваше повідомлення...",
+    "dialog": "Діалог",
+    "myMessages": "Мої повідомлення",
+    "send": "Надіслати"
+  },
   "nav": {
     "whoWeAre": "Хто Ми Такі",
     "aboutUs": "Про нас",
@@ -950,15 +960,15 @@
       },
       "forms": {
         "addType": "Додати тип авто",
-        "addFuel": "Додати тип пального",
-        "addGear": "Додати КПП",
+        "addFuelType": "Додати тип палива",
+        "addGearType": "Додати тип КПП",
         "addCondition": "Додати стан",
         "addBrand": "Додати бренд",
         "addModel": "Додати модель (складно)",
         "placeholders": {
           "type": "напр. Легковий",
-          "fuel": "напр. Електро",
-          "gear": "напр. Автомат",
+          "fueltype": "напр. Електро",
+          "geartype": "напр. Автомат",
           "condition": "напр. Новий",
           "brand": "напр. Toyota",
           "model": "напр. Camry",
@@ -1000,6 +1010,7 @@
     "reports": {
       "title": "Звіти",
       "typeLabel": "Тип звіту",
+      "chartTitle": "Огляд активності",
       "types": {
         "userActivity": "Активність користувачів"
       },

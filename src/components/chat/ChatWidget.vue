@@ -31,7 +31,7 @@
             </div>
 
             <span v-else class="header-title">
-               {{ chatStore.activeChatId ? 'Діалог' : 'Мої повідомлення' }}
+               {{ chatStore.activeChatId ? t('chat.dialog') : t('chat.myMessages') }}
             </span>
           </div>
           <button class="close-btn" @click="chatStore.close()">✕</button>
@@ -55,11 +55,12 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n';
 import { chatStore } from '@/store/chatStore';
 import ChatList from './ChatList.vue';
 import ChatRoom from './ChatRoom.vue';
 
-// ИЗМЕНЕНО: Обработка выбора чата из списка
+const { t } = useI18n();
 function handleSelectChat(chat) {
   // chat - это объект из processedChats в ChatList.vue.
   // Он уже содержит otherUserName и otherUserPhoto.
@@ -100,6 +101,37 @@ function handleSelectChat(chat) {
   overflow: hidden;
   font-family: 'Segoe UI', sans-serif;
   border: 1px solid #eee;
+}
+
+/* MOBILE ADAPTATION */
+@media (max-width: 768px) {
+  .chat-window {
+    top: auto; 
+    bottom: 0;
+    left: 0;
+    right: 0;
+    
+    width: 100%;
+    height: 85vh;
+    
+    border-radius: 20px 20px 0 0; 
+    border: none;
+    position: fixed;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.2); 
+  }
+  
+  .chat-launcher {
+    bottom: 20px; 
+    right: 20px;
+    width: 50px; 
+    height: 50px;
+  }
+  
+  .chat-header {
+      height: 60px;
+      padding-top: 10px; 
+      border-radius: 20px 20px 0 0;
+  }
 }
 
 .chat-header {

@@ -1,8 +1,8 @@
 <template>
   <div class="chat-list">
-    <div v-if="isLoading" class="loading-state">Загрузка чатов...</div>
+    <div v-if="isLoading" class="loading-state">{{ t('chat.loading') }}</div>
     <div v-else-if="processedChats.length === 0" class="empty-state">
-        <p>У вас пока нет сообщений</p>
+        <p>{{ t('chat.noMessages') }}</p>
     </div>
 
     <div 
@@ -31,7 +31,7 @@
             class="preview-text"
             :class="{ 'unread': chat.hasUnread }"
         >
-            <span v-if="chat.isLastMessageMine" class="you-prefix">Ви: </span>
+            <span v-if="chat.isLastMessageMine" class="you-prefix">{{ t('chat.you') }}: </span>
             {{ chat.lastMessageText }}
         </div>
       </div>
@@ -45,7 +45,9 @@
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useAuth } from '@/store/auth';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['select-chat']);
 const { token, userId } = useAuth(); // userId должен быть доступен в store
 const chats = ref([]);
@@ -112,33 +114,121 @@ function formatDate(dateString) {
 </script>
 
 <style scoped>
-.chat-list { flex: 1; overflow-y: auto; background: #fff; }
-.loading-state, .empty-state { padding: 20px; text-align: center; color: #999; margin-top: 50px;}
+.chat-list { 
+  flex: 1; 
+  overflow-y: auto; 
+  background: #fff; 
+}
+
+.loading-state, .empty-state { 
+  padding: 20px; 
+  text-align: center; 
+  color: #999; 
+  margin-top: 50px;
+}
 
 .chat-item { 
-    display: flex; padding: 15px; border-bottom: 1px solid #f5f5f5; 
-    cursor: pointer; align-items: center; position: relative; transition: background 0.2s;
+  display: flex; 
+  padding: 15px; 
+  border-bottom: 1px solid #f5f5f5; 
+  cursor: pointer; 
+  align-items: center; 
+  position: relative; 
+  transition: background 0.2s;
 }
-.chat-item:hover { background: #f9f9f9; }
+
+.chat-item:hover { 
+  background: #f9f9f9; 
+}
 
 .avatar-placeholder, .avatar-img {
-    width: 48px; height: 48px; border-radius: 50%; object-fit: cover; margin-right: 15px;
+  width: 48px; 
+  height: 48px; 
+  border-radius: 50%; 
+  object-fit: cover; 
+  margin-right: 15px;
+  flex-shrink: 0; /* Чтобы аватар не сжимался */
 }
+
 .avatar-placeholder {
-    background: #e0e0e0; color: #555; display: flex; 
-    align-items: center; justify-content: center; font-weight: bold; font-size: 20px;
+  background: #e0e0e0; 
+  color: #555; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-weight: bold; 
+  font-size: 20px;
 }
 
-.chat-info { flex: 1; min-width: 0; } /* min-width fix for truncation */
-.top-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-.user-name { font-weight: 600; font-size: 15px; color: #333; }
-.date { font-size: 12px; color: #999; }
+.chat-info { 
+  flex: 1; 
+  min-width: 0; /* Критично для работы text-overflow: ellipsis */
+} 
 
-.preview-text { font-size: 13px; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.preview-text.unread { font-weight: 700; color: #000; }
-.you-prefix { font-weight: normal; color: #999; }
+.top-row { 
+  display: flex; 
+  justify-content: space-between; 
+  margin-bottom: 4px; 
+}
+
+.user-name { 
+  font-weight: 600; 
+  font-size: 15px; 
+  color: #333; 
+}
+
+.date { 
+  font-size: 12px; 
+  color: #999; 
+  white-space: nowrap;
+  margin-left: 5px;
+}
+
+.preview-text { 
+  font-size: 13px; 
+  color: #777; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+
+.preview-text.unread { 
+  font-weight: 700; 
+  color: #000; 
+}
+
+.you-prefix { 
+  font-weight: normal; 
+  color: #999; 
+}
 
 .unread-dot {
-    width: 10px; height: 10px; background-color: #3498db; border-radius: 50%; margin-left: 10px;
+  width: 10px; 
+  height: 10px; 
+  background-color: #3498db; 
+  border-radius: 50%; 
+  margin-left: 10px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .chat-item {
+    padding: 12px; /* Чуть меньше отступы */
+  }
+  
+  .avatar-placeholder, .avatar-img {
+    width: 40px; /* Чуть меньше аватарки */
+    height: 40px;
+    margin-right: 10px;
+    font-size: 16px;
+  }
+  
+  .user-name {
+    font-size: 14px;
+  }
+  
+  .preview-text {
+    font-size: 12px;
+  }
 }
 </style>

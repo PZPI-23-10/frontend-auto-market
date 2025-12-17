@@ -1,4 +1,14 @@
 {
+  "chat": {
+    "loading": "Loading chats...",
+    "noMessages": "You have no messages yet",
+    "you": "You",
+    "typeFirstMessage": "Type your first message...",
+    "placeholder": "Your message...",
+    "dialog": "Chat",
+    "myMessages": "My Messages",
+    "send": "Send"
+  },
   "nav": {
     "whoWeAre": "Who We Are",
     "aboutUs": "About Us",
@@ -189,7 +199,7 @@
       "profile": "Main Profile",
       "password": "Change Password",
       "orders": "My Listings",
-      "favorites": "en"
+      "favorites": "Favorites"
     },
     "favoritesTab": {
       "title": "Favorite Cars",
@@ -944,15 +954,15 @@
       },
       "forms": {
         "addType": "Add Vehicle Type",
-        "addFuel": "Add Fuel Type",
-        "addGear": "Add Gearbox",
+        "addFuelType": "Add Fuel Type",
+        "addGearType": "Add Gearbox",
         "addCondition": "Add Condition",
         "addBrand": "Add Brand",
         "addModel": "Add Model (Complex)",
         "placeholders": {
           "type": "e.g. Passenger Car",
-          "fuel": "e.g. Electric",
-          "gear": "e.g. Automatic",
+          "fueltype": "e.g. Electric",
+          "geartype": "e.g. Automatic",
           "condition": "e.g. New",
           "brand": "e.g. Toyota",
           "model": "e.g. Camry",
@@ -994,6 +1004,7 @@
     "reports": {
       "title": "Reports",
       "typeLabel": "Report Type",
+      "chartTitle": "Activity Overview",
       "types": {
         "userActivity": "User Activity"
       },

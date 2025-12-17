@@ -47,14 +47,19 @@
             </ul>
           </li>
 
-          <li class="navbar-dropdown lang-mobile">
-            <a href="#">
-              <span>{{ $t('nav.language') }}</span>
-            </a>
-            <ul class="dropdown-content">
-              <li><a href="#" @click.prevent="changeLanguage('ua')">Українська</a></li>
-              <li><a href="#" @click.prevent="changeLanguage('en')">English</a></li>
-            </ul>
+          <li class="lang-mobile mobile-lang-switcher">
+             <div class="lang-buttons">
+                <a href="#" 
+                   @click.prevent="changeLanguage('ua')" 
+                   :class="{ 'active-lang': $i18n.locale === 'ua' }">
+                   UA
+                </a>
+                <a href="#" 
+                   @click.prevent="changeLanguage('en')" 
+                   :class="{ 'active-lang': $i18n.locale === 'en' }">
+                   EN
+                </a>
+             </div>
           </li>
 
           <li v-if="!isLoggedIn" class="login-mobile">
@@ -176,6 +181,7 @@ function changeLanguage(lang) {
   localStorage.setItem('lang', lang)
 }
 </script>
+
 <style scoped>
 
 .logo-img {
@@ -474,6 +480,124 @@ body {
     line-height: normal;
     font-size: 15px; 
     padding-left: 0; 
+  }
+}
+/* --- АДАПТАЦИЯ --- */
+
+@media screen and (max-width: 768px) {
+  .nav-toggler {
+    display: flex;
+    z-index: 1001; 
+  }
+
+  .user-nav, 
+  .login-desktop, 
+  .lang-desktop {
+    display: none !important;
+  }
+
+  .login-mobile, 
+  .lang-mobile {
+    display: block !important;
+    width: 100%;
+    text-align: center;
+  }
+
+  .site-navbar ul.main-nav {
+    position: fixed; 
+    top: 70px;
+    left: 0;
+    width: 100%;
+    background: rgba(15, 15, 15, 0.98); 
+    backdrop-filter: blur(10px);
+    flex-direction: column;
+    align-items: center;
+    max-height: 0;
+    overflow-y: auto; 
+    overflow-x: hidden;
+    gap: 0;
+    transition: max-height 0.4s ease-in-out;
+    padding: 0;
+    margin: 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  .site-navbar ul.main-nav.open {
+    max-height: 90vh; 
+    padding-bottom: 30px;
+    border-bottom: 1px solid #333;
+  }
+
+  .site-navbar ul.main-nav > li {
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .site-navbar ul.main-nav li a {
+    padding: 15px 0;
+    font-size: 16px;
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: #eee;
+  }
+  
+  .site-navbar ul.main-nav li a.router-link-active {
+    color: #ffd700;
+  }
+
+  .site-navbar .dropdown-content {
+    position: static; 
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.05); 
+    display: none; 
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+    opacity: 1;
+    max-height: none; 
+  }
+
+  .navbar-dropdown:hover .dropdown-content,
+  .navbar-dropdown:focus-within .dropdown-content {
+    display: flex;
+  }
+
+  .site-navbar .dropdown-content li a {
+    padding: 12px 0;
+    font-size: 14px;
+    color: #ccc;
+  }
+
+  .mobile-lang-switcher {
+    border-bottom: none !important; 
+    padding: 20px 0 !important;
+  }
+
+  .lang-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+  }
+
+  .lang-buttons a {
+    /* Стили кнопок */
+    width: auto !important; 
+    padding: 8px 25px !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 30px;
+    font-size: 14px !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  /* Активный язык (Желтый) */
+  .lang-buttons a.active-lang {
+    background-color: #ffd700;
+    border-color: #ffd700;
+    color: #000 !important; 
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
   }
 }
 </style>

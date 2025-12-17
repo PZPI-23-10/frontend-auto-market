@@ -269,4 +269,34 @@ function handleSearch() {
   box-shadow: 0 4px 15px rgba(0,0,0,0.4); cursor: pointer; z-index: 100; transition: 0.3s;
 }
 .fab-sell-car:hover { background: #ff0000; transform: scale(1.05); }
+
+@media (max-width: 768px) {
+  /* 1. Робимо висоту секції гумовою, щоб влізло все на вузьких екранах */
+  .hero-section {
+    height: auto;      /* Відключаємо фіксовану висоту */
+    min-height: 100vh; /* Але не менше висоти екрану */
+    padding: 100px 0 40px 0; /* Відступ зверху (під меню) і знизу */
+    background-attachment: scroll; /* ВАЖЛИВО: fixed глючить на мобільних, scroll виправить фон */
+  }
+
+  /* 2. Зменшуємо гігантський заголовок */
+  .hero-title {
+    font-size: 32px; /* Було 48px, зменшуємо щоб не розпирало */
+    word-wrap: break-word; /* Перенос довгих слів */
+  }
+
+  /* 3. Головний винуватець - форма */
+  .hero-form {
+    width: 100%; /* Замість 350px робимо на всю ширину */
+    max-width: 100%;
+    box-sizing: border-box; /* Щоб padding не додавався до ширини */
+    margin-top: 20px;
+  }
+  
+  /* Додатково: підстраховка контейнера */
+  .container {
+    width: 100%;
+    overflow-x: hidden;
+  }
+}
 </style>
