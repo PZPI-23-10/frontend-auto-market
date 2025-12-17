@@ -28,23 +28,9 @@
           </li>
           
           <li v-if="!isAuthPage" class="navbar-dropdown">
-            <a href="#">
-              <span>{{ $t('nav.shop') }}</span>
-            </a>
-            <ul class="dropdown-content">
-              <li>
-                <router-link :to="{ path: '/listings' }">{{ $t('nav.allCars') }}</router-link>
-              </li>
-              <li>
-                <router-link :to="{ path: '/listings', query: { fuel: 'Електро' } }">{{ $t('nav.electric') }}</router-link>
-              </li>
-              <li>
-                <router-link :to="{ path: '/listings', query: { fuel: 'Гібрид' } }">{{ $t('nav.hybrid') }}</router-link>
-              </li>
-              <li>
-                <router-link :to="{ path: '/listings', query: { type: 'sport' } }">{{ $t('nav.sport') }}</router-link>
-              </li>
-            </ul>
+            
+               <router-link :to="{ path: '/listings' }">{{ $t('nav.shop') }}</router-link>
+    
           </li>
 
           <li class="lang-mobile mobile-lang-switcher">

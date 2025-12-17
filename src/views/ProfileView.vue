@@ -280,6 +280,23 @@
 
       </main>
     </div>
+
+    <div v-if="isDeleteModalOpen" class="modal-overlay" @click.self="closeDeleteModal">
+      <div class="modal-content">
+        <h3>{{ t('profile.ordersTab.delete') }}</h3>
+        <p class="modal-text">{{ t('profile.ordersTab.deleteConfirm') }}</p>
+        
+        <div class="modal-actions">
+          <button class="btn-secondary" @click="closeDeleteModal">
+            {{ t('profile.buttons.cancel') || 'Скасувати' }}
+          </button>
+          <button class="btn-primary btn-danger" @click="confirmDelete">
+            {{ t('profile.ordersTab.delete') }}
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -311,6 +328,10 @@ const isLoadingListings = ref(false);
 const userListings = ref([]);
 const isLoadingFavorites = ref(false);
 const favoriteCars = ref([]);
+
+// --- STATE ДЛЯ МОДАЛЬНОГО ОКНА ---
+const isDeleteModalOpen = ref(false);
+const listingToDeleteId = ref(null);
 
 const countries = ref([
   { code: 'UA', nameKey: 'countries.ua', phoneCode: '380' },
@@ -443,8 +464,23 @@ async function fetchUserListings() {
 
 function editListing(id) { router.push({ name: 'edit-listing', params: { id: id } }); }
 
-async function deleteListing(id) {
-  if (!confirm(t('profile.ordersTab.deleteConfirm'))) return;
+// 1. Відкриття модалки
+function deleteListing(id) {
+  listingToDeleteId.value = id;
+  isDeleteModalOpen.value = true;
+}
+
+// 2. Закриття модалки
+function closeDeleteModal() {
+  isDeleteModalOpen.value = false;
+  listingToDeleteId.value = null;
+}
+
+// 3. Підтвердження видалення
+async function confirmDelete() {
+  if (!listingToDeleteId.value) return;
+  const id = listingToDeleteId.value;
+  
   try {
     await axios.delete(`${API_LISTING_BASE_URL}/${id}`, {
       headers: getAuthHeader()
@@ -457,6 +493,8 @@ async function deleteListing(id) {
     } else {
        toast.error(t('profile.ordersTab.deleteFail'));
     }
+  } finally {
+    closeDeleteModal();
   }
 }
 
@@ -678,7 +716,6 @@ function goToCreateListing() { router.push('/create-listing'); }
 </script>
 
 <style scoped>
-/* (СТИЛІ ЗАЛИШАЮТЬСЯ БЕЗ ЗМІН) */
 .profile-view {
   background-image: url('@/assets/car-header1.jpg'); 
   background-size: cover;
@@ -1082,7 +1119,6 @@ button {
   padding-bottom: 0;
 }
 
-/* --- СТИЛІ ДЛЯ ЗАМОВЛЕНЬ --- */
 .add-listing-btn {
   display: flex;
   align-items: center;
@@ -1119,7 +1155,6 @@ button {
   color: #ccc;
 }
 
-/* Хедер вкладки з кнопкою */
 .tab-header {
   display: flex;
   justify-content: space-between;
@@ -1148,10 +1183,9 @@ button {
   border-radius: 12px;
   padding: 15px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  position: relative; /* ВАЖНО для позиционирования бейджа */
+  position: relative;
 }
 
-/* === ДОБАВЛЕННЫЕ СТИЛИ ДЛЯ ЧЕРНОВИКОВ === */
 .listing-item-wrapper.draft-item {
   border: 1px dashed rgba(255, 215, 0, 0.3);
   background-color: rgba(255, 215, 0, 0.02);
@@ -1181,15 +1215,13 @@ button {
 
 .listing-actions {
   display: flex;
-  justify-content: flex-end; /* Кнопки справа */
+  justify-content: flex-end; 
   gap: 15px;
   margin-top: 15px;
   padding-top: 15px;
-  /* Лінія розділення між карткою і кнопками */
   border-top: 1px solid rgba(255, 255, 255, 0.1); 
 }
 
-/* Загальний стиль кнопок */
 .btn-action {
   display: flex;
   align-items: center;
@@ -1236,6 +1268,76 @@ button {
   to { transform: rotate(360deg); }
 }
 
+/* --- СТИЛІ ДЛЯ МОДАЛКИ (НОВЕ) --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: #1e1e1e; /* Темний фон */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  animation: scaleUp 0.2s ease-out;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #fff;
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.modal-text {
+  color: #ccc;
+  margin-bottom: 25px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.modal-actions button {
+  min-width: 100px;
+}
+
+.btn-danger {
+  background-color: #cc0000;
+  color: white;
+}
+.btn-danger:hover {
+  background-color: #ff0000;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 /* --- АДАПТАЦІЯ ПРОФІЛЮ --- */
 
 @media (max-width: 992px) {
@@ -1245,7 +1347,6 @@ button {
     padding-right: 10px;
   }
   
-  /* 1. Сітка профілю стає стовпчиком */
   .profile-container {
     grid-template-columns: 1fr; 
     display: flex; 
@@ -1253,7 +1354,6 @@ button {
     gap: 20px;
   }
 
-  /* 2. Заголовок */
   .profile-view h1 {
     font-size: 28px;
     text-align: center;
@@ -1261,7 +1361,6 @@ button {
     margin-bottom: 20px;
   }
 
-  /* 3. Сайдбар (Меню вкладок) */
   .profile-sidebar {
     width: 100%;
     padding: 10px;
@@ -1282,14 +1381,12 @@ button {
     font-size: 14px;
   }
 
-  /* 4. Контент (Форми і картки) */
   .profile-content {
     width: 100%;
     padding: 20px 15px;
     box-sizing: border-box;
   }
 
-  /* Адаптація форми */
   .form-row {
     grid-template-columns: 1fr; 
   }

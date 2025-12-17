@@ -195,6 +195,9 @@
   },
   "profile": {
     "mainTitle": "Settings",
+    "buttons":{
+        "cancel": "Cancel"
+    },
     "nav": {
       "profile": "Main Profile",
       "password": "Change Password",

@@ -206,6 +206,10 @@
   },
   "profile": {
     "mainTitle": "Налаштування",
+    
+    "buttons":{
+        "cancel": "Скасувати"
+    },
     "nav": {
       "profile": "Основний профіль",
       "password": "Зміна пароля",
