@@ -154,10 +154,7 @@
                       </svg>
                       {{ t('fields.licensePlate') }}
                     </span>
-                    
-                    <strong class="license-plate-style">
-                      {{ listing.licensePlate }}
-                    </strong>
+                    <strong class="license-plate-style">{{ listing.licensePlate }}</strong>
                   </li>
 
                   <li v-if="listing.vin && listing.vin.length === 17">
@@ -216,7 +213,7 @@
             </p>
             
             <div v-if="hasCoordinates" id="map-container" class="map-view"></div>
-             <p v-else class="no-map-text">{{ t('listingDetail.mapNotAvailable') }}</p>
+            <p v-else class="no-map-text">{{ t('listingDetail.mapNotAvailable') }}</p>
           </div>
           
           <div class="filter-card seller-card">
@@ -237,6 +234,7 @@
                 <a :href="`tel:${seller.phone}`">{{ seller.phone }}</a>
               </div>
             </div>
+            
             <button class="btn-secondary message-btn"
             @click="contactSeller"
             :disabled="isContacting">
@@ -303,11 +301,10 @@ const seller = ref({
   avatarUrl: null
 });
 
-// --- Вспомогательные функции ---
-
+// --- FAVORITE LOGIC ---
 async function toggleFavorite() {
   if (!token.value) {
-    toast.error(t('profile.favoritesTab.toast.loginRequired')); // LOCALES
+    toast.error(t('profile.favoritesTab.toast.loginRequired'));
     router.push('/login');
     return;
   }
@@ -317,30 +314,24 @@ async function toggleFavorite() {
 
   try {
     if (isFav.value) {
-      // === DELETE ===
+      // DELETE
       if (removeFavoriteId) removeFavoriteId(Number(listingId));
       else favoriteIds.value.delete(Number(listingId));
 
       await axios.delete(`${API_FAV_URL}/remove`, {
-        headers: { 
-            'Authorization': `Bearer ${cleanToken}`,
-            'Content-Type': 'application/json' 
-        },
+        headers: { 'Authorization': `Bearer ${cleanToken}`, 'Content-Type': 'application/json' },
         data: payload
       });
-      toast.info(t('profile.favoritesTab.toast.removed')); // LOCALES
+      toast.info(t('profile.favoritesTab.toast.removed'));
     } else {
-      // === ADD ===
+      // ADD
       if (addFavoriteId) addFavoriteId(Number(listingId));
       else favoriteIds.value.add(Number(listingId)); 
 
       await axios.post(`${API_FAV_URL}/add`, payload, {
-        headers: { 
-            'Authorization': `Bearer ${cleanToken}`,
-            'Content-Type': 'application/json'
-        }
+        headers: { 'Authorization': `Bearer ${cleanToken}`, 'Content-Type': 'application/json' }
       });
-      toast.success(t('profile.favoritesTab.toast.added')); // LOCALES
+      toast.success(t('profile.favoritesTab.toast.added'));
     }
   } catch (error) {
     console.error("Помилка favorite:", error);
@@ -361,6 +352,7 @@ async function toggleFavorite() {
   }
 }
 
+// --- HELPERS ---
 function getLabel(category, serverName) {
   if (!serverName) return '';
   if (category === 'color' && serverName.startsWith('#')) {
@@ -385,7 +377,6 @@ function mapApiToDetail(apiItem) {
 
   const regionName = apiItem.region?.name || '';
   const cityName = apiItem.city?.name || '';
-
   const locationFull = [regionName, cityName].filter(Boolean).join(', ') || 'Україна';
 
   return {
@@ -413,7 +404,6 @@ function mapApiToDetail(apiItem) {
     inAccident: apiItem.hasAccident ?? null, 
     images: processedImages, 
     description: apiItem.description || '',
-    // --- Координати з API ---
     latitude: apiItem.latitude,
     longitude: apiItem.longitude
   };
@@ -426,10 +416,8 @@ function isValidLicensePlate(plate) {
   return plate.length > 2;
 }
 
-// --- ЛОГИКА КАРТЫ (LEAFLET) ---
-
+// --- MAP LOGIC (LEAFLET) ---
 const hasCoordinates = computed(() => {
-  // Перевірка на null, undefined та 0 (щоб не показувати карту в океані)
   return listing.value && 
          listing.value.latitude && 
          listing.value.longitude && 
@@ -438,11 +426,10 @@ const hasCoordinates = computed(() => {
 });
 
 const initMap = () => {
-  // Перевіряємо, чи існує контейнер у DOM перед ініціалізацією
   const mapContainer = document.getElementById('map-container');
   if (!hasCoordinates.value || !mapContainer) return;
 
-  // Виправляємо проблему з іконками у Vite/Webpack
+  // Icon fix
   delete L.Icon.Default.prototype._getIconUrl;
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
@@ -457,7 +444,6 @@ const initMap = () => {
     mapInstance.value.remove();
   }
 
-  // Створюємо карту
   mapInstance.value = L.map('map-container').setView([lat, lng], 13);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -468,6 +454,11 @@ const initMap = () => {
     .addTo(mapInstance.value)
     .bindPopup(`${listing.value.brand} ${listing.value.model}`)
     .openPopup();
+    
+  // Важный фикс: обновить размер карты после инициализации
+  setTimeout(() => {
+      mapInstance.value.invalidateSize();
+  }, 200);
 };
 
 onBeforeUnmount(() => {
@@ -476,10 +467,7 @@ onBeforeUnmount(() => {
   }
 });
 
-// !!! ВАЖЛИВО: Watcher для запуску карти !!!
-// Цей код чекає, поки зникне спіннер (isLoading = false),
-// потім чекає оновлення DOM (nextTick), щоб з'явився <div id="map-container">,
-// і тільки потім запускає Leaflet.
+// Запуск карты после того, как исчезнет Loading
 watch(isLoading, async (newValue) => {
   if (newValue === false && hasCoordinates.value) {
     await nextTick();
@@ -487,8 +475,7 @@ watch(isLoading, async (newValue) => {
   }
 });
 
-// --- ЛОГИКА КНОПКИ "НАПИСАТЬ" ---
-
+// --- CHAT LOGIC (FIXED) ---
 const contactSeller = async () => {
   if (!isAuthenticated.value) {
     toast.info(t('auth.loginRequired') || 'Увійдіть, щоб написати продавцю');
@@ -512,6 +499,13 @@ const contactSeller = async () => {
     
     const chatData = res.data; 
 
+    // === ИСПРАВЛЕНИЕ ===
+    // Создаем объект с информацией о собеседнике для шапки
+    const headerInfo = {
+        name: seller.value.name,
+        photo: seller.value.avatarUrl
+    };
+
     const listingContext = {
       id: listing.value.id,
       title: `${listing.value.brand} ${listing.value.model} ${listing.value.year}`,
@@ -519,7 +513,8 @@ const contactSeller = async () => {
       image: selectedImageUrl.value 
     };
 
-    chatStore.openChat(chatData.id, listingContext);
+    // Передаем ТРИ аргумента: ID, HeaderInfo, Context
+    chatStore.openChat(chatData.id, headerInfo, listingContext);
 
   } catch (e) {
     console.error('Ошибка создания чата:', e);
@@ -529,8 +524,7 @@ const contactSeller = async () => {
   }
 };
 
-// --- Lifecycle ---
-
+// --- LIFECYCLE ---
 onMounted(async () => {
   isLoading.value = true;
   const carId = route.params.id;
@@ -541,7 +535,7 @@ onMounted(async () => {
     if (response.data) {
       listing.value = mapApiToDetail(response.data);
       
-      // Загрузка данных продавца
+      // Load Seller
       if (listing.value.userId) {
         try {
           const profileRes = await axios.get(`${API_BASE}/Profile`, { params: { userId: listing.value.userId } });
@@ -562,13 +556,11 @@ onMounted(async () => {
     toast.error(t('listingDetail.loadError'));
     listing.value = null;
   } finally {
-    // Встановлення isLoading в false запустить watcher, який ініціалізує карту
     isLoading.value = false;
   }
 });
 
-// --- Computed ---
-
+// --- COMPUTED / MODAL ---
 const formattedPrice = computed(() => {
   if (!listing.value) return '';
   return `${listing.value.price.toLocaleString(locale.value)} ${listing.value.currency}`;
@@ -598,6 +590,261 @@ function closeModal() {
 }
 </script>
 
+<style scoped>
+.detail-view {
+  background-image: url('@/assets/car-header1.jpg'); 
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; 
+  min-height: 100vh;
+  position: relative;
+  padding: 100px 20px 40px 20px;
+  font-family: 'Open Sans', sans-serif;
+  color: #fff;
+}
+.detail-view::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75); 
+  z-index: 0;
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.listing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.listing-header h2 {
+  margin: 0;
+  border: none;
+  padding: 0;
+  flex-grow: 1;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.favorite-btn-detail {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 50%;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.favorite-btn-detail:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(46, 204, 113, 0.15); 
+  color: #2ecc71; 
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  user-select: none;
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.1);
+}
+
+.form-card, .filter-card, .loading-card {
+  background-color: rgba(30, 30, 30, 0.7); 
+  border-radius: 12px;
+  backdrop-filter: blur(12px); 
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  padding: 30px;
+  margin-bottom: 20px;
+}
+
+.form-card h2, .filter-card h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 10px;
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+}
+
+.page-layout {
+  display: grid;
+  grid-template-columns: 1fr; 
+  gap: 25px;
+}
+@media (min-width: 992px) {
+  .page-layout {
+    grid-template-columns: 3fr 1fr; 
+    align-items: start;
+  }
+}
+
+.main-image {
+  position: relative;
+  width: 100%;
+  height: 500px; 
+  border-radius: 12px;
+  overflow: hidden; 
+  background: #0e0e0e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #333;
+}
+
+.blur-background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(30px) brightness(0.7); 
+  transform: scale(1.2); 
+  z-index: 0;
+}
+
+.main-image img {
+  position: relative;
+  z-index: 1; 
+  width: 100%;
+  height: 100%;
+  object-fit: contain; 
+  cursor: zoom-in;
+  transition: transform 0.3s ease;
+}
+
+.main-image:hover img { transform: scale(1.02); }
+
+.thumbnails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+.thumb-item {
+  width: 100px;
+  height: 70px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+.thumb-item:hover { opacity: 1; border-color: #ffd700; }
+.thumb-item.active { opacity: 1; border-color: #cc0000; box-shadow: 0 0 10px rgba(204, 0, 0, 0.5); }
+.thumb-item img { width: 100%; height: 100%; object-fit: cover; }
+
+@media (max-width: 768px) {
+  .main-image { height: 300px; }
+  .thumb-item { width: 80px; height: 60px; }
+}
+
+.specs-desc-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 25px;
+  align-items: start;
+  margin-top: 25px;
+}
+@media (min-width: 768px) {
+  .specs-desc-layout { grid-template-columns: 1fr 1fr; }
+}
+
+.specs-list { list-style: none; padding: 0; margin: 0; }
+.specs-list li {
+  display: grid;
+  grid-template-columns: auto 1fr; 
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+}
+.specs-list li:last-child { border-bottom: none; }
+.specs-list li span { color: #aaa; display: flex; align-items: center; gap: 10px; }
+.specs-list li strong { color: #fff; font-weight: 600; text-align: right; }
+.specs-list li svg { width: 18px; height: 18px; stroke: #ffd700; stroke-width: 2; }
+
+.description-text { font-size: 15px; line-height: 1.8; color: #e0e0e0; white-space: pre-wrap; }
+
+.sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 20px; }
+.price { font-size: 32px; font-weight: 800; color: #ffd700; margin: 0; text-shadow: 0 2px 10px rgba(255, 215, 0, 0.2); }
+.location { font-size: 15px; color: #ccc; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+
+/* MAP CONTAINER */
+.map-view {
+  width: 100%;
+  height: 200px;
+  background-color: #333;
+  border-radius: 8px;
+  margin-top: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 1; /* Чтобы карта не перекрывала модалку */
+}
+.no-map-text { font-size: 12px; color: #777; margin-top: 10px; font-style: italic; }
+
+.seller-card h4 { font-size: 14px; text-transform: uppercase; color: #888; letter-spacing: 1px; border-bottom: 1px solid #444; }
+.seller-info { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+.seller-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #ffd700; }
+.seller-details strong { display: block; font-size: 18px; color: #fff; margin-bottom: 4px; }
+
+.license-plate-style {
+  font-family: 'Consolas', 'Monaco', monospace; 
+  font-weight: 700;
+  font-size: 16px;
+  color: #ffd700; 
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); 
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: transparent; 
+  border: none;           
+  padding: 0;               
+}
+
+.message-btn {
+  width: 100%; padding: 14px 0; border-radius: 6px; border: none; font-weight: 700;
+  cursor: pointer; margin-top: 20px; background-color: #cc0000; color: #fff;
+  text-transform: uppercase; letter-spacing: 1px; transition: background 0.3s;
+}
+.message-btn:hover { background-color: #ff0000; box-shadow: 0 4px 15px rgba(204, 0, 0, 0.4); }
+
+.loading-card { min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.spinner { width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.1); border-top-color: #ffd700; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.image-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center; z-index: 10000; animation: fadeIn 0.3s;
+}
+.image-modal-content { position: relative; max-width: 95%; max-height: 95vh; }
+.modal-image { max-width: 100%; max-height: 90vh; border-radius: 4px; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+.modal-close-btn { position: absolute; top: -40px; right: 0; background: transparent; color: #fff; border: none; font-size: 40px; cursor: pointer; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
 <style scoped>
 /* Ваші стилі */
 .title-wrapper {
