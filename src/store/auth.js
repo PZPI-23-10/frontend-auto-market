@@ -28,7 +28,6 @@ export function useAuth() {
     localStorage.setItem('token', newToken);
     localStorage.setItem('isVerified', JSON.stringify(verifiedStatus)); 
     
-    console.log('Auth data set:', { userId: userId.value, token: token.value });
   }
 
   function clearAuthData() {
@@ -73,8 +72,6 @@ export function useAuth() {
           
           const data = response.data;
           
-          console.log("Данные профиля с сервера:", data); 
-
           const newStatus = data.isVerified || false;
           if (newStatus !== isVerified.value) {
               updateVerifiedStatus(newStatus);
@@ -83,7 +80,6 @@ export function useAuth() {
           if (data.roles && Array.isArray(data.roles)) {
               userRoles.value = data.roles;
               localStorage.setItem('userRoles', JSON.stringify(data.roles));
-              console.log('Роли обновлены:', userRoles.value); 
           }
 
           // === ДОДАНО: Оновлюємо список з профілю ===

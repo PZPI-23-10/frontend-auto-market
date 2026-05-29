@@ -63,7 +63,7 @@
             <button type="button" class="register-btn" @click="prevStep">
               {{ t('register.buttons.previous') }}
             </button>
-            <button type="button" class="login-btn" @click="completeRegistration">
+            <button type="button" class="login-btn" @click="completeRegistration" :disabled="isSubmitting">
               {{ t('register.buttons.complete') }}
             </button>
           </div>
@@ -109,6 +109,7 @@ const personalCountry = ref('UA');
 const phoneCountry = ref('380');
 const phone = ref('');
 const address = ref('');
+const isSubmitting = ref(false);
 
 // 3. ОНОВЛЕНО: Використання ключів для локалізації
 const countries = ref([
@@ -174,7 +175,6 @@ async function nextStep() {
 
     // 5. ЛОКАЛІЗАЦІЯ ПОМИЛОК API (Перевірка Email)
     try {
-      console.log(`Перевіряємо email: ${email.value}`);
       const response = await axios.get(API_URL_CHECK_EMAIL, {
         params: { email: email.value }
       });
@@ -210,6 +210,8 @@ function prevStep() {
 
 // --- Відправка форми реєстрації ---
 async function completeRegistration() {
+  if (isSubmitting.value) return;
+
   // 6. ЛОКАЛІЗАЦІЯ ВАЛІДАЦІЇ
   let formattedDateOfBirth = '';
   if (dateOfBirth.value) {
@@ -240,15 +242,13 @@ async function completeRegistration() {
     address: address.value,
   }
 
-  console.log("Відправляємо дані:", JSON.stringify(payload, null, 2));
-
   // 7. ЛОКАЛІЗАЦІЯ ВІДПОВІДІ API
+  isSubmitting.value = true;
   try {
     const response = await axios.post(API_URL_REGISTER, payload, {
       headers: { 'Content-Type': 'application/json' }
     });
 
-    console.log('Відповідь від сервера (Axios):', response.data);
      const data = response.data; 
    if (!data.accessToken || !data.userId) {
       throw new Error(t('register.errors.noToken'));
@@ -264,7 +264,6 @@ async function completeRegistration() {
     let errorMessage = t('register.errors.generic'); 
 
     if (error.response) {
-      console.error('Дані помилки від сервера:', error.response.data);
       const responseData = error.response.data;
       const status = error.response.status;
 
@@ -292,6 +291,8 @@ async function completeRegistration() {
       errorMessage = t('register.errors.requestFailed', { error: error.message });
     }
     toast.error(errorMessage);
+  } finally {
+    isSubmitting.value = false;
   }
 }
 function filterPhoneInput(event) {

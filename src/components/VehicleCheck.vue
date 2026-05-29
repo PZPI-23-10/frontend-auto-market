@@ -108,6 +108,10 @@ const identifierToCheck = computed(() => {
   return null;
 });
 
+const identifierType = computed(() => {
+  return props.vin && props.vin.length === 17 ? 'vin' : 'plate';
+});
+
 // ... (Функции getLabel, getOperationName, getColorHex, formatEngine БЕЗ ИЗМЕНЕНИЙ) ...
 function getLabel(category, serverName) {
   if (!serverName) return '';
@@ -161,12 +165,7 @@ async function fetchOfficialData() {
   isNotFound.value = false;
 
   try {
-    console.log("Проверяем авто:", { 
-    identifier: id, 
-    vinProp: props.vin, 
-    plateProp: props.licensePlate 
-});
-    const res = await axios.get(`${API_HOST}/VehicleCheck/vin/${id}`, {
+    const res = await axios.get(`${API_HOST}/VehicleCheck/${identifierType.value}/${id}`, {
         params: { lang: locale.value } 
     });
     const data = res.data;

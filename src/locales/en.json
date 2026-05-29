@@ -145,7 +145,9 @@
     "specsTitle": "Specifications",
     "modalAlt": "Fullscreen image",
     "loadSuccess": "Data loaded",
-    "loadError": "Listing not found"
+    "loadError": "Listing not found",
+    "addToFav": "Add to favorites",
+    "removeFromFav": "Remove from favorites"
   },
   "listings": {
     "title": "Car Catalog",
@@ -225,7 +227,7 @@
       "verify": {
         "statusWarning": "Your email is not verified.",
         "statusSuccess": "Email verified.",
-        "infoText": "We sent a 6-digit code to your email (<b>{email}</b>) during registration. Please enter it below.",
+        "infoText": "We sent a 6-digit code to your email ({email}) during registration. Please enter it below.",
         "codeLabel": "Enter code from email:",
         "codePlaceholder": "6 digits",
         "verifyButton": "Verify",
@@ -355,7 +357,7 @@
       "passDigit": "Password must contain at least one digit.",
       "passLowercase": "Password must contain at least one lowercase letter.",
       "passUppercase": "Password must contain at least one uppercase letter.",
-      "passSpecial": "Password must contain at least one special character (!@#$%)."
+      "passSpecial": "Password must contain at least one special character, for example ! # $ %."
     },
     "errors": {
       "emailExists": "A user with this email already exists.",

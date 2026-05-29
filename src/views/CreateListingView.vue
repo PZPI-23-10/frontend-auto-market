@@ -761,8 +761,6 @@ async function handleSubmit() {
     router.push('/profile');
     
   } catch (error) {
-    console.error("Помилка:", error);
-    
     const errorData = error.response?.data;
     let serverMessage = '';
 
@@ -809,9 +807,9 @@ function formatLicensePlate(event) {
 
 function handleError(error) {
     let msg = "Сталася помилка";
-    if (error.response?.data?.title) msg = error.response.data.title;
+    if (error.response?.data?.errors) msg = Object.values(error.response.data.errors).flat().join('\n');
+    else if (error.response?.data?.title) msg = error.response.data.title;
     else if (typeof error.response?.data === 'string') msg = error.response.data;
-    else if (error.response?.data?.errors) msg = Object.values(error.response.data.errors).flat().join('\n');
     toast.error(msg);
 }
 </script>
