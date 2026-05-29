@@ -12,7 +12,7 @@ export function useChat() {
     const isConnected = ref(false);
     const error = ref(null);
 
-    const BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app'; 
+    const BASE_URL = 'https://jellyfish-app-obre9.ondigitalocean.app/'; 
     const API_URL = `${BASE_URL}/api`;
     const HUB_URL = `${BASE_URL}/hubs/chat`;
 

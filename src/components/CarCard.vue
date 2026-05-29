@@ -96,7 +96,7 @@ const router = useRouter();
 const toast = useToast();
 const { t, locale } = useI18n();
 const authStore = useAuth();
-const API_FAV_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Favourite';
+const API_FAV_URL = 'https://jellyfish-app-obre9.ondigitalocean.app/api/Favourite';
 
 const isFav = computed(() => authStore.isFavorite(props.listing.id));
 

@@ -94,7 +94,7 @@ const props = defineProps({
 });
 
 const { t, locale, te } = useI18n();
-const API_HOST = 'https://backend-auto-market-wih5h.ondigitalocean.app/api'; 
+const API_HOST = 'https://jellyfish-app-obre9.ondigitalocean.app/api'; 
 
 const loading = ref(true);
 const report = ref(null);

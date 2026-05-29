@@ -9,7 +9,7 @@ const isVerified = ref(JSON.parse(localStorage.getItem('isVerified') || 'false')
 const favoriteIds = ref(new Set()); 
 // ======================================
 
-const PROFILE_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Profile';
+const PROFILE_BASE_URL = 'https://jellyfish-app-obre9.ondigitalocean.app/api/Profile';
 
 export function useAuth() {
 

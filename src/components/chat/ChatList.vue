@@ -53,7 +53,7 @@ const { token, userId } = useAuth(); // userId должен быть досту�
 const chats = ref([]);
 const isLoading = ref(true);
 
-const API_HOST = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
+const API_HOST = 'https://jellyfish-app-obre9.ondigitalocean.app/api';
 
 const processedChats = computed(() => {
     return chats.value.map(chat => {

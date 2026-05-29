@@ -524,7 +524,7 @@ const { t, te } = useI18n();
 const router = useRouter();
 const { token } = useAuth(); 
 
-const API_BASE = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
+const API_BASE = 'https://jellyfish-app-obre9.ondigitalocean.app/api';
 const activeTab = ref('dashboard');
 const carDataMode = ref('add'); 
 
@@ -843,7 +843,7 @@ watch(carDataMode, (newMode) => {
   background-position: center;
   background-attachment: fixed;
   position: relative;
-  padding-top: 100px;
+  padding-top: 100px; 
   padding-bottom: 40px;
   font-family: 'Open Sans', sans-serif;
   color: #ecf0f1;

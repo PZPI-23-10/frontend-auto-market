@@ -79,7 +79,7 @@ import SearchableSelect from '@/components/SearchableSelect.vue';
 const { t } = useI18n();
 const router = useRouter();
 
-const API_BASE = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
+const API_BASE = 'https://jellyfish-app-obre9.ondigitalocean.app/api';
 const bgImage = ref('https://images.unsplash.com/photo-1493238792000-8113da705763?q=80&w=1920');
 
 // Зберігаємо "Всі бренди" окремо, щоб можна було до них повернутися

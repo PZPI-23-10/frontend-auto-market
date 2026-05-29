@@ -326,7 +326,7 @@ const { t, te } = useI18n();
 const { token } = useAuth();
 const DRAFT_STORAGE_KEY = 'newListingDraft';
 
-const API_HOST = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
+const API_HOST = 'https://jellyfish-app-obre9.ondigitalocean.app/api';
 
 // --- STATE ---
 const listingId = ref(route.params.id); 

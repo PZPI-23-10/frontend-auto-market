@@ -279,8 +279,8 @@ const toast = useToast();
 const { t, locale } = useI18n();
 
 const listingId = route.params.id;
-const API_BASE = 'https://backend-auto-market-wih5h.ondigitalocean.app/api';
-const API_FAV_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Favourite';
+const API_BASE = 'https://jellyfish-app-obre9.ondigitalocean.app/api';
+const API_FAV_URL = 'https://jellyfish-app-obre9.ondigitalocean.app/api/Favourite';
 
 const { token, favoriteIds, addFavoriteId, removeFavoriteId, isAuthenticated, userId } = useAuth();
 

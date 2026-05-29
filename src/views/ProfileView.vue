@@ -315,12 +315,12 @@ const { t } = useI18n();
 const authStore = useAuth(); 
 const { userId, token, clearAuthData, setFavorites, removeFavoriteId } = authStore;
 
-const API_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Auth';
-const API_PROFILE_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Profile';
+const API_BASE_URL = 'https://jellyfish-app-obre9.ondigitalocean.app/api/Auth';
+const API_PROFILE_BASE_URL = 'https://jellyfish-app-obre9.ondigitalocean.app/api/Profile';
 const VERIFY_EMAIL_URL = `${API_BASE_URL}/verify-email`;
 const SEND_VERIFICATION_URL = `${API_BASE_URL}/send-verification-email`;
-const API_LISTING_BASE_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Listing'; 
-const API_FAV_URL = 'https://backend-auto-market-wih5h.ondigitalocean.app/api/Favourite';
+const API_LISTING_BASE_URL = 'https://jellyfish-app-obre9.ondigitalocean.app/api/Listing'; 
+const API_FAV_URL = 'https://jellyfish-app-obre9.ondigitalocean.app/api/Favourite';
 
 const route = useRoute();
 const router = useRouter(); 
